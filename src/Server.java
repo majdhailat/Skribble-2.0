@@ -102,7 +102,11 @@ class ServerChatInputThread extends Thread{
     public void run(){
         while (true) {
             try {
-                objectOutputStream.writeObject(Server.getDataPackage(player));////THIS IS WHERE THE ISSUE OCCURS.... IS IT A SERIALIZATION ISSUE????
+                DataPackage dataPackage = Server.getDataPackage(player);
+                if (dataPackage.getPlayers().size() == 1) {
+                    System.out.println(dataPackage.getPlayers().get(0).getName());
+                }
+                objectOutputStream.writeObject(dataPackage);////THIS IS WHERE THE ISSUE OCCURS.... IS IT A SERIALIZATION ISSUE????
                 objectOutputStream.flush();
             } catch (IOException e) {e.printStackTrace();}
         }
