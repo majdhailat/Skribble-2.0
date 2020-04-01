@@ -8,7 +8,7 @@ public class Client extends JFrame {
     private static boolean canReceiveMessages = false;
     private static String [] messageQueue = new String[17];
     private static String inputMessage = null;
-    private boolean ahmad = true;
+
 
     public static void main(String[] args)  {
         String hostName = "localhost";
