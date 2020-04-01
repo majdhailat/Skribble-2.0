@@ -9,6 +9,7 @@ public class Client extends JFrame {
     private static String [] messageQueue = new String[17];
     private static String inputMessage = null;
     private boolean majdSucksBalls = true;
+    private boolean noumanSucksAtCS = true;
 
     public static void main(String[] args)  {
         String hostName = "localhost";
