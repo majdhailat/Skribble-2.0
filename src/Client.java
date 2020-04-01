@@ -9,7 +9,6 @@ public class Client extends JFrame {
     private static String [] messageQueue = new String[17];
     private static String inputMessage = null;
 
-
     public static void main(String[] args)  {
         String hostName = "localhost";
         int portNumber = 4444;
