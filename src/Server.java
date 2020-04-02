@@ -8,28 +8,20 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class Server {
-    private static String message;
-    private static ArrayList<Player> messageReaders = new ArrayList<>();
-    private volatile static ArrayList<Player> players = new ArrayList<>();
+    private String message;
+    private ArrayList<Player> messageReaders = new ArrayList<>();
+    private ArrayList<Player> players = new ArrayList<>();
 
-    public static void main(String[] args) {
-        int portNumber = 4444;
-        boolean listening = true;
-        try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
-            while (listening) {
-                Socket socket = serverSocket.accept();
-                Player player = new Player("");
-                players.add(player);
-                new ServerChatInputThread(player, socket).start();
-                new ServerOutputThread(player, socket).start();
-            }
-        } catch (IOException e) {
-            System.err.println("Port error");
-            System.exit(-1);
-        }
+    public static void main(String []args){
+        Server server = new Server();
+        new ListenForClients(server).start();
     }
 
-    public static void newMessage(String msg, Player player){
+    public synchronized void newPlayer(Player player){
+        players.add(player);
+    }
+
+    public synchronized void newMessage(String msg, Player player){
         messageReaders.clear();
         if (msg.contains("~")){
             message = msg;
@@ -39,7 +31,7 @@ public class Server {
         messageReaders.add(player);
     }
 
-    public static String getMessage(Player player) {
+    public synchronized String getMessage(Player player) {
         if (messageReaders.contains(player)){
             return null;
         }else{
@@ -48,28 +40,54 @@ public class Server {
         }
     }
 
-    public static ArrayList<Player> getPlayers(){
+    public synchronized ArrayList<Player> getPlayers(){
         return players;
     }
 
-    public synchronized static DataPackage getDataPackage(Player player){
+    public synchronized DataPackage getDataPackage(Player player){
         try {
-            TimeUnit.MILLISECONDS.sleep(200);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return new DataPackage(Server.getMessage(player), players);
+            TimeUnit.MILLISECONDS.sleep(1);
+        } catch (InterruptedException e) {e.printStackTrace();}
 
+        return new DataPackage(getMessage(player), players);
     }
 }
 
 // ------------ Threads ------------------------------------------
+class ListenForClients extends Thread{
+    Server server;
+    public ListenForClients(Server server) {
+        this.server = server;
+    }
+
+    public void run( ){
+        int portNumber = 4445;
+        boolean listening = true;
+        try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
+            while (listening) {
+                Socket socket = serverSocket.accept();
+                Player player = new Player("");
+                server.newPlayer(player);
+                new ServerChatInputThread(server, player, socket).start();
+                new ServerOutputThread(server, player, socket).start();
+                if (server.getPlayers().size() == 5){
+                    listening = false;
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Port error");
+            System.exit(-1);
+        }
+    }
+}
 
 class ServerOutputThread extends Thread{
     private Player player;
     private boolean gotUserName = false;
     private BufferedReader in;
-    public ServerOutputThread(Player player, Socket socket) throws IOException {
+    private Server server;
+    public ServerOutputThread(Server server, Player player, Socket socket) throws IOException {
+        this.server = server;
         this.player = player;
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
@@ -79,7 +97,7 @@ class ServerOutputThread extends Thread{
                 String inputLine;
                 if ((inputLine = in.readLine()) != null) {
                     if (gotUserName){
-                        Server.newMessage(inputLine, player);
+                        server.newMessage(inputLine, player);
                     }
                     else if (inputLine.contains("USERNAME")){
                         String[]splitInputLine = inputLine.split(" ");
@@ -93,17 +111,19 @@ class ServerOutputThread extends Thread{
 }
 
 class ServerChatInputThread extends Thread{
+    private Server server;
     private Player player;
     private ObjectOutputStream objectOutputStream;
-    public ServerChatInputThread(Player player, Socket socket) throws IOException {
+    public ServerChatInputThread(Server server, Player player, Socket socket) throws IOException {
+        this.server = server;
         this.player = player;
         objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
     }
     public void run(){
         while (true) {
             try {
-                DataPackage dataPackage = Server.getDataPackage(player);
-                if (dataPackage.getPlayers().size() == 1) {
+                DataPackage dataPackage = server.getDataPackage(player);
+                if (dataPackage.getPlayers().size() > 0) {
                     System.out.println(dataPackage.getPlayers().get(0).getName());
                 }
                 objectOutputStream.writeObject(dataPackage);////THIS IS WHERE THE ISSUE OCCURS.... IS IT A SERIALIZATION ISSUE????

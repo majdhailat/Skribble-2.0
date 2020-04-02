@@ -5,18 +5,24 @@ import java.net.*;
 import java.awt.*;
 
 public class Client2 extends JFrame {
-    private static boolean canReceiveMessages = false;
-    private static String [] messageQueue = new String[17];
-    private static String inputMessage = null;
+    private boolean canReceiveMessages = false;
+    private String [] messageQueue = new String[17];
+    private String inputMessage = null;
+    private volatile boolean running = true;
 
     public static void main(String[] args)  {
+        new Client2();
+    }
+
+    public Client2(){
         String hostName = "localhost";
-        int portNumber = 4444;
+        int portNumber = 4445;
         try (Socket socket = new Socket(hostName, portNumber)){
             new Gui();
             new ClientInputThread(socket).start();
             new ClientOutputThread(socket).start();
-            while (true) {
+            while (running) {
+                Thread.onSpinWait();
             }
         } catch (UnknownHostException e) {
             System.err.println("Unknown Host");
@@ -28,27 +34,25 @@ public class Client2 extends JFrame {
     }
 
     // ------------ Networking ------------------------------------------
-    public static class ClientOutputThread extends Thread {
+    public class ClientOutputThread extends Thread {
         private PrintWriter out;
         private boolean gotUserName = false;
-        private String message;
 
         public ClientOutputThread(Socket socket) throws IOException {
             out = new PrintWriter(socket.getOutputStream(), true);
             addMessageToQueue("#FF0000~Enter a user name");
         }
         public void run() {
-            while (true) {
-                message = inputMessage;
-                if (message != null){
+            while (running) {
+                if (inputMessage != null){
                     if (gotUserName){
-                        out.println(message);
-                        addMessageToQueue("Me: "+ message);
+                        out.println(inputMessage);
+                        addMessageToQueue("Me: "+ inputMessage);
                     }
                     else{
-                        out.println("USERNAME " + message);
-                        out.println("#00FFFF~"+ message +" has joined the game");
-                        addMessageToQueue("#008000~Welcome to Skribble "+ message);
+                        out.println("USERNAME " + inputMessage);
+                        out.println("#00FFFF~"+ inputMessage +" has joined the game");
+                        addMessageToQueue("#008000~Welcome to Skribble "+ inputMessage);
                         gotUserName = true;
                         canReceiveMessages = true;
                     }
@@ -58,20 +62,18 @@ public class Client2 extends JFrame {
         }
     }
 
-    public static class ClientInputThread extends Thread {
+    public class ClientInputThread extends Thread {
         private ObjectInputStream objectInputStream;
-        private String message;
+
         public ClientInputThread(Socket socket) throws IOException {
             objectInputStream = new ObjectInputStream(socket.getInputStream());
         }
         public void run() {
-            while (true) {
+            while (running) {
                 try {
                     DataPackage dataPackage = (DataPackage) objectInputStream.readObject();
-                    message = dataPackage.getMessage();
-                    if (dataPackage.getPlayers().size() > 0){
-                        System.out.println(dataPackage.getPlayers().get(0).getName());
-                    }
+
+                    String message = dataPackage.getMessage();
                     if (message != null && canReceiveMessages) {
                         addMessageToQueue(message);
                     }
@@ -79,7 +81,7 @@ public class Client2 extends JFrame {
             }
         }
     }
-    public static void addMessageToQueue(String message){
+    public void addMessageToQueue(String message){
         boolean messageWasAdded = false;
         for (int i = 0; i < messageQueue.length; i++) {
             if (messageQueue[i] == null) {
@@ -98,7 +100,7 @@ public class Client2 extends JFrame {
     }
 
     // ------------ Graphics ------------------------------------------
-    public static class Gui extends JFrame {
+    public class Gui extends JFrame {
         private Panel panel;
         public Gui(){
             super("Skribble");
@@ -122,7 +124,7 @@ public class Client2 extends JFrame {
         }
     }
 
-    static class Panel extends JPanel {
+    public class Panel extends JPanel {
         public boolean ready = false;
         private int mouseX, mouseY;
         private Rectangle drawingPanel = new Rectangle(201, 64, 749, 562);
@@ -132,6 +134,12 @@ public class Client2 extends JFrame {
 
         private JTextField textField = new JTextField();
         public Panel(){
+            addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    running = false;
+                }
+            });
             setBackground(Color.blue);
             setLayout(null);
             addMouseListener(new clickListener());
