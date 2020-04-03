@@ -1,5 +1,5 @@
 import java.io.Serializable;
-
+//stores information about each player
 public class Player implements Serializable {
     private String name;
     private int score;
@@ -8,7 +8,7 @@ public class Player implements Serializable {
         this.score = 0;
     }
 
-    public void setName(String name) {
+    public void setName(String name){
         this.name = name;
     }
 

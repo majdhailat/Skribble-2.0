@@ -1,3 +1,4 @@
+//Imports
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -7,15 +8,20 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+//Stores all the global information about the game and starts the listening thread
 public class Server {
-    private boolean running = true;
-    private String message;
-    private ArrayList<Player> messageReaders = new ArrayList<>();
+    private boolean running = true;//state of server
+    private String message;//the text message
+    private ArrayList<Player> messageReaders = new ArrayList<>();//the players who read the text message
     private ArrayList<Player> players = new ArrayList<>();
 
     public static void main(String []args){
         Server server = new Server();
         new ListenForClients(server).start();
+    }
+
+    public boolean isRunning(){
+        return running;
     }
 
     public synchronized void newPlayer(Player player){
@@ -24,7 +30,7 @@ public class Server {
 
     public synchronized void newMessage(String msg, Player player){
         messageReaders.clear();
-        if (msg.contains("~")){
+        if (msg.contains("~")){//this means that the client is sending a message and not the user
             message = msg;
         }else {
             message = (player.getName()) + ": " + msg;
@@ -41,25 +47,19 @@ public class Server {
         }
     }
 
-    public synchronized ArrayList<Player> getPlayers(){
-        return players;
-    }
-
+    //groups all of the global information into 1 object for distribution to all clients
     public synchronized DataPackage getDataPackage(Player player){
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
         return new DataPackage(getMessage(player), players, player);
     }
-
-    public boolean isRunning(){
-        return running;
-    }
 }
 
-// ------------ Threads ------------------------------------------
+// ------------ Listening Thread ------------------------------------------
+//Listens for new clients and creates the I/O threads when a client joins
 class ListenForClients extends Thread{
-    Server server;
+    private Server server;
     public ListenForClients(Server server) {
         this.server = server;
     }
@@ -81,6 +81,8 @@ class ListenForClients extends Thread{
     }
 }
 
+// ------------ I/O TO Client Threads ------------------------------------------
+//Reads messages from the client and sends them to the server
 class ServerOutputThread extends Thread{
     private Player player;
     private boolean gotUserName = false;
@@ -91,6 +93,7 @@ class ServerOutputThread extends Thread{
         this.player = player;
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
+
     public void run(){
         while (server.isRunning()) {
             try {
@@ -111,6 +114,7 @@ class ServerOutputThread extends Thread{
     }
 }
 
+//Gets the data package from the server and sends it to the client
 class ServerChatInputThread extends Thread{
     private Server server;
     private Player player;
@@ -120,6 +124,7 @@ class ServerChatInputThread extends Thread{
         this.player = player;
         objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
     }
+
     public void run(){
         while (server.isRunning()) {
             try {
