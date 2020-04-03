@@ -84,18 +84,21 @@ class ListenForClients extends Thread{
 // ------------ I/O TO Client Threads ------------------------------------------
 //Reads messages from the client and sends them to the server
 class ServerOutputThread extends Thread{
+    private Socket socket;
     private Player player;
     private boolean gotUserName = false;
     private BufferedReader in;
     private Server server;
     public ServerOutputThread(Server server, Player player, Socket socket) throws IOException {
+        this.socket = socket;
         this.server = server;
         this.player = player;
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
 
     public void run(){
-        while (server.isRunning()) {
+        while (server.isRunning() && player.isConnected()) {
+            System.out.println(player.isConnected());
             try {
                 String inputLine;
                 if ((inputLine = in.readLine()) != null) {
@@ -111,22 +114,27 @@ class ServerOutputThread extends Thread{
                 }
             } catch (IOException e) {e.printStackTrace();}
         }
+        try {
+            socket.close();
+        } catch (IOException e) {e.printStackTrace();}
     }
 }
 
 //Gets the data package from the server and sends it to the client
 class ServerChatInputThread extends Thread{
+    private Socket socket;
     private Server server;
     private Player player;
     private ObjectOutputStream objectOutputStream;
     public ServerChatInputThread(Server server, Player player, Socket socket) throws IOException {
+        this.socket = socket;
         this.server = server;
         this.player = player;
         objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
     }
 
     public void run(){
-        while (server.isRunning()) {
+        while (server.isRunning() && player.isConnected()) {
             try {
                 DataPackage dataPackage = server.getDataPackage(player);
                 objectOutputStream.writeUnshared(dataPackage);
@@ -134,5 +142,8 @@ class ServerChatInputThread extends Thread{
                 objectOutputStream.reset();
             } catch (IOException e) {e.printStackTrace();}
         }
+        try {
+            socket.close();
+        } catch (IOException e) {e.printStackTrace();}
     }
 }

@@ -117,7 +117,7 @@ public class Client extends JFrame {
             super("Skribble");
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             setSize(1280, 720);
-            Timer myTimer = new Timer(10, new TickListener());     // trigger every 100 ms
+            Timer myTimer = new Timer(100, new TickListener());     // trigger every 100 ms
             myTimer.start();
             panel = new Panel();
             add(panel);
@@ -129,6 +129,7 @@ public class Client extends JFrame {
             public void actionPerformed(ActionEvent evt) {
                 if (panel != null && panel.ready) {
                     panel.repaint();
+                    panel.move();
                 }
             }
         }
@@ -146,9 +147,9 @@ public class Client extends JFrame {
                 @Override
                 public void windowClosing(WindowEvent e) {
                     running = false;
+                    dataPackage.getMyPlayer().setConnected(false);
                 }
             });
-            setBackground(Color.blue);
             setLayout(null);
             addMouseListener(new clickListener());
         }
@@ -161,15 +162,25 @@ public class Client extends JFrame {
 
         public void paintComponent(Graphics g) {
             if (g != null) {
+                g.setColor(Color.cyan);
+                g.fillRect(0, 0, getWidth(), getHeight());
                 g.setColor(Color.white);
                 g.fillRect((int) drawingPanel.getX(), (int) drawingPanel.getY(),
                         (int) drawingPanel.getWidth(), (int) drawingPanel.getHeight());
                 g.setColor(new Color(237, 237, 237));
                 g.fillRect((int) chatPanel.getX(), (int) chatPanel.getY(),
                         (int) chatPanel.getWidth(), (int) chatPanel.getHeight());
-                updateMessageTextAreas();
-                updatePlayerTextAreas(g);
+
+                g.setColor(Color.white);
+                for (int i = 0; i < dataPackage.getPlayers().size(); i++) {
+                    g.fillRect(10, 64 + (75 * i), 183, 70);
+                }
             }
+        }
+
+        public void move(){
+            updateMessageTextAreas();
+            updatePlayerTextAreas();
         }
 
         //the text boxes that display the messages from queue
@@ -230,7 +241,7 @@ public class Client extends JFrame {
         private Font nameLabelFont = new Font("Arial", Font.PLAIN,14);
         private Font myNameLabelFont = new Font("Arial", Font.BOLD,14);
         //reads the array of players from the data package and displays boxes for each player on the left of the screen
-        public void updatePlayerTextAreas(Graphics g){
+        public void updatePlayerTextAreas(){
             if (!initializedPlayerNameLabels){
                 for (int i = 0; i < 8; i++) {
                     JTextArea label = new JTextArea();
@@ -243,18 +254,18 @@ public class Client extends JFrame {
                 initializedPlayerNameLabels = true;
             }
 
-            g.setColor(Color.white);
             for (int i = 0; i < dataPackage.getPlayers().size(); i++) {
-                g.fillRect(10, 64 +  (75 * i), 183, 70);
+                JTextArea label = playerNameLabels[i];
                 if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()){
-                    playerNameLabels[i].setFont(myNameLabelFont);
-                    playerNameLabels[i].setText(dataPackage.getPlayers().get(i).getName()+" (You)");
+                    label.setAlignmentX(CENTER_ALIGNMENT);
+                    label.setFont(myNameLabelFont);
+                    label.setText(dataPackage.getPlayers().get(i).getName()+" (You)");
                 }else{
-                    playerNameLabels[i].setText(dataPackage.getPlayers().get(i).getName());
-                    playerNameLabels[i].setFont(nameLabelFont);
+                    label.setText(dataPackage.getPlayers().get(i).getName());
+                    label.setFont(nameLabelFont);
                 }
-                playerNameLabels[i].setVisible(true);
-                playerNameLabels[i].setForeground(Color.black);
+                label.setVisible(true);
+                label.setForeground(Color.black);
             }
         }
 
