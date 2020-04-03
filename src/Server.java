@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class Server {
+    private boolean running = true;
     private String message;
     private ArrayList<Player> messageReaders = new ArrayList<>();
     private ArrayList<Player> players = new ArrayList<>();
@@ -48,8 +49,11 @@ public class Server {
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
+        return new DataPackage(getMessage(player), players, player);
+    }
 
-        return new DataPackage(getMessage(player), players);
+    public boolean isRunning(){
+        return running;
     }
 }
 
@@ -67,12 +71,8 @@ class ListenForClients extends Thread{
             while (listening) {
                 Socket socket = serverSocket.accept();
                 Player player = new Player("");
-                server.newPlayer(player);
                 new ServerChatInputThread(server, player, socket).start();
                 new ServerOutputThread(server, player, socket).start();
-                if (server.getPlayers().size() == 5){
-                    listening = false;
-                }
             }
         } catch (IOException e) {
             System.err.println("Port error");
@@ -92,7 +92,7 @@ class ServerOutputThread extends Thread{
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
     public void run(){
-        while (true) {
+        while (server.isRunning()) {
             try {
                 String inputLine;
                 if ((inputLine = in.readLine()) != null) {
@@ -102,6 +102,7 @@ class ServerOutputThread extends Thread{
                     else if (inputLine.contains("USERNAME")){
                         String[]splitInputLine = inputLine.split(" ");
                         player.setName(splitInputLine[1]);
+                        server.newPlayer(player);
                         gotUserName = true;
                     }
                 }
@@ -120,14 +121,12 @@ class ServerChatInputThread extends Thread{
         objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
     }
     public void run(){
-        while (true) {
+        while (server.isRunning()) {
             try {
                 DataPackage dataPackage = server.getDataPackage(player);
-                if (dataPackage.getPlayers().size() > 0) {
-                    System.out.println(dataPackage.getPlayers().get(0).getName());
-                }
-                objectOutputStream.writeObject(dataPackage);////THIS IS WHERE THE ISSUE OCCURS.... IS IT A SERIALIZATION ISSUE????
+                objectOutputStream.writeUnshared(dataPackage);
                 objectOutputStream.flush();
+                objectOutputStream.reset();
             } catch (IOException e) {e.printStackTrace();}
         }
     }

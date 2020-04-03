@@ -3,12 +3,14 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.awt.*;
+import java.util.concurrent.TimeUnit;
 
 public class Client extends JFrame {
+    private volatile boolean running = true;
+    private DataPackage dataPackage;
     private boolean canReceiveMessages = false;
     private String [] messageQueue = new String[17];
     private String inputMessage = null;
-    private volatile boolean running = true;
 
     public static void main(String[] args)  {
         new Client();
@@ -18,9 +20,12 @@ public class Client extends JFrame {
         String hostName = "localhost";
         int portNumber = 4445;
         try (Socket socket = new Socket(hostName, portNumber)){
-            new Gui();
             new ClientInputThread(socket).start();
             new ClientOutputThread(socket).start();
+            try {
+                TimeUnit.MILLISECONDS.sleep(100);
+            } catch (InterruptedException e) {e.printStackTrace();}
+            new Gui();
             while (running) {
                 Thread.onSpinWait();
             }
@@ -37,7 +42,6 @@ public class Client extends JFrame {
     public class ClientOutputThread extends Thread {
         private PrintWriter out;
         private boolean gotUserName = false;
-
         public ClientOutputThread(Socket socket) throws IOException {
             out = new PrintWriter(socket.getOutputStream(), true);
             addMessageToQueue("#FF0000~Enter a user name");
@@ -64,17 +68,13 @@ public class Client extends JFrame {
 
     public class ClientInputThread extends Thread {
         private ObjectInputStream objectInputStream;
-
         public ClientInputThread(Socket socket) throws IOException {
             objectInputStream = new ObjectInputStream(socket.getInputStream());
         }
         public void run() {
             while (running) {
                 try {
-                    DataPackage dataPackage = (DataPackage) objectInputStream.readObject();
-                    if (dataPackage.getPlayers().size() > 0) {
-                        System.out.println(dataPackage.getPlayers().get(0).getName());
-                    }
+                    dataPackage = (DataPackage) objectInputStream.readUnshared();
                     String message = dataPackage.getMessage();
                     if (message != null && canReceiveMessages) {
                         addMessageToQueue(message);
@@ -115,26 +115,21 @@ public class Client extends JFrame {
             setResizable(false);
             setVisible(true);
         }
-
         class TickListener implements ActionListener {
             public void actionPerformed(ActionEvent evt) {
                 if (panel != null && panel.ready) {
                     panel.repaint();
-                    panel.move();
                 }
             }
         }
     }
-
     public class Panel extends JPanel {
         public boolean ready = false;
         private int mouseX, mouseY;
         private Rectangle drawingPanel = new Rectangle(201, 64, 749, 562);
         private Rectangle chatPanel = new Rectangle(958, 64, 312, 562);
 
-        private JTextArea[] txtBoxes = new JTextArea[17];
 
-        private JTextField textField = new JTextField();
         public Panel(){
             addWindowListener(new WindowAdapter() {
                 @Override
@@ -145,66 +140,101 @@ public class Client extends JFrame {
             setBackground(Color.blue);
             setLayout(null);
             addMouseListener(new clickListener());
-            textField.setBounds(964, 590, 294, 22);
-            textField.addKeyListener((KeyListener) new MKeyListener());
-            add(textField);
-            for (int i = 0; i < txtBoxes.length; i++){
-                JTextArea txtArea = new JTextArea();
-                txtArea.setVisible(false);
-                txtArea.setEditable(false);
-                add(txtArea);
-                txtBoxes[i] = txtArea;
-            }
         }
-
         public void addNotify() {
             super.addNotify();
             requestFocus();
             ready = true;
         }
 
-        int maxCharsPerLine = 42;
         public void paintComponent(Graphics g) {
             if (g != null) {
                 g.setColor(Color.white);
                 g.fillRect((int) drawingPanel.getX(), (int) drawingPanel.getY(), (int) drawingPanel.getWidth(), (int) drawingPanel.getHeight());
                 g.setColor(new Color(237, 237, 237));
                 g.fillRect((int) chatPanel.getX(), (int) chatPanel.getY(), (int) chatPanel.getWidth(), (int) chatPanel.getHeight());
+                updateMessageTextAreas();
+                updatePlayerTextAreas(g);
+            }
+        }
 
-                for (int i = 0; i < 17; i++) {
-                    String message = messageQueue[i];
-                    Color col = Color.black;
-                    if (messageQueue[i] != null){
-                        if (messageQueue[i].contains("~")){
-                            String [] messageParts = messageQueue[i].split("~");
-                            col = Color.decode(messageParts[0]);
-                            message = messageParts[1];
-                        }
-                        int numOfChars = message.length();
-                        if (numOfChars > maxCharsPerLine ) {
-                            int numOfWraps = (int) Math.ceil((double) numOfChars / (double) maxCharsPerLine);
-                            for (int j = 0; j < numOfWraps; j++) {
-                                String line = message.substring((maxCharsPerLine * j), Math.min(((maxCharsPerLine * j) + maxCharsPerLine), message.length()));
-                                if (j == 0){
-                                    messageQueue[i] = line;
-                                }else {
-                                    addMessageToQueue(line);
-                                }
+        private JTextArea[] messageTextAreas = new JTextArea[messageQueue.length];
+        private JTextField textField = new JTextField();
+        private boolean initializedMessageTextAreas = false;
+        public void updateMessageTextAreas(){
+            if (!initializedMessageTextAreas) {
+                textField.setBounds(964, 590, 294, 22);
+                textField.addKeyListener((KeyListener) new MKeyListener());
+                add(textField);
+                for (int i = 0; i < messageQueue.length; i++) {
+                    JTextArea txtArea = new JTextArea();
+                    txtArea.setVisible(false);
+                    txtArea.setEditable(false);
+                    txtArea.setBounds(964, 73+(30*i), 300, 20);
+                    add(txtArea);
+                    messageTextAreas[i] = txtArea;
+                }
+                initializedMessageTextAreas = true;
+            }
+            for (int i = 0; i < messageQueue.length; i++) {
+                String message = messageQueue[i];
+                Color col = Color.black;
+                if (messageQueue[i] != null){
+                    if (messageQueue[i].contains("~")){
+                        String [] messageParts = messageQueue[i].split("~");
+                        col = Color.decode(messageParts[0]);
+                        message = messageParts[1];
+                    }
+                    int numOfChars = message.length();
+                    int maxCharsPerLine = 42;
+                    if (numOfChars > maxCharsPerLine) {
+                        int numOfWraps = (int) Math.ceil((double) numOfChars / (double) maxCharsPerLine);
+                        for (int j = 0; j < numOfWraps; j++) {
+                            String line = message.substring((maxCharsPerLine * j), Math.min(((maxCharsPerLine * j) + maxCharsPerLine), message.length()));
+                            if (j == 0){
+                                messageQueue[i] = line;
+                            }else {
+                                addMessageToQueue(line);
                             }
                         }
-                        txtBoxes[i].setVisible(true);
-                        txtBoxes[i].setText(message);
-                        txtBoxes[i].setForeground(col);
-                        txtBoxes[i].setBounds(964, 73+(30*i), 300, 20);
                     }
+                    messageTextAreas[i].setVisible(true);
+                    messageTextAreas[i].setText(message);
+                    messageTextAreas[i].setForeground(col);
                 }
             }
         }
 
-        public void move(){
+        private JTextArea[] playerNameLabels = new JTextArea[8];
+        private boolean initializedPlayerNameLabels = false;
+        private Font nameLabelFont = new Font("Arial", Font.PLAIN,14);
+        private Font myNameLabelFont = new Font("Arial", Font.BOLD,14);
+        public void updatePlayerTextAreas(Graphics g){
+            if (!initializedPlayerNameLabels){
+                for (int i = 0; i < 8; i++) {
+                    JTextArea label = new JTextArea();
+                    label.setVisible(false);
+                    label.setEditable(false);
+                    label.setBounds(12, 90 +  (75 * i), 181, 30);
+                    add(label);
+                    playerNameLabels[i] = label;
+                }
+                initializedPlayerNameLabels = true;
+            }
+            g.setColor(Color.white);
+            for (int i = 0; i < dataPackage.getPlayers().size(); i++) {
+                g.fillRect(10, 64 +  (75 * i), 183, 70);
+                if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()){
+                    playerNameLabels[i].setFont(myNameLabelFont);
+                    playerNameLabels[i].setText(dataPackage.getPlayers().get(i).getName()+" (You)");
+                }else{
+                    playerNameLabels[i].setText(dataPackage.getPlayers().get(i).getName());
+                    playerNameLabels[i].setFont(nameLabelFont);
+                }
+                playerNameLabels[i].setVisible(true);
+                playerNameLabels[i].setForeground(Color.black);
+            }
         }
-
-
         class clickListener implements MouseListener {
             // ------------ MouseListener ------------------------------------------
             public void mouseEntered(MouseEvent e) {}
@@ -216,7 +246,6 @@ public class Client extends JFrame {
                 mouseY = e.getY();
             }
         }
-
         class MKeyListener extends KeyAdapter {
             public void keyPressed(KeyEvent event) {
                 if(event.getKeyCode() == KeyEvent.VK_ENTER){
