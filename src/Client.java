@@ -1,9 +1,11 @@
 //imports
+import javax.sound.midi.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class Client extends JFrame {
     private volatile boolean running = true;//state of client
@@ -152,12 +154,27 @@ public class Client extends JFrame {
             });
             setLayout(null);
             addMouseListener(new clickListener());
+            startMidi("trippygaia1.mid");
         }
 
         public void addNotify() {
             super.addNotify();
             requestFocus();
             ready = true;
+        }
+
+        public void startMidi(String midFilename) {
+            try {
+                File midiFile = new File(midFilename);
+                Sequence song = MidiSystem.getSequence(midiFile);
+                Sequencer midiPlayer = MidiSystem.getSequencer();
+                midiPlayer.open();
+                midiPlayer.setSequence(song);
+                midiPlayer.setLoopCount(0); // repeat 0 times (play once)
+                midiPlayer.start();
+            } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {
+                e.printStackTrace();
+            }
         }
 
         public void paintComponent(Graphics g) {
