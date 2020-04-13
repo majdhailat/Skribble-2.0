@@ -47,6 +47,11 @@ public class Server {
         }
     }
 
+    public synchronized void playerDisconnected(Player player){
+        newMessage("#FF0000~"+player.getName()+" has left the game", player);
+        players.remove(player);
+    }
+
     //groups all of the global information into 1 object for distribution to all clients
     public synchronized DataPackage getDataPackage(Player player){
         try {
@@ -97,9 +102,8 @@ class ServerOutputThread extends Thread{
     }
 
     public void run(){
-        while (server.isRunning() && player.isConnected()) {
-            System.out.println(player.isConnected());
-            try {
+        try {
+            while (server.isRunning()) {
                 String inputLine;
                 if ((inputLine = in.readLine()) != null) {
                     if (gotUserName){
@@ -108,15 +112,23 @@ class ServerOutputThread extends Thread{
                     else if (inputLine.contains("USERNAME")){
                         String[]splitInputLine = inputLine.split(" ");
                         player.setName(splitInputLine[1]);
+                        server.newMessage(("#FF0000~"+ splitInputLine[1] +" has joined the game"), player);
                         server.newPlayer(player);
                         gotUserName = true;
                     }
                 }
-            } catch (IOException e) {e.printStackTrace();}
+            }
+        }catch (IOException e) {
+            e.printStackTrace();
+        }finally{
+            server.playerDisconnected(player);
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        try {
-            socket.close();
-        } catch (IOException e) {e.printStackTrace();}
+
     }
 }
 
@@ -134,16 +146,22 @@ class ServerChatInputThread extends Thread{
     }
 
     public void run(){
-        while (server.isRunning() && player.isConnected()) {
-            try {
+        try {
+            while (server.isRunning()) {
                 DataPackage dataPackage = server.getDataPackage(player);
                 objectOutputStream.writeUnshared(dataPackage);
                 objectOutputStream.flush();
                 objectOutputStream.reset();
-            } catch (IOException e) {e.printStackTrace();}
+            }
         }
-        try {
-            socket.close();
-        } catch (IOException e) {e.printStackTrace();}
+        catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

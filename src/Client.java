@@ -5,7 +5,6 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.awt.*;
-import javax.swing.*;
 
 public class Client extends JFrame {
     private volatile boolean running = true;//state of client
@@ -44,7 +43,7 @@ public class Client extends JFrame {
         private boolean gotUserName = false;
         public ClientOutputThread(Socket socket) throws IOException {
             out = new PrintWriter(socket.getOutputStream(), true);
-            addMessageToQueue("#FF0000~Enter a user name");
+            addMessageToQueue("#008000~Enter a user name");
         }
 
         public void run() {
@@ -56,7 +55,6 @@ public class Client extends JFrame {
                     }
                     else{
                         out.println("USERNAME " + usersTextMessage);
-                        out.println("#00FFFF~"+ usersTextMessage +" has joined the game");
                         addMessageToQueue("#008000~Welcome to Skribble "+ usersTextMessage);
                         gotUserName = true;
                         canReceiveMessages = true;
@@ -75,15 +73,15 @@ public class Client extends JFrame {
         }
 
         public void run() {
-            while (running) {
-                try {
+            try {
+                while (running) {
                     dataPackage = (DataPackage) objectInputStream.readUnshared();
                     String message = dataPackage.getMessage();
                     if (message != null && canReceiveMessages) {
                         addMessageToQueue(message);
                     }
-                } catch (IOException | ClassNotFoundException e) {e.printStackTrace();}
-            }
+                }
+            }catch (IOException | ClassNotFoundException e) {e.printStackTrace();}
         }
     }
 
@@ -125,6 +123,13 @@ public class Client extends JFrame {
             add(panel);
             setResizable(false);
             setVisible(true);
+
+            addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    running = false;
+                }
+            });
         }
 
         class TickListener implements ActionListener {
@@ -145,16 +150,9 @@ public class Client extends JFrame {
 
         public Panel(){
             //sets running to false when windows is closed to close all threads
-            addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosing(WindowEvent e) {
-                    running = false;
-                    dataPackage.getMyPlayer().setConnected(false);
-                }
-            });
             setLayout(null);
             addMouseListener(new clickListener());
-            startMidi("trippygaia1.mid");
+            startMidi("bgmusic.mid");
         }
 
         public void addNotify() {
@@ -170,7 +168,7 @@ public class Client extends JFrame {
                 Sequencer midiPlayer = MidiSystem.getSequencer();
                 midiPlayer.open();
                 midiPlayer.setSequence(song);
-                midiPlayer.setLoopCount(0); // repeat 0 times (play once)
+                midiPlayer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY); // repeat 0 times (play once)
                 midiPlayer.start();
             } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {
                 e.printStackTrace();
@@ -179,7 +177,7 @@ public class Client extends JFrame {
 
         public void paintComponent(Graphics g) {
             if (g != null) {
-                g.setColor(Color.cyan);
+                g.setColor(new Color(10, 180, 150));
                 g.fillRect(0, 0, getWidth(), getHeight());
                 g.setColor(Color.white);
                 g.fillRect((int) drawingPanel.getX(), (int) drawingPanel.getY(),
@@ -188,8 +186,8 @@ public class Client extends JFrame {
                 g.fillRect((int) chatPanel.getX(), (int) chatPanel.getY(),
                         (int) chatPanel.getWidth(), (int) chatPanel.getHeight());
 
-                g.setColor(Color.white);
                 for (int i = 0; i < dataPackage.getPlayers().size(); i++) {
+                    g.setColor(dataPackage.getPlayers().get(i).getColor());
                     g.fillRect(10, 64 + (75 * i), 183, 70);
                 }
             }
@@ -271,10 +269,36 @@ public class Client extends JFrame {
                 initializedPlayerNameLabels = true;
             }
 
+           for (int i = 0; i < playerNameLabels.length; i++){
+               JTextArea label = playerNameLabels[i];
+               if (i < dataPackage.getPlayers().size()){
+                   label.setBackground(dataPackage.getPlayers().get(i).getColor());
+                   label.setAlignmentX(CENTER_ALIGNMENT);
+                   if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()){
+                       label.setFont(myNameLabelFont);
+                       label.setText(dataPackage.getPlayers().get(i).getName()+" (You)");
+                   }else{
+                       label.setText(dataPackage.getPlayers().get(i).getName());
+                       label.setFont(nameLabelFont);
+                   }
+                   label.setVisible(true);
+                   label.setForeground(Color.black);
+               }
+               else {
+                   if (label.isVisible()) {
+                       label.setVisible(false);
+                   }
+               }
+           }
+
+
+
+            /*
             for (int i = 0; i < dataPackage.getPlayers().size(); i++) {
                 JTextArea label = playerNameLabels[i];
+                label.setBackground(dataPackage.getPlayers().get(i).getColor());
+                label.setAlignmentX(CENTER_ALIGNMENT);
                 if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()){
-                    label.setAlignmentX(CENTER_ALIGNMENT);
                     label.setFont(myNameLabelFont);
                     label.setText(dataPackage.getPlayers().get(i).getName()+" (You)");
                 }else{
@@ -284,6 +308,8 @@ public class Client extends JFrame {
                 label.setVisible(true);
                 label.setForeground(Color.black);
             }
+
+             */
         }
 
         class clickListener implements MouseListener {

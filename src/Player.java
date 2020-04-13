@@ -1,12 +1,15 @@
 import java.io.Serializable;
+import java.awt.Color;
+
 //stores information about each player
 public class Player implements Serializable {
-    private boolean connected = true;
     private String name;
     private int score;
+    private Color color;
     public Player(String name){
         this.name = name;
         this.score = 0;
+        color = new Color(50 + (int)(Math.random() * ((255 - 50) + 1)), 50 + (int)(Math.random() * ((255 - 50) + 1)),  50 + (int)(Math.random() * ((255 - 50) + 1)));
     }
 
     public void setName(String name){
@@ -17,13 +20,8 @@ public class Player implements Serializable {
         return name;
     }
 
-    public boolean isConnected(){
-        System.out.println("player: "+connected);
-        return connected;
-    }
-
-    public void setConnected(boolean connected){
-        this.connected = connected;
+    public Color getColor(){
+        return color;
     }
 
 }
