@@ -1,10 +1,12 @@
 //Imports
+import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -12,8 +14,12 @@ import java.util.concurrent.TimeUnit;
 public class Server {
     private boolean running = true;//state of server
     private String message;//the text message
-    private ArrayList<Player> messageReaders = new ArrayList<>();//the players who read the text message
-    private ArrayList<Player> players = new ArrayList<>();
+    private Player artist;
+    private ArrayList<Player> messageReaders = new ArrayList<Player>();//the players who read the text message
+    private ArrayList<Player> players = new ArrayList<Player>();
+    private ArrayList<Player> winners = new ArrayList<Player>();
+    private String currentMagicWord; //should be a read from a txt file
+    private ArrayList<String> magicWords = new ArrayList<String>();
 
     public static void main(String []args){
         Server server = new Server();
@@ -33,7 +39,16 @@ public class Server {
         if (msg.contains("~")){//this means that the client is sending a message and not the user
             message = msg;
         }else {
-            message = (player.getName()) + ": " + msg;
+            if(msg.equals(currentMagicWord)){
+                winners.add(player);
+                message = player.getName() + " has guessed correctly!";
+                if(winners.size() == players.size()){
+                    newRound();
+                }
+            }
+            else{
+                message = (player.getName()) + ": " + msg;
+            }
         }
         messageReaders.add(player);
     }
@@ -57,7 +72,28 @@ public class Server {
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(getMessage(player), players, player);
+        return new DataPackage(getMessage(player), players, winners, player, artist);
+    }
+
+    public void newRound(){
+        artist = players.get(randint(0, players.size()-1)); //or we could go through the list
+        winners = new ArrayList<Player>();
+        currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));
+    }
+
+    public void loadMagicWords(String filename) throws IOException{
+        Scanner inFile = new Scanner(new BufferedReader(new FileReader(filename)));
+        int numWords = inFile.nextInt();
+        inFile.nextLine();
+        for(int i = 0; i < numWords; i++){
+            magicWords.add(inFile.nextLine());
+        }
+        inFile.close();
+    }
+
+    public static int randint(int low, int high){
+        //this method returns a random int between the low and high args inclusive
+        return (int)(Math.random()*(high-low+1)+low);
     }
 }
 
