@@ -117,7 +117,7 @@ public class Client extends JFrame {
             super("Skribble");
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             setSize(1280, 720);
-            Timer myTimer = new Timer(100, new TickListener());     // trigger every 100 ms
+            Timer myTimer = new Timer(100, new TickListener());// trigger every 100 ms
             myTimer.start();
             panel = new Panel();
             add(panel);
@@ -145,6 +145,7 @@ public class Client extends JFrame {
     public class Panel extends JPanel {
         public boolean ready = false;
         private int mouseX, mouseY;
+
         private Rectangle drawingPanel = new Rectangle(201, 64, 749, 562);
         private Rectangle chatPanel = new Rectangle(958, 64, 312, 562);
 
@@ -308,7 +309,6 @@ public class Client extends JFrame {
                 label.setVisible(true);
                 label.setForeground(Color.black);
             }
-
              */
         }
 
