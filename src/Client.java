@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class Client extends JFrame {
     private volatile boolean running = true;//state of client
@@ -142,17 +143,20 @@ public class Client extends JFrame {
         }
     }
 
-    public class Panel extends JPanel {
+    public class Panel extends JPanel implements MouseListener, MouseMotionListener{
         public boolean ready = false;
-        private int mouseX, mouseY;
 
         private Rectangle drawingPanel = new Rectangle(201, 64, 749, 562);
         private Rectangle chatPanel = new Rectangle(958, 64, 312, 562);
 
+
+        private ArrayList<Shape> shapes = new ArrayList<>();
+
         public Panel(){
             //sets running to false when windows is closed to close all threads
             setLayout(null);
-            addMouseListener(new clickListener());
+            addMouseListener(this);
+            addMouseMotionListener(this);
             startMidi("bgmusic.mid");
         }
 
@@ -190,6 +194,10 @@ public class Client extends JFrame {
                 for (int i = 0; i < dataPackage.getPlayers().size(); i++) {
                     g.setColor(dataPackage.getPlayers().get(i).getColor());
                     g.fillRect(10, 64 + (75 * i), 183, 70);
+                }
+                g.setColor(Color.black);
+                for (Shape s : shapes){
+                    g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
                 }
             }
         }
@@ -291,38 +299,29 @@ public class Client extends JFrame {
                    }
                }
            }
-
-
-
-            /*
-            for (int i = 0; i < dataPackage.getPlayers().size(); i++) {
-                JTextArea label = playerNameLabels[i];
-                label.setBackground(dataPackage.getPlayers().get(i).getColor());
-                label.setAlignmentX(CENTER_ALIGNMENT);
-                if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()){
-                    label.setFont(myNameLabelFont);
-                    label.setText(dataPackage.getPlayers().get(i).getName()+" (You)");
-                }else{
-                    label.setText(dataPackage.getPlayers().get(i).getName());
-                    label.setFont(nameLabelFont);
-                }
-                label.setVisible(true);
-                label.setForeground(Color.black);
-            }
-             */
         }
 
-        class clickListener implements MouseListener {
-            // ------------ MouseListener ------------------------------------------
-            public void mouseEntered(MouseEvent e) {}
-            public void mouseExited(MouseEvent e) {}
-            public void mouseReleased(MouseEvent e) {}
-            public void mouseClicked(MouseEvent e) {}
-            public void mousePressed(MouseEvent e) {
-                mouseX = e.getX();
-                mouseY = e.getY();
-            }
+
+        // ------------ MouseListener ------------------------------------------
+        private int x1, y1, x2, y2;
+        public void mouseEntered(MouseEvent e) {}
+        public void mouseExited(MouseEvent e) {}
+        public void mouseReleased(MouseEvent e) {}
+        public void mouseClicked(MouseEvent e) {}
+        public void mousePressed(MouseEvent e) {
+            x1 = e.getX();
+            y1 = e.getY();
         }
+        public void mouseDragged(MouseEvent e) {
+            x2 = e.getX();
+            y2 = e.getY();
+            shapes.add(new Shape(x1, y1, x2, y2, 3, Color.cyan));
+            x1 = x2;
+            y1 = y2;
+        }
+        public void mouseMoved(MouseEvent e) {}
+
+
 
         class MKeyListener extends KeyAdapter {
             public void keyPressed(KeyEvent event) {
