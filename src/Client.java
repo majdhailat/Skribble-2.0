@@ -6,6 +6,7 @@ import java.io.*;
 import java.net.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.awt.Robot;
 
 public class Client extends JFrame {
     private volatile boolean running = true;//state of client
@@ -144,13 +145,12 @@ public class Client extends JFrame {
     }
 
     public class Panel extends JPanel implements MouseListener, MouseMotionListener{
+
         public boolean ready = false;
 
-        private Rectangle drawingPanel = new Rectangle(201, 64, 749, 562);
-        private Rectangle chatPanel = new Rectangle(958, 64, 312, 562);
 
 
-        private ArrayList<Shape> shapes = new ArrayList<>();
+        private ArrayList<ShapeObject> shapes = new ArrayList<>();
 
         public Panel(){
             //sets running to false when windows is closed to close all threads
@@ -158,6 +158,7 @@ public class Client extends JFrame {
             addMouseListener(this);
             addMouseMotionListener(this);
             startMidi("bgmusic.mid");
+            setSize(1280, 720);
         }
 
         public void addNotify() {
@@ -180,6 +181,10 @@ public class Client extends JFrame {
             }
         }
 
+        private Rectangle drawingPanel = new Rectangle(201, 64, 749, 562);
+        private Rectangle chatPanel = new Rectangle(958, 64, 312, 562);
+        private Image colorPickerImage = new ImageIcon("Color picker.png").getImage();
+        private Rectangle colorPickerPanel = new Rectangle(260, 632, colorPickerImage.getWidth(null), colorPickerImage.getHeight(null));
         public void paintComponent(Graphics g) {
             if (g != null) {
                 g.setColor(new Color(10, 180, 150));
@@ -187,26 +192,28 @@ public class Client extends JFrame {
                 g.setColor(Color.white);
                 g.fillRect((int) drawingPanel.getX(), (int) drawingPanel.getY(),
                         (int) drawingPanel.getWidth(), (int) drawingPanel.getHeight());
+                g.setColor(Color.black);
                 g.setColor(new Color(237, 237, 237));
                 g.fillRect((int) chatPanel.getX(), (int) chatPanel.getY(),
                         (int) chatPanel.getWidth(), (int) chatPanel.getHeight());
+                g.drawImage(colorPickerImage, (int)colorPickerPanel.getX(), (int)colorPickerPanel.getY(), null);
 
-                for (int i = 0; i < dataPackage.getPlayers().size(); i++) {
-                    g.setColor(dataPackage.getPlayers().get(i).getColor());
-                    g.fillRect(10, 64 + (75 * i), 183, 70);
-                }
+                updateMessageTextAreas();
+                updatePlayerTextAreas(g);
+
                 g.setColor(Color.black);
-                for (Shape s : shapes){
-                    g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
+                if (shapes.size() > 0) {
+                    for (ShapeObject s : shapes) {
+                        g.setColor(s.getCol());
+                        g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
+                    }
                 }
+
             }
         }
 
-        public void move(){
-            updateMessageTextAreas();
-            updatePlayerTextAreas();
-        }
-
+        public void move(){}
+        
         //the text boxes that display the messages from queue
         private JTextArea[] messageTextAreas = new JTextArea[messageQueue.length];
         private JTextField textField = new JTextField();//the box in which the user can type their message
@@ -265,7 +272,7 @@ public class Client extends JFrame {
         private Font nameLabelFont = new Font("Arial", Font.PLAIN,14);
         private Font myNameLabelFont = new Font("Arial", Font.BOLD,14);
         //reads the array of players from the data package and displays boxes for each player on the left of the screen
-        public void updatePlayerTextAreas(){
+        public void updatePlayerTextAreas(Graphics g){
             if (!initializedPlayerNameLabels){
                 for (int i = 0; i < 8; i++) {
                     JTextArea label = new JTextArea();
@@ -281,6 +288,8 @@ public class Client extends JFrame {
            for (int i = 0; i < playerNameLabels.length; i++){
                JTextArea label = playerNameLabels[i];
                if (i < dataPackage.getPlayers().size()){
+                   g.setColor(dataPackage.getPlayers().get(i).getColor());
+                   g.fillRect(10, 64 + (75 * i), 183, 70);
                    label.setBackground(dataPackage.getPlayers().get(i).getColor());
                    label.setAlignmentX(CENTER_ALIGNMENT);
                    if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()){
@@ -311,17 +320,41 @@ public class Client extends JFrame {
         public void mousePressed(MouseEvent e) {
             x1 = e.getX();
             y1 = e.getY();
+            if (colorPickerPanel.contains(x1, y1)){
+                try {
+                    Robot r = new Robot();
+                    System.out.println(r.getPixelColor(e.getX(), e.getY()));
+                    ShapeObject.setColor(r.getPixelColor(x1, y1));
+                } catch (AWTException ex) {
+                    ex.printStackTrace();
+                }
+
+            }
         }
         public void mouseDragged(MouseEvent e) {
             x2 = e.getX();
             y2 = e.getY();
-            shapes.add(new Shape(x1, y1, x2, y2, 3, Color.cyan));
+            System.out.println("mouse x: "+x2+"   ,mouse y: "+y2);
+
+            if (drawingPanel.contains(x1, y1)) {
+                if (ShapeObject.getToolType() == ShapeObject.PENCIL) {
+                    if (x2 < drawingPanel.getX()){
+                        x2 = (int) drawingPanel.getX();
+                    }else if (x2 > drawingPanel.getX() +drawingPanel.getWidth()){
+                        x2 = (int) (drawingPanel.getX() + drawingPanel.getWidth());
+                    }
+                    if (y2 < drawingPanel.getY()){
+                        y2 = (int) drawingPanel.getY();
+                    }else if (y2 > drawingPanel.getY() +drawingPanel.getHeight()){
+                        y2 = (int) (drawingPanel.getY() + drawingPanel.getHeight());
+                    }
+                    shapes.add(new ShapeObject(x1, y1, x2, y2));
+                }
+            }
             x1 = x2;
             y1 = y2;
         }
         public void mouseMoved(MouseEvent e) {}
-
-
 
         class MKeyListener extends KeyAdapter {
             public void keyPressed(KeyEvent event) {
