@@ -3,6 +3,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 //a class that stores all information from the server in order to be distributed to all clients
 public class DataPackage implements Serializable {
+    private static final long serialVersionUID = 69420;
     private String message;
     private Player myPlayer;//the player that is receiving the package
     private ArrayList<Player> players;

@@ -3,6 +3,7 @@ import java.awt.Color;
 
 //stores information about each player
 public class Player implements Serializable {
+    private static final long serialVersionUID = 6942069;
     private String name;
     private int score;
     private Color color;
