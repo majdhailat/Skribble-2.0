@@ -1,9 +1,7 @@
 //Imports
-import java.io.FileReader;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
@@ -13,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 //Stores all the global information about the game and starts the listening thread
 public class Server {
     private boolean running = true;//state of server
+
+    private ArrayList<ShapeObject> shapes = null;
     private String message;//the text message
     private Player artist;
     private ArrayList<Player> messageReaders = new ArrayList<Player>();//the players who read the text message
@@ -30,7 +30,10 @@ public class Server {
         return running;
     }
 
+
+    private boolean setArtist = false;
     public synchronized void newPlayer(Player player){
+
         players.add(player);
     }
 
@@ -53,6 +56,10 @@ public class Server {
         messageReaders.add(player);
     }
 
+    public synchronized void updateShapes(ArrayList<ShapeObject> shapes) {
+        this.shapes = shapes;
+    }
+
     public synchronized String getMessage(Player player) {
         if (messageReaders.contains(player)){
             return null;
@@ -72,7 +79,7 @@ public class Server {
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(getMessage(player), players, winners, player, artist);
+        return new DataPackage(getMessage(player), players, winners, player, artist, shapes);
     }
 
     public void newRound(){
@@ -130,41 +137,60 @@ class ServerOutputThread extends Thread{
     private boolean gotUserName = false;
     private BufferedReader in;
     private Server server;
+
+    private ObjectInputStream canvasIn;
     public ServerOutputThread(Server server, Player player, Socket socket) throws IOException {
         this.socket = socket;
         this.server = server;
         this.player = player;
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        canvasIn = new ObjectInputStream(socket.getInputStream());
     }
 
-    public void run(){
-        try {
-            while (server.isRunning()) {
-                String inputLine;
-                if ((inputLine = in.readLine()) != null) {
-                    if (gotUserName){
-                        server.newMessage(inputLine, player);
-                    }
-                    else if (inputLine.contains("USERNAME")){
-                        String[]splitInputLine = inputLine.split(" ");
-                        player.setName(splitInputLine[1]);
-                        server.newMessage(("#FF0000~"+ splitInputLine[1] +" has joined the game"), player);
-                        server.newPlayer(player);
-                        gotUserName = true;
-                    }
-                }
-            }
-        }catch (IOException e) {
-            e.printStackTrace();
-        }finally{
-            server.playerDisconnected(player);
+
+    public void run() {
+        if (player.isArtist()) {
+            ArrayList<ShapeObject> shapes = null;
             try {
-                socket.close();
+                shapes = (ArrayList<ShapeObject>) canvasIn.readUnshared();
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
             }
-        }
+            server.updateShapes(shapes);
+        } else {
+            try {
+                while (server.isRunning()) {
+                    String inputLine;
+                    if ((inputLine = in.readLine()) != null) {
+                        if (gotUserName) {
 
+                            server.newMessage(inputLine, player);
+
+                        } else if (inputLine.contains("USERNAME")) {
+                            String[] splitInputLine = inputLine.split(" ");
+                            player.setName(splitInputLine[1]);
+                            server.newMessage(("#FF0000~" + splitInputLine[1] + " has joined the game"), player);
+                            server.newPlayer(player);
+                            gotUserName = true;
+                        }
+                    }
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                server.playerDisconnected(player);
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+
+        }
     }
 }
 

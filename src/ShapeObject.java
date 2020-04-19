@@ -1,6 +1,8 @@
 import java.awt.*;
+import java.io.Serializable;
 
-class ShapeObject {
+
+class ShapeObject implements Serializable{
     //STATIC FIELDS
     public static final String PENCIL = "PENCIL", ERASER = "ERASER", FILL = "FILL";
     private static int currentStrokeSize = 1;
@@ -54,7 +56,7 @@ class ShapeObject {
 
     public static void setColor(Color col){
         currentColor = col;
-        System.out.println(col);
+        //System.out.println(col);
     }
 
     public static void setToolType(String tool){

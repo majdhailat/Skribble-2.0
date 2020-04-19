@@ -1,3 +1,4 @@
+import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.util.ArrayList;
 //a class that stores all information from the server in order to be distributed to all clients
@@ -8,12 +9,15 @@ public class DataPackage implements Serializable {
     //add a list of winners? i think there might have been one before
     private ArrayList<Player> winners;
     private Player artist;
-    public DataPackage(String message, ArrayList<Player> players, ArrayList<Player> winners, Player myPlayer, Player artist){
+
+    private ArrayList<ShapeObject> shapes;
+    public DataPackage(String message, ArrayList<Player> players, ArrayList<Player> winners, Player myPlayer, Player artist, ArrayList<ShapeObject> shapes){
         this.message = message;
         this.players = players;
         this.winners = winners;
         this.myPlayer = myPlayer;
         this.artist = artist;
+        this.shapes = shapes;
     }
 
     public String getMessage() {
@@ -34,5 +38,9 @@ public class DataPackage implements Serializable {
 
     public Player getArtist(){
         return artist;
+    }
+
+    public ArrayList<ShapeObject> getShapes() {
+        return shapes;
     }
 }

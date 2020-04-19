@@ -1,14 +1,18 @@
 //imports
+import javax.imageio.ImageIO;
 import javax.sound.midi.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.awt.Robot;
 
 public class Client extends JFrame {
+    private volatile ArrayList<ShapeObject> shapes = new ArrayList<>();
+
+
     private volatile boolean running = true;//state of client
     private DataPackage dataPackage;//the object that stores all game info that the client will ever need
     private boolean canReceiveMessages = false;//if the client can display other user's messages
@@ -42,26 +46,47 @@ public class Client extends JFrame {
     //Reads the message from the user and sends it to the server
     public class ClientOutputThread extends Thread {
         private PrintWriter out;
+        private ObjectOutputStream canvasOut;
         private boolean gotUserName = false;
         public ClientOutputThread(Socket socket) throws IOException {
             out = new PrintWriter(socket.getOutputStream(), true);
+            canvasOut = new ObjectOutputStream(socket.getOutputStream());
             addMessageToQueue("#008000~Enter a user name");
         }
 
         public void run() {
             while (running) {
-                if (usersTextMessage != null){
-                    if (gotUserName){
-                        out.println(usersTextMessage);
-                        addMessageToQueue("Me: "+ usersTextMessage);
+                if (dataPackage != null) {
+                    System.out.println(dataPackage.getMyPlayer().isArtist());
+                }
+                if (dataPackage != null && dataPackage.getMyPlayer().isArtist()){
+                    //private Rectangle canvasPanel = new Rectangle(201, 64, 749, 562);
+                    try {
+                        ArrayList<ShapeObject> shapesClone = new ArrayList<>();
+                        for (ShapeObject s : shapes){
+                            shapesClone.add(s);
+                        }
+                        canvasOut.writeUnshared(shapesClone);
+                        canvasOut.flush();
+                        canvasOut.reset();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                    else{
-                        out.println("USERNAME " + usersTextMessage);
-                        addMessageToQueue("#008000~Welcome to Skribble "+ usersTextMessage);
-                        gotUserName = true;
-                        canReceiveMessages = true;
+                }else {
+                    if (usersTextMessage != null) {
+                        if (gotUserName) {
+                            out.println(usersTextMessage);
+                            addMessageToQueue("Me: " + usersTextMessage);
+
+                        } else {
+                            out.println("USERNAME " + usersTextMessage);
+                            addMessageToQueue("#008000~Welcome to Skribble " + usersTextMessage);
+                            gotUserName = true;
+                            canReceiveMessages = true;
+                        }
+                        usersTextMessage = null;
+                        out.flush();
                     }
-                    usersTextMessage = null;
                 }
             }
         }
@@ -145,12 +170,8 @@ public class Client extends JFrame {
     }
 
     public class Panel extends JPanel implements MouseListener, MouseMotionListener{
-
         public boolean ready = false;
 
-
-
-        private ArrayList<ShapeObject> shapes = new ArrayList<>();
 
         public Panel(){
             //sets running to false when windows is closed to close all threads
@@ -158,7 +179,6 @@ public class Client extends JFrame {
             addMouseListener(this);
             addMouseMotionListener(this);
             startMidi("bgmusic.mid");
-            setSize(1280, 720);
         }
 
         public void addNotify() {
@@ -181,7 +201,7 @@ public class Client extends JFrame {
             }
         }
 
-        private Rectangle drawingPanel = new Rectangle(201, 64, 749, 562);
+        private Rectangle canvasPanel = new Rectangle(201, 64, 749, 562);
         private Rectangle chatPanel = new Rectangle(958, 64, 312, 562);
         private Image colorPickerImage = new ImageIcon("Color picker.png").getImage();
         private Rectangle colorPickerPanel = new Rectangle(260, 632, colorPickerImage.getWidth(null), colorPickerImage.getHeight(null));
@@ -190,8 +210,8 @@ public class Client extends JFrame {
                 g.setColor(new Color(10, 180, 150));
                 g.fillRect(0, 0, getWidth(), getHeight());
                 g.setColor(Color.white);
-                g.fillRect((int) drawingPanel.getX(), (int) drawingPanel.getY(),
-                        (int) drawingPanel.getWidth(), (int) drawingPanel.getHeight());
+                g.fillRect((int) canvasPanel.getX(), (int) canvasPanel.getY(),
+                        (int) canvasPanel.getWidth(), (int) canvasPanel.getHeight());
                 g.setColor(Color.black);
                 g.setColor(new Color(237, 237, 237));
                 g.fillRect((int) chatPanel.getX(), (int) chatPanel.getY(),
@@ -202,12 +222,23 @@ public class Client extends JFrame {
                 updatePlayerTextAreas(g);
 
                 g.setColor(Color.black);
-                if (shapes.size() > 0) {
-                    for (ShapeObject s : shapes) {
-                        g.setColor(s.getCol());
-                        g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
+
+                if (dataPackage != null && dataPackage.getShapes() != null && !dataPackage.getMyPlayer().isArtist()){
+                    if (dataPackage.getShapes().size() > 0) {
+                        for (ShapeObject s : dataPackage.getShapes()) {
+                            g.setColor(s.getCol());
+                            g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
+                        }
+                    }
+                }else {
+                    if (shapes.size() > 0) {
+                        for (ShapeObject s : shapes) {
+                            g.setColor(s.getCol());
+                            g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
+                        }
                     }
                 }
+
 
             }
         }
@@ -321,32 +352,31 @@ public class Client extends JFrame {
             x1 = e.getX();
             y1 = e.getY();
             if (colorPickerPanel.contains(x1, y1)){
+                File file= new File("your_file.jpg");
                 try {
-                    Robot r = new Robot();
-                    System.out.println(r.getPixelColor(e.getX(), e.getY()));
-                    ShapeObject.setColor(r.getPixelColor(x1, y1));
-                } catch (AWTException ex) {
+                    BufferedImage image = ImageIO.read(new File("Color picker.png"));
+                    Color c = new Color(image.getRGB((int)(x1-colorPickerPanel.getX()), (int)(y1-colorPickerPanel.getY())));
+                    ShapeObject.setColor(c);
+                } catch (IOException ex) {
                     ex.printStackTrace();
                 }
-
             }
         }
-        public void mouseDragged(MouseEvent e) {
+        synchronized public void mouseDragged(MouseEvent e) {
             x2 = e.getX();
             y2 = e.getY();
-            System.out.println("mouse x: "+x2+"   ,mouse y: "+y2);
 
-            if (drawingPanel.contains(x1, y1)) {
-                if (ShapeObject.getToolType() == ShapeObject.PENCIL) {
-                    if (x2 < drawingPanel.getX()){
-                        x2 = (int) drawingPanel.getX();
-                    }else if (x2 > drawingPanel.getX() +drawingPanel.getWidth()){
-                        x2 = (int) (drawingPanel.getX() + drawingPanel.getWidth());
+            if (canvasPanel.contains(x1, y1)) {
+                if (ShapeObject.getToolType().equals(ShapeObject.PENCIL)) {
+                    if (x2 < canvasPanel.getX()){
+                        x2 = (int) canvasPanel.getX();
+                    }else if (x2 > canvasPanel.getX() + canvasPanel.getWidth()){
+                        x2 = (int) (canvasPanel.getX() + canvasPanel.getWidth());
                     }
-                    if (y2 < drawingPanel.getY()){
-                        y2 = (int) drawingPanel.getY();
-                    }else if (y2 > drawingPanel.getY() +drawingPanel.getHeight()){
-                        y2 = (int) (drawingPanel.getY() + drawingPanel.getHeight());
+                    if (y2 < canvasPanel.getY()){
+                        y2 = (int) canvasPanel.getY();
+                    }else if (y2 > canvasPanel.getY() + canvasPanel.getHeight()){
+                        y2 = (int) (canvasPanel.getY() + canvasPanel.getHeight());
                     }
                     shapes.add(new ShapeObject(x1, y1, x2, y2));
                 }
