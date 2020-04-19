@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Client extends JFrame {
     private volatile ArrayList<ShapeObject> shapes = new ArrayList<>();
@@ -56,17 +57,14 @@ public class Client extends JFrame {
 
         public void run() {
             while (running) {
-                if (dataPackage != null) {
-                    System.out.println(dataPackage.getMyPlayer().isArtist());
-                }
+
                 if (dataPackage != null && dataPackage.getMyPlayer().isArtist()){
-                    //private Rectangle canvasPanel = new Rectangle(201, 64, 749, 562);
                     try {
-                        ArrayList<ShapeObject> shapesClone = new ArrayList<>();
-                        for (ShapeObject s : shapes){
-                            shapesClone.add(s);
-                        }
-                        canvasOut.writeUnshared(shapesClone);
+                        ShapeObject[] shapeArray = new ShapeObject[shapes.size()];
+                        shapeArray = shapes.toArray(shapeArray);
+
+                        canvasOut.writeObject(shapeArray);
+
                         canvasOut.flush();
                         canvasOut.reset();
                     } catch (IOException e) {
@@ -223,9 +221,9 @@ public class Client extends JFrame {
 
                 g.setColor(Color.black);
 
-                if (dataPackage != null && dataPackage.getShapes() != null && !dataPackage.getMyPlayer().isArtist()){
-                    if (dataPackage.getShapes().size() > 0) {
-                        for (ShapeObject s : dataPackage.getShapes()) {
+                if (!dataPackage.getMyPlayer().isArtist() && dataPackage != null && dataPackage.getShapesArray() != null){
+                    if (dataPackage.getShapesArray().length > 0) {
+                        for (ShapeObject s : dataPackage.getShapesArray()) {
                             g.setColor(s.getCol());
                             g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
                         }

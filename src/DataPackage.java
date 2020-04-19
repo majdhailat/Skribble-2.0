@@ -10,14 +10,14 @@ public class DataPackage implements Serializable {
     private ArrayList<Player> winners;
     private Player artist;
 
-    private ArrayList<ShapeObject> shapes;
-    public DataPackage(String message, ArrayList<Player> players, ArrayList<Player> winners, Player myPlayer, Player artist, ArrayList<ShapeObject> shapes){
+    private ShapeObject[] shapesArray;
+    public DataPackage(String message, ArrayList<Player> players, ArrayList<Player> winners, Player myPlayer, Player artist, ShapeObject[] shapesArray){
         this.message = message;
         this.players = players;
         this.winners = winners;
         this.myPlayer = myPlayer;
         this.artist = artist;
-        this.shapes = shapes;
+        this.shapesArray = shapesArray;
     }
 
     public String getMessage() {
@@ -40,7 +40,7 @@ public class DataPackage implements Serializable {
         return artist;
     }
 
-    public ArrayList<ShapeObject> getShapes() {
-        return shapes;
+    public ShapeObject[] getShapesArray () {
+        return shapesArray;
     }
 }

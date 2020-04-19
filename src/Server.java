@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -12,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class Server {
     private boolean running = true;//state of server
 
-    private ArrayList<ShapeObject> shapes = null;
+    private ShapeObject[] shapesArray = null;
     private String message;//the text message
     private Player artist;
     private ArrayList<Player> messageReaders = new ArrayList<Player>();//the players who read the text message
@@ -56,8 +57,8 @@ public class Server {
         messageReaders.add(player);
     }
 
-    public synchronized void updateShapes(ArrayList<ShapeObject> shapes) {
-        this.shapes = shapes;
+    public synchronized void updateShapes(ShapeObject[] shapesArray) {
+        this.shapesArray = shapesArray;
     }
 
     public synchronized String getMessage(Player player) {
@@ -79,7 +80,7 @@ public class Server {
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(getMessage(player), players, winners, player, artist, shapes);
+        return new DataPackage(getMessage(player), players, winners, player, artist, shapesArray);
     }
 
     public void newRound(){
@@ -131,7 +132,7 @@ class ListenForClients extends Thread{
 
 // ------------ I/O TO Client Threads ------------------------------------------
 //Reads messages from the client and sends them to the server
-class ServerOutputThread extends Thread{
+class ServerOutputThread extends Thread {
     private Socket socket;
     private Player player;
     private boolean gotUserName = false;
@@ -139,6 +140,7 @@ class ServerOutputThread extends Thread{
     private Server server;
 
     private ObjectInputStream canvasIn;
+
     public ServerOutputThread(Server server, Player player, Socket socket) throws IOException {
         this.socket = socket;
         this.server = server;
@@ -149,19 +151,19 @@ class ServerOutputThread extends Thread{
 
 
     public void run() {
-        if (player.isArtist()) {
-            ArrayList<ShapeObject> shapes = null;
-            try {
-                shapes = (ArrayList<ShapeObject>) canvasIn.readUnshared();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            server.updateShapes(shapes);
-        } else {
-            try {
-                while (server.isRunning()) {
+        try {
+            while (server.isRunning()) {
+                if (player.isArtist()) {
+                    try {
+                        ShapeObject[] shapesArray = (ShapeObject[])canvasIn.readObject();
+                        if (shapesArray.length > 0) {
+
+                            server.updateShapes(shapesArray);
+                        }
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                } else {
                     String inputLine;
                     if ((inputLine = in.readLine()) != null) {
                         if (gotUserName) {
@@ -172,27 +174,31 @@ class ServerOutputThread extends Thread{
                             String[] splitInputLine = inputLine.split(" ");
                             player.setName(splitInputLine[1]);
                             server.newMessage(("#FF0000~" + splitInputLine[1] + " has joined the game"), player);
+                            if (splitInputLine[1].equals("artist")) {
+                                player.setArtist(true);
+                            }
                             server.newPlayer(player);
                             gotUserName = true;
                         }
                     }
                 }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                server.playerDisconnected(player);
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
 
-
+        } catch(IOException e){
+            e.printStackTrace();
+        } finally{
+            server.playerDisconnected(player);
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
+
+
+
 
 //Gets the data package from the server and sends it to the client
 class ServerChatInputThread extends Thread{

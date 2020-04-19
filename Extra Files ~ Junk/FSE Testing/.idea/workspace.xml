@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="aeb91a2c-5dab-4fc6-8c8d-dcfb78ddb6f2" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ProjectId" id="1aSercmw1SZinrwRUeXZaaqJ1oQ" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="project.structure.last.edited" value="Modules" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.0" />
+  </component>
+  <component name="RunManager" selected="Application.GameMusic">
+    <configuration name="GameMusic" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="GameMusic" />
+      <module name="FSE Testing" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MenuEg" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="MenuEg" />
+      <module name="FSE Testing" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.GameMusic" />
+        <item itemvalue="Application.MenuEg" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="aeb91a2c-5dab-4fc6-8c8d-dcfb78ddb6f2" name="Default Changelist" comment="" />
+      <created>1586733621414</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1586733621414</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="320" y="115" key="#Project_Structure" timestamp="1586733650996">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="320" y="115" key="#Project_Structure/0.0.1440.900@0.0.1440.900" timestamp="1586733650996" />
+    <state width="1398" height="157" key="GridCell.Tab.0.bottom" timestamp="1586740621388">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1398" height="157" key="GridCell.Tab.0.bottom/0.0.1440.900@0.0.1440.900" timestamp="1586740621388" />
+    <state width="1398" height="157" key="GridCell.Tab.0.center" timestamp="1586740621386">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1398" height="157" key="GridCell.Tab.0.center/0.0.1440.900@0.0.1440.900" timestamp="1586740621386" />
+    <state width="1398" height="157" key="GridCell.Tab.0.left" timestamp="1586740621384">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1398" height="157" key="GridCell.Tab.0.left/0.0.1440.900@0.0.1440.900" timestamp="1586740621384" />
+    <state width="1398" height="157" key="GridCell.Tab.0.right" timestamp="1586740621387">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1398" height="157" key="GridCell.Tab.0.right/0.0.1440.900@0.0.1440.900" timestamp="1586740621387" />
+  </component>
+</project>
