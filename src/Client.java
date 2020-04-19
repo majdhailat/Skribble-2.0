@@ -25,7 +25,7 @@ public class Client extends JFrame {
     }
 
     public Client(){
-        String hostName = "localhost";
+        String hostName = "MajdsPC.local";
         int portNumber = 4445;
         try (Socket socket = new Socket(hostName, portNumber)){
             new ClientInputThread(socket).start();
