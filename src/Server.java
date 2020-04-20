@@ -21,7 +21,7 @@ public class Server {
     private Player artist;
     private ArrayList<Player> previousArtists = new ArrayList<>();
     private ArrayList<Player> winners = new ArrayList<Player>();
-    private String currentMagicWord; //should be a read from a txt file
+    private String currentMagicWord = null; //should be a read from a txt file
     private ArrayList<String> magicWords = new ArrayList<String>();
 
     public static void main(String[] args) throws IOException {
@@ -59,6 +59,15 @@ public class Server {
         winners = new ArrayList<Player>();
         drawingComponents = null;
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));
+        magicWords.remove(currentMagicWord);
+        if (magicWords.size() == 0){
+            try {
+                loadMagicWords("words");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         randArtist.addMessageOnlyForMe("#FF0000~You are the artist");
         randArtist.addMessageOnlyForMe("#FF0000~you must draw: "+currentMagicWord);
 
@@ -86,7 +95,7 @@ public class Server {
         if (msg.contains("~")) {//this means that the client is sending a message and not the user
             message = msg;
         } else {
-            if(msg.toLowerCase().equals(currentMagicWord.toLowerCase())){
+            if(currentMagicWord != null && msg.toLowerCase().equals(currentMagicWord.toLowerCase())){
                 winners.add(player);
                 message = ("#FF0000~"+player.getName() + " has guessed correctly!");
                 player.addMessageOnlyForMe("#FF0000~You have guessed correctly!");

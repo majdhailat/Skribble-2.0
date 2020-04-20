@@ -127,10 +127,11 @@ public class Client extends JFrame {
             try {
                 while (running) {
                     dataPackage = (DataPackage) objectInputStream.readUnshared();
+                    if (dataPackage.getDrawingComponents() == null){
+                        drawingComponents.clear();
+                    }
                     if (!dataPackage.amIArtist()) {
-                        if (dataPackage.getDrawingComponents() == null){
-                            drawingComponents.clear();
-                        }else {
+                        if (dataPackage.getDrawingComponents() != null) {
                             drawingComponents = new ArrayList<>(Arrays.asList(dataPackage.getDrawingComponents()));
                         }
                     }
