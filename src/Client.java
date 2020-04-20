@@ -97,6 +97,17 @@ public class Client extends JFrame {
                                 } catch (IOException e) {e.printStackTrace();}
                             }
                         }
+                        try {
+                            out.writeObject(0);//this is a "band aid" fix
+                            //but what it does is on the server side, the server is currently in a waiting stage because
+                            //it is waiting for a drawing components array but since this loop just ended the next thing it will get is a message
+                            //that will cause the server to throw a class cast exception because it tried casting a string to an array
+                            //this exception can be ignored harmlessly but it will mean that the message never makes it to the server
+                            //so this out statement will trigger the exception and get it over with so that the message that is coming up will
+                            //not be the thing to cause the exception thus it will make it to the server
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -106,6 +117,7 @@ public class Client extends JFrame {
     //Reads the data package from the server and stores it for the rest of the client to use
     public class ClientInputThread extends Thread {
         private ObjectInputStream objectInputStream;
+        private ArrayList<String> previousMessagesOnlyForMe = new ArrayList<>();
 
         public ClientInputThread(Socket socket) throws IOException {
             objectInputStream = new ObjectInputStream(socket.getInputStream());
@@ -115,13 +127,25 @@ public class Client extends JFrame {
             try {
                 while (running) {
                     dataPackage = (DataPackage) objectInputStream.readUnshared();
-                    if (!dataPackage.amIArtist() && dataPackage.getDrawingComponents() != null) {
-                        drawingComponents = new ArrayList<>(Arrays.asList(dataPackage.getDrawingComponents()));
+                    if (!dataPackage.amIArtist()) {
+                        if (dataPackage.getDrawingComponents() == null){
+                            drawingComponents.clear();
+                        }else {
+                            drawingComponents = new ArrayList<>(Arrays.asList(dataPackage.getDrawingComponents()));
+                        }
                     }
 
                     String message = dataPackage.getMessage();
                     if (message != null && canReceiveMessages) {
                         addMessageToQueue(message);
+                    }
+                    ArrayList<String> messageOnlyForMe = dataPackage.getMyPlayer().getMessageOnlyForMe();
+                    if (messageOnlyForMe.size() > previousMessagesOnlyForMe.size()){
+                        int numOfNewMessages = messageOnlyForMe.size() - previousMessagesOnlyForMe.size();
+                        for (int i = 0; i < numOfNewMessages; i++){
+                            addMessageToQueue(messageOnlyForMe.get(previousMessagesOnlyForMe.size() + i));
+                        }
+                        previousMessagesOnlyForMe = messageOnlyForMe;
                     }
                 }
             }catch (IOException | ClassNotFoundException e) {e.printStackTrace();}

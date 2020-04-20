@@ -47,16 +47,26 @@ public class Server {
         if (previousArtists.size() >= players.size()){
             previousArtists.clear();
         }
+        Player randArtist;
         while (true) {
-            Player randPlayer = players.get(randint(0, players.size() - 1)); //or we could go through the list
-            if (!previousArtists.contains(randPlayer)) {
-                artist = players.get(randint(0, players.size() - 1)); //or we could go through the list
-                previousArtists.add(randPlayer);
+            randArtist = players.get(randint(0, players.size() - 1)); //or we could go through the list
+            if (!previousArtists.contains(randArtist)) {
+                artist = randArtist;
+                previousArtists.add(randArtist);
                 break;
             }
         }
         winners = new ArrayList<Player>();
+        drawingComponents = null;
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));
+        randArtist.addMessageOnlyForMe("#FF0000~You are the artist");
+        randArtist.addMessageOnlyForMe("#FF0000~you must draw: "+currentMagicWord);
+
+        for (Player p :players){
+            if (p != randArtist){
+                p.addMessageOnlyForMe("#FF0000~"+randArtist.getName()+" Is the artist");
+            }
+        }
     }
 
     public List<Player> getPlayers() {return players;}
@@ -76,10 +86,11 @@ public class Server {
         if (msg.contains("~")) {//this means that the client is sending a message and not the user
             message = msg;
         } else {
-            if(msg.equals(currentMagicWord)){
+            if(msg.toLowerCase().equals(currentMagicWord.toLowerCase())){
                 winners.add(player);
-                message = player.getName() + " has guessed correctly!";
-                if(winners.size() == players.size()){
+                message = ("#FF0000~"+player.getName() + " has guessed correctly!");
+                player.addMessageOnlyForMe("#FF0000~You have guessed correctly!");
+                if(winners.size() == players.size() - 1){
                     System.out.println("new round");
                     newRound();
                 }
@@ -175,8 +186,10 @@ class ServerOutputThread extends Thread {
         try {
             while (server.isRunning()) {
                 if (server.isArtist(player)){
-                    DrawingComponent[] shapesArray = (DrawingComponent[]) in.readObject();
-                    server.setDrawingComponents(shapesArray);
+                    try {
+                        DrawingComponent[] shapesArray = (DrawingComponent[]) in.readObject();
+                        server.setDrawingComponents(shapesArray);
+                    }catch(ClassCastException ignored){}
                 } else {
                     String inputLine;
                     try {
@@ -191,8 +204,7 @@ class ServerOutputThread extends Thread {
                                 server.newMessage(inputLine, player);
                             }
                         }
-                    }catch (SocketException | ClassCastException ignored){
-                    }
+                    }catch (SocketException | ClassCastException ignored){}
                 }
             }
         } catch(IOException | ClassNotFoundException e){e.printStackTrace();}

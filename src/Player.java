@@ -1,10 +1,12 @@
 import java.io.Serializable;
 import java.awt.Color;
+import java.util.ArrayList;
 
 //stores information about each player
 public class Player implements Serializable {
     private static final long serialVersionUID = 6942069;
 
+    private ArrayList<String>messagesOnlyForMe = new ArrayList<>();
     private String name;
     private int score;
     private Color color;
@@ -25,5 +27,12 @@ public class Player implements Serializable {
 
     public Color getColor(){
         return color;
+    }
+
+    public ArrayList<String> getMessageOnlyForMe() {
+        return this.messagesOnlyForMe;
+    }
+    public void addMessageOnlyForMe(String msg){
+        messagesOnlyForMe.add(msg);
     }
 }
