@@ -159,7 +159,7 @@ public class Client extends JFrame {
         public Gui(){
             super("Skribble");
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            setSize(1280, 720);
+            setSize(1300, 740);
             Timer myTimer = new Timer(100, new TickListener());// trigger every 100 ms
             myTimer.start();
             panel = new Panel();
