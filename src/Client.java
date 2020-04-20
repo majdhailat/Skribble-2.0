@@ -15,9 +15,12 @@ public class Client extends JFrame {
     private volatile boolean running = true;//state of client
     private DataPackage dataPackage;//the object that stores all game info that the client will ever need
     private volatile ArrayList<DrawingComponent> drawingComponents = new ArrayList<>();
-    private boolean canReceiveMessages = false;//if the client can display other user's messages
-    private String [] messageQueue = new String[17];//the past 17 messages
+
     private String usersTextMessage = null;//the message that the user types
+    private String [] messageQueue = new String[17];//the past 17 messages
+    private boolean canReceiveMessages = false;//if the client can display other user's messages
+
+    private boolean madeChangesToDrawing = false;
 
     public static void main(String[] args)  {
         new Client();
@@ -56,7 +59,6 @@ public class Client extends JFrame {
         private boolean promptedStartMessage = false;
         public void run() {
             while (running) {
-
                 if (dataPackage != null) {
                     if (!promptedStartMessage && dataPackage.getPlayers().size() >= 2 && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer()) {
                         addMessageToQueue("#008000~Type start to start the game");
@@ -69,7 +71,7 @@ public class Client extends JFrame {
                                 addMessageToQueue("#008000~Welcome to Skribble " + usersTextMessage);
                                 gotUserName = true;
                                 canReceiveMessages = true;
-                            } else if (dataPackage.getGameState().equals(DataPackage.WAITINGFORPLAYERS) && usersTextMessage.equals("start")) {
+                            } else if (dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && dataPackage.getGameState().equals(DataPackage.WAITINGFORPLAYERS) && usersTextMessage.equals("start")) {
                                 out.writeObject("START");
                             } else {
                                 out.writeObject(usersTextMessage);
@@ -77,26 +79,22 @@ public class Client extends JFrame {
                             }
                             usersTextMessage = null;
                             out.flush();
-                        }catch(IOException e){
-                            e.printStackTrace();
-                        }
+                        }catch(IOException e){e.printStackTrace();}
                     }
                     else if (dataPackage.amIArtist()){
                         while(dataPackage.amIArtist()){
                             try {
-                                TimeUnit.MILLISECONDS.sleep(1);
+                                TimeUnit.MILLISECONDS.sleep(100);
                             } catch (InterruptedException e) {e.printStackTrace();}
-                            if(dataPackage.getDrawingComponents() == null || (drawingComponents.size() != dataPackage.getDrawingComponents().length)) {
+                            if(madeChangesToDrawing) {
+                                madeChangesToDrawing = false;
                                 try {
                                     DrawingComponent[] drawingComponentsArray = new DrawingComponent[drawingComponents.size()];
                                     drawingComponentsArray = drawingComponents.toArray(drawingComponentsArray);
                                     out.writeObject(drawingComponentsArray);
                                     out.flush();
                                     out.reset();
-
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
+                                } catch (IOException e) {e.printStackTrace();}
                             }
                         }
                     }
@@ -233,24 +231,12 @@ public class Client extends JFrame {
                         (int) chatPanel.getWidth(), (int) chatPanel.getHeight());
                 g.drawImage(colorPickerImage, (int)colorPickerPanel.getX(), (int)colorPickerPanel.getY(), null);
 
-                /*
-                if (!dataPackage.getMyPlayer().isArtist() && dataPackage != null && dataPackage.getDrawingComponents() != null){
-                    if (dataPackage.getDrawingComponents().length > 0) {
-                        for (DrawingComponent s : dataPackage.getDrawingComponents()) {
-                            g.setColor(s.getCol());
-                            g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
-                        }
-                    }
-                }else {
-
-                 */
                     if (drawingComponents.size() > 0) {
                         for (DrawingComponent s : drawingComponents) {
                             g.setColor(s.getCol());
                             g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
                         }
                     }
-                //}
 
                 updateMessageTextAreas();
                 updatePlayerTextAreas(g);
@@ -363,7 +349,6 @@ public class Client extends JFrame {
             x1 = e.getX();
             y1 = e.getY();
             if (colorPickerPanel.contains(x1, y1)){
-                File file= new File("your_file.jpg");
                 try {
                     BufferedImage image = ImageIO.read(new File("Color picker.png"));
                     Color c = new Color(image.getRGB((int)(x1-colorPickerPanel.getX()), (int)(y1-colorPickerPanel.getY())));
@@ -377,7 +362,8 @@ public class Client extends JFrame {
             x2 = e.getX();
             y2 = e.getY();
 
-            if (canvasPanel.contains(x1, y1)) {
+            if (canvasPanel.contains(x1, y1) && dataPackage.amIArtist()) {
+                madeChangesToDrawing = true;
                 if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL)) {
                     if (x2 < canvasPanel.getX()){
                         x2 = (int) canvasPanel.getX();
