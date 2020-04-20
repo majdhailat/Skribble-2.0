@@ -9,13 +9,12 @@ import java.net.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 public class Client extends JFrame {
-    private volatile ArrayList<ShapeObject> shapes = new ArrayList<>();
-
-
     private volatile boolean running = true;//state of client
     private DataPackage dataPackage;//the object that stores all game info that the client will ever need
+    private volatile ArrayList<DrawingComponent> drawingComponents = new ArrayList<>();
     private boolean canReceiveMessages = false;//if the client can display other user's messages
     private String [] messageQueue = new String[17];//the past 17 messages
     private String usersTextMessage = null;//the message that the user types
@@ -25,7 +24,7 @@ public class Client extends JFrame {
     }
 
     public Client(){
-        String hostName = "MajdsPC.local";
+        String hostName = "localhost";
         int portNumber = 4445;
         try (Socket socket = new Socket(hostName, portNumber)){
             new ClientInputThread(socket).start();
@@ -46,44 +45,60 @@ public class Client extends JFrame {
     // ------------ Networking ------------------------------------------
     //Reads the message from the user and sends it to the server
     public class ClientOutputThread extends Thread {
-        private PrintWriter out;
-        private ObjectOutputStream canvasOut;
+        private ObjectOutputStream out;
         private boolean gotUserName = false;
+
         public ClientOutputThread(Socket socket) throws IOException {
-            out = new PrintWriter(socket.getOutputStream(), true);
-            canvasOut = new ObjectOutputStream(socket.getOutputStream());
+            out = new ObjectOutputStream(socket.getOutputStream());
             addMessageToQueue("#008000~Enter a user name");
         }
 
+        private boolean promptedStartMessage = false;
         public void run() {
             while (running) {
 
-                if (dataPackage != null && dataPackage.getMyPlayer().isArtist()){
-                    try {
-                        ShapeObject[] shapeArray = new ShapeObject[shapes.size()];
-                        shapeArray = shapes.toArray(shapeArray);
-
-                        canvasOut.writeObject(shapeArray);
-
-                        canvasOut.flush();
-                        canvasOut.reset();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                if (dataPackage != null) {
+                    if (!promptedStartMessage && dataPackage.getPlayers().size() >= 2 && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer()) {
+                        addMessageToQueue("#008000~Type start to start the game");
+                        promptedStartMessage = true;
                     }
-                }else {
-                    if (usersTextMessage != null) {
-                        if (gotUserName) {
-                            out.println(usersTextMessage);
-                            addMessageToQueue("Me: " + usersTextMessage);
-
-                        } else {
-                            out.println("USERNAME " + usersTextMessage);
-                            addMessageToQueue("#008000~Welcome to Skribble " + usersTextMessage);
-                            gotUserName = true;
-                            canReceiveMessages = true;
+                    if (!dataPackage.amIArtist() && usersTextMessage != null) {
+                        try {
+                            if (!gotUserName) {
+                                out.writeObject(usersTextMessage);
+                                addMessageToQueue("#008000~Welcome to Skribble " + usersTextMessage);
+                                gotUserName = true;
+                                canReceiveMessages = true;
+                            } else if (dataPackage.getGameState().equals(DataPackage.WAITINGFORPLAYERS) && usersTextMessage.equals("start")) {
+                                out.writeObject("START");
+                            } else {
+                                out.writeObject(usersTextMessage);
+                                addMessageToQueue("Me: " + usersTextMessage);
+                            }
+                            usersTextMessage = null;
+                            out.flush();
+                        }catch(IOException e){
+                            e.printStackTrace();
                         }
-                        usersTextMessage = null;
-                        out.flush();
+                    }
+                    else if (dataPackage.amIArtist()){
+                        while(dataPackage.amIArtist()){
+                            try {
+                                TimeUnit.MILLISECONDS.sleep(1);
+                            } catch (InterruptedException e) {e.printStackTrace();}
+                            if(dataPackage.getDrawingComponents() == null || (drawingComponents.size() != dataPackage.getDrawingComponents().length)) {
+                                try {
+                                    DrawingComponent[] drawingComponentsArray = new DrawingComponent[drawingComponents.size()];
+                                    drawingComponentsArray = drawingComponents.toArray(drawingComponentsArray);
+                                    out.writeObject(drawingComponentsArray);
+                                    out.flush();
+                                    out.reset();
+
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -93,6 +108,7 @@ public class Client extends JFrame {
     //Reads the data package from the server and stores it for the rest of the client to use
     public class ClientInputThread extends Thread {
         private ObjectInputStream objectInputStream;
+
         public ClientInputThread(Socket socket) throws IOException {
             objectInputStream = new ObjectInputStream(socket.getInputStream());
         }
@@ -101,6 +117,10 @@ public class Client extends JFrame {
             try {
                 while (running) {
                     dataPackage = (DataPackage) objectInputStream.readUnshared();
+                    if (!dataPackage.amIArtist() && dataPackage.getDrawingComponents() != null) {
+                        drawingComponents = new ArrayList<>(Arrays.asList(dataPackage.getDrawingComponents()));
+                    }
+
                     String message = dataPackage.getMessage();
                     if (message != null && canReceiveMessages) {
                         addMessageToQueue(message);
@@ -148,7 +168,6 @@ public class Client extends JFrame {
             add(panel);
             setResizable(false);
             setVisible(true);
-
             addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
@@ -161,7 +180,6 @@ public class Client extends JFrame {
             public void actionPerformed(ActionEvent evt) {
                 if (panel != null && panel.ready) {
                     panel.repaint();
-                    panel.move();
                 }
             }
         }
@@ -169,7 +187,6 @@ public class Client extends JFrame {
 
     public class Panel extends JPanel implements MouseListener, MouseMotionListener{
         public boolean ready = false;
-
 
         public Panel(){
             //sets running to false when windows is closed to close all threads
@@ -216,32 +233,29 @@ public class Client extends JFrame {
                         (int) chatPanel.getWidth(), (int) chatPanel.getHeight());
                 g.drawImage(colorPickerImage, (int)colorPickerPanel.getX(), (int)colorPickerPanel.getY(), null);
 
-                updateMessageTextAreas();
-                updatePlayerTextAreas(g);
-
-                g.setColor(Color.black);
-
-                if (!dataPackage.getMyPlayer().isArtist() && dataPackage != null && dataPackage.getShapesArray() != null){
-                    if (dataPackage.getShapesArray().length > 0) {
-                        for (ShapeObject s : dataPackage.getShapesArray()) {
+                /*
+                if (!dataPackage.getMyPlayer().isArtist() && dataPackage != null && dataPackage.getDrawingComponents() != null){
+                    if (dataPackage.getDrawingComponents().length > 0) {
+                        for (DrawingComponent s : dataPackage.getDrawingComponents()) {
                             g.setColor(s.getCol());
                             g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
                         }
                     }
                 }else {
-                    if (shapes.size() > 0) {
-                        for (ShapeObject s : shapes) {
+
+                 */
+                    if (drawingComponents.size() > 0) {
+                        for (DrawingComponent s : drawingComponents) {
                             g.setColor(s.getCol());
                             g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
                         }
                     }
-                }
+                //}
 
-
+                updateMessageTextAreas();
+                updatePlayerTextAreas(g);
             }
         }
-
-        public void move(){}
         
         //the text boxes that display the messages from queue
         private JTextArea[] messageTextAreas = new JTextArea[messageQueue.length];
@@ -339,7 +353,6 @@ public class Client extends JFrame {
            }
         }
 
-
         // ------------ MouseListener ------------------------------------------
         private int x1, y1, x2, y2;
         public void mouseEntered(MouseEvent e) {}
@@ -354,7 +367,7 @@ public class Client extends JFrame {
                 try {
                     BufferedImage image = ImageIO.read(new File("Color picker.png"));
                     Color c = new Color(image.getRGB((int)(x1-colorPickerPanel.getX()), (int)(y1-colorPickerPanel.getY())));
-                    ShapeObject.setColor(c);
+                    DrawingComponent.setColor(c);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -365,7 +378,7 @@ public class Client extends JFrame {
             y2 = e.getY();
 
             if (canvasPanel.contains(x1, y1)) {
-                if (ShapeObject.getToolType().equals(ShapeObject.PENCIL)) {
+                if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL)) {
                     if (x2 < canvasPanel.getX()){
                         x2 = (int) canvasPanel.getX();
                     }else if (x2 > canvasPanel.getX() + canvasPanel.getWidth()){
@@ -376,12 +389,13 @@ public class Client extends JFrame {
                     }else if (y2 > canvasPanel.getY() + canvasPanel.getHeight()){
                         y2 = (int) (canvasPanel.getY() + canvasPanel.getHeight());
                     }
-                    shapes.add(new ShapeObject(x1, y1, x2, y2));
+                    drawingComponents.add(new DrawingComponent(x1, y1, x2, y2));
                 }
             }
             x1 = x2;
             y1 = y2;
         }
+
         public void mouseMoved(MouseEvent e) {}
 
         class MKeyListener extends KeyAdapter {

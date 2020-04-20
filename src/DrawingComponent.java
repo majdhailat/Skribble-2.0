@@ -2,7 +2,7 @@ import java.awt.*;
 import java.io.Serializable;
 
 
-class ShapeObject implements Serializable{
+class DrawingComponent implements Serializable{
     //STATIC FIELDS
     public static final String PENCIL = "PENCIL", ERASER = "ERASER", FILL = "FILL";
     private static int currentStrokeSize = 1;
@@ -12,7 +12,7 @@ class ShapeObject implements Serializable{
     //NON STATIC FIELDS
     private int x1, y1, x2, y2, stroke;
     private Color col;
-    public ShapeObject(int x1, int y1, int x2, int y2){
+    public DrawingComponent(int x1, int y1, int x2, int y2){
         this.x1 = x1;
         this.y1 = y1;
         this.x2 = x2;

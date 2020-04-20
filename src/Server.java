@@ -1,19 +1,17 @@
 //Imports
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 //Stores all the global information about the game and starts the listening thread
 public class Server {
-    private boolean running = true;//state of server
-
-    private ShapeObject[] shapesArray = null;
+    private boolean running = true;
+    private String gameState = DataPackage.WAITINGFORPLAYERS;
+    private DrawingComponent[] drawingComponents = null;
     private String message;//the text message
     private Player artist;
     private ArrayList<Player> messageReaders = new ArrayList<Player>();//the players who read the text message
@@ -22,43 +20,46 @@ public class Server {
     private String currentMagicWord; //should be a read from a txt file
     private ArrayList<String> magicWords = new ArrayList<String>();
 
-    public static void main(String []args){
+    public static void main(String[] args) throws IOException {
         Server server = new Server();
         new ListenForClients(server).start();
+        server.loadMagicWords("words");
     }
 
-    public boolean isRunning(){
-        return running;
-    }
+    public boolean isRunning(){return running;}
 
-
-    private boolean setArtist = false;
     public synchronized void newPlayer(Player player){
-
         players.add(player);
     }
 
     public synchronized void newMessage(String msg, Player player){
+
         messageReaders.clear();
-        if (msg.contains("~")){//this means that the client is sending a message and not the user
+        if (msg.contains("~")) {//this means that the client is sending a message and not the user
             message = msg;
-        }else {
+        } else {
+            /*
             if(msg.equals(currentMagicWord)){
                 winners.add(player);
                 message = player.getName() + " has guessed correctly!";
                 if(winners.size() == players.size()){
-                    newRound();
+                    System.out.println("new round");
+
+                    //newRound();
                 }
             }
-            else{
-                message = (player.getName()) + ": " + msg;
-            }
+
+             */
+            //else{
+            message = (player.getName()) + ": " + msg;
+            //}
         }
         messageReaders.add(player);
+
     }
 
-    public synchronized void updateShapes(ShapeObject[] shapesArray) {
-        this.shapesArray = shapesArray;
+    public synchronized void updateShapes(DrawingComponent[] shapesArray) {
+        this.drawingComponents = shapesArray;
     }
 
     public synchronized String getMessage(Player player) {
@@ -80,11 +81,12 @@ public class Server {
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(getMessage(player), players, winners, player, artist, shapesArray);
+        return new DataPackage(getMessage(player), players, winners, player, artist, drawingComponents, gameState);
     }
 
     public void newRound(){
-        artist = players.get(randint(0, players.size()-1)); //or we could go through the list
+        //artist = players.get(randint(0, players.size()-1)); //or we could go through the list
+        artist = players.get(1);
         winners = new ArrayList<Player>();
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));
     }
@@ -99,9 +101,32 @@ public class Server {
         inFile.close();
     }
 
+    public void setGameState(String state){
+        if (state.equals(DataPackage.GAMESTARTING) || state.equals(DataPackage.ROUNDINPROGRESS) || state.equals(DataPackage.WAITINGFORPLAYERS)){
+            gameState = state;
+        }
+        if (gameState.equals(DataPackage.GAMESTARTING)){
+            newRound();
+        }
+    }
+
+    public String getGameState(){
+        return gameState;
+    }
+
+
+
+    public boolean isArtist(Player player){
+        return (player == artist);
+    }
+
     public static int randint(int low, int high){
         //this method returns a random int between the low and high args inclusive
         return (int)(Math.random()*(high-low+1)+low);
+    }
+
+    public List<Player> getPlayers() {
+        return players;
     }
 }
 
@@ -133,78 +158,69 @@ class ListenForClients extends Thread{
 // ------------ I/O TO Client Threads ------------------------------------------
 //Reads messages from the client and sends them to the server
 class ServerOutputThread extends Thread {
-    private Socket socket;
-    private Player player;
-    private boolean gotUserName = false;
-    private BufferedReader in;
     private Server server;
-
-    private ObjectInputStream canvasIn;
+    private Player player;
+    private Socket socket;
+    private ObjectInputStream in;
+    private boolean gotUserName = false;
 
     public ServerOutputThread(Server server, Player player, Socket socket) throws IOException {
         this.socket = socket;
         this.server = server;
         this.player = player;
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        canvasIn = new ObjectInputStream(socket.getInputStream());
+        in = new ObjectInputStream(socket.getInputStream());
     }
-
 
     public void run() {
         try {
             while (server.isRunning()) {
-                if (player.isArtist()) {
+                if (server.isArtist(player)) {
                     try {
-                        ShapeObject[] shapesArray = (ShapeObject[])canvasIn.readObject();
+                        DrawingComponent[] shapesArray = (DrawingComponent[]) in.readObject();
                         if (shapesArray.length > 0) {
-
                             server.updateShapes(shapesArray);
                         }
-                    } catch (IOException | ClassNotFoundException e) {
+                    } catch (ClassNotFoundException | OptionalDataException e) {
                         e.printStackTrace();
                     }
                 } else {
                     String inputLine;
-                    if ((inputLine = in.readLine()) != null) {
-                        if (gotUserName) {
+                    try {
+                        if ((inputLine = (String) in.readObject()) != null) {
 
-                            server.newMessage(inputLine, player);
-
-                        } else if (inputLine.contains("USERNAME")) {
-                            String[] splitInputLine = inputLine.split(" ");
-                            player.setName(splitInputLine[1]);
-                            server.newMessage(("#FF0000~" + splitInputLine[1] + " has joined the game"), player);
-                            if (splitInputLine[1].equals("artist")) {
-                                player.setArtist(true);
+                            if (!gotUserName) {
+                                player.setName(inputLine);
+                                server.newMessage(("#FF0000~" + inputLine + " has joined the game"), player);
+                                server.newPlayer(player);
+                                gotUserName = true;
+                            } else if (server.getGameState().equals(DataPackage.WAITINGFORPLAYERS) && inputLine.equals("START") && server.getPlayers().get(0) == player) {
+                                server.setGameState(DataPackage.GAMESTARTING);
+                            } else {
+                                server.newMessage(inputLine, player);
                             }
-                            server.newPlayer(player);
-                            gotUserName = true;
                         }
+                    }catch (ClassCastException ignored){
+
                     }
                 }
             }
 
-        } catch(IOException e){
-            e.printStackTrace();
-        } finally{
+        } catch(IOException | ClassNotFoundException e){e.printStackTrace();}
+
+        finally{
             server.playerDisconnected(player);
             try {
                 socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            } catch (IOException e) {e.printStackTrace();}
         }
     }
 }
 
-
-
-
 //Gets the data package from the server and sends it to the client
 class ServerChatInputThread extends Thread{
-    private Socket socket;
     private Server server;
     private Player player;
+    private Socket socket;
     private ObjectOutputStream objectOutputStream;
     public ServerChatInputThread(Server server, Player player, Socket socket) throws IOException {
         this.socket = socket;
@@ -222,14 +238,11 @@ class ServerChatInputThread extends Thread{
                 objectOutputStream.reset();
             }
         }
-        catch (IOException e) {
-            e.printStackTrace();
-        }finally {
+        catch (IOException e) {e.printStackTrace();}
+        finally {
             try {
                 socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            } catch (IOException e) {e.printStackTrace();}
         }
     }
 }
