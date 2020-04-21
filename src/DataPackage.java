@@ -5,7 +5,6 @@ public class DataPackage implements Serializable {
     private static final long serialVersionUID = 69420;
 
     public static final String WAITINGFORPLAYERS = "waiting for players", ROUNDINPROGRESS = "round in progress", GAMESTARTING = "game starting";
-    private String gameState;
     private int timeRemaining;
 
     private ArrayList<Player> players;
@@ -16,8 +15,7 @@ public class DataPackage implements Serializable {
     private Player artist;
     private ArrayList<Player> winners;
 
-    public DataPackage(String gameState, int timeRemaining, ArrayList<Player>players, Player myPlayer, String message, DrawingComponent[] drawingComponents, Player artist, ArrayList<Player> winners){
-        this.gameState = gameState;
+    public DataPackage(int timeRemaining, ArrayList<Player>players, Player myPlayer, String message, DrawingComponent[] drawingComponents, Player artist, ArrayList<Player> winners){
         this.timeRemaining = timeRemaining;
         this.players = players;
         this.myPlayer = myPlayer;
@@ -26,8 +24,6 @@ public class DataPackage implements Serializable {
         this.artist = artist;
         this.winners = winners;
     }
-
-    public String getGameState(){return gameState;}
 
     public int getTimeRemaining(){return timeRemaining;}
 

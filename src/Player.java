@@ -11,8 +11,8 @@ public class Player implements Serializable {
     private int score;
     private Color color;
 
-    public Player(String name){
-        this.name = name;
+    public Player(){
+        this.name = "";
         this.score = 0;
         this.color = new Color(50 + (int)(Math.random() * ((255 - 50) + 1)), 50 + (int)(Math.random() * ((255 - 50) + 1)),  50 + (int)(Math.random() * ((255 - 50) + 1)));
     }

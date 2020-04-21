@@ -68,10 +68,10 @@ public class Client extends JFrame {
                         try {
                             if (!gotUserName) {
                                 out.writeObject(usersTextMessage);
-                                addMessageToQueue("#008000~Welcome to Skribble " + usersTextMessage);
+                                //addMessageToQueue("#008000~Welcome to Skribble " + usersTextMessage);
                                 gotUserName = true;
                                 canReceiveMessages = true;
-                            } else if (dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && dataPackage.getGameState().equals(DataPackage.WAITINGFORPLAYERS) && usersTextMessage.equals("start")) {
+                            } else if (dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && usersTextMessage.equals("start")) {
                                 out.writeObject("START");
                             } else {
                                 out.writeObject(usersTextMessage);
