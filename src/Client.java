@@ -3,6 +3,7 @@ import javax.imageio.ImageIO;
 import javax.sound.midi.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.*;
@@ -300,6 +301,12 @@ public class Client extends JFrame {
         private Image colorPickerImage = new ImageIcon("Color picker.png").getImage();
         //the rectangle around the color picker (not actually displayed, but used to check if the user clicks in it)
         private Rectangle colorPickerPanel = new Rectangle(260, 632, colorPickerImage.getWidth(null), colorPickerImage.getHeight(null));
+        //loads tool images and creates rectangle objects to check for collision
+        private Image pencilImage = new ImageIcon("pencil.png").getImage();
+        private Image eraserImage = new ImageIcon("eraser.png").getImage();
+        private Rectangle pencilPanel = new Rectangle(610, 632, pencilImage.getWidth(null), pencilImage.getHeight(null));
+        private Rectangle eraserPanel = new Rectangle(675, 632, eraserImage.getWidth(null), eraserImage.getHeight(null));
+
         //renders the GUI and calls any methods relates to the GUI
         public void paintComponent(Graphics g) {
             if (g != null) {
@@ -313,13 +320,23 @@ public class Client extends JFrame {
                         (int) chatPanel.getWidth(), (int) chatPanel.getHeight());
                 //drawing the color palette image
                 g.drawImage(colorPickerImage, (int)colorPickerPanel.getX(), (int)colorPickerPanel.getY(), null);
+                //drawing the tool images
+                g.drawImage(pencilImage, (int)pencilPanel.getX(), (int)pencilPanel.getY(), null);
+                g.drawImage(eraserImage, (int)eraserPanel.getX(), (int)eraserPanel.getY(), null);
 
                 //iterating through the drawing components and drawing each component onto the screen
                 //basically drawing the image
                 if (drawingComponents.size() > 0) {
+                    Graphics2D g2 = (Graphics2D) g;
                     for (DrawingComponent s : drawingComponents) {
-                        g.setColor(s.getCol());//each component has its own color
-                        g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
+                        g2.setStroke(new BasicStroke(s.getStroke()));
+                        if(DrawingComponent.getToolType().equals(DrawingComponent.ERASER)){
+                            DrawingComponent.setColor(Color.white);
+                        }
+                        g2.setColor(s.getCol());
+                        g2.draw(new Line2D.Float(s.getX1(), s.getY1(), s.getX2(), s.getY2()));
+//                        g.setColor(s.getCol());//each component has its own color
+//                        g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
                     }
                 }
 
@@ -468,6 +485,8 @@ public class Client extends JFrame {
         public void mousePressed(MouseEvent e) {
             x1 = e.getX();
             y1 = e.getY();
+            System.out.println(x1 + ", " + y1);
+            System.out.println(DrawingComponent.getToolType());
             if (colorPickerPanel.contains(x1, y1)){
                 try {
                     BufferedImage image = ImageIO.read(new File("Color picker.png"));
@@ -477,13 +496,19 @@ public class Client extends JFrame {
                     ex.printStackTrace();
                 }
             }
+            else if (pencilPanel.contains(x1, y1)){
+                DrawingComponent.setToolType("PENCIL");
+            }
+            else if (eraserPanel.contains(x1, y1)){
+                DrawingComponent.setToolType("ERASER");
+            }
         }
         synchronized public void mouseDragged(MouseEvent e) {
             x2 = e.getX();
             y2 = e.getY();
 
             if (canvasPanel.contains(x1, y1) && dataPackage.amIArtist()) {
-                if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL)) {
+                if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)){
                     if (x2 < canvasPanel.getX()){
                         x2 = (int) canvasPanel.getX();
                     }else if (x2 > canvasPanel.getX() + canvasPanel.getWidth()){
