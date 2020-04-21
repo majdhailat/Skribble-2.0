@@ -1,15 +1,17 @@
 Things to do:
 ==========================================================================================
-Fatures:
+Features:
 1. Fix the timers look
 2. Create point system and point calculating algorithm
 3. Add some sort of pause between rounds instead of jumping to the next round instantly
-4. Add more tools for the artists as well as thickness customization and fill bucket
-5. Add a button to mute/ unmute the music 
+4. Add more tools for the artists: thickness, fill bucket
+5. Add a button to mute/ unmute the music
+    a. pick better music, upbeat simple stuff like kahoot
 ------------------------------------------------------------------------------------------
 Possible Features:
 1. Add host commands (I.e. kicking, restarting game etc)
 2. Add randomly selected transition messages that are funny, kinda like discord. For example, when choosing the next artist have it say consulting Jesus to determine artist
+3. Vote on how good a drawing is. Could have a small impact on points received by artist
 ------------------------------------------------------------------------------------------
 Code:
 1. Clean up messaging system between classes and users 
@@ -19,8 +21,11 @@ Bugs:
 Cause: Unknown 
 
 2.  If the artist has their mouse clicked at the time when the round ends and the canvas is supposed to clear, the canvas never clears
-Cause: Unknown 
+Cause: Unknown
 
+    a. Sometimes, When all users correctly guess the word, the canvas doesnt clear sometimes.
+    Cause: Unknown
 
+    b. It looks like the canvas is cleared for an instant, only to have the drawing redrawn again
 
-
+3. The last person to guess correctly does not have the canvas cleared for them, and does not get a message declaring the identity of the next artist
