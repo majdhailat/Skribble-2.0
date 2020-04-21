@@ -5,7 +5,7 @@ import java.io.Serializable;
 class DrawingComponent implements Serializable{
     //STATIC FIELDS
     public static final String PENCIL = "PENCIL", ERASER = "ERASER", FILL = "FILL";
-    private static int currentStrokeSize = 1;
+    private static int currentStrokeSize = 2;
     private static Color currentColor = Color.black;
     private static String toolType = PENCIL;
 
