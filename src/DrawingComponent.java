@@ -1,7 +1,7 @@
 import java.awt.*;
 import java.io.Serializable;
 
-
+//I WILL ADD COMMENTS LATER BECAUSE THERE IS A LOT MORE CODE TO ADD HERE
 class DrawingComponent implements Serializable{
     //STATIC FIELDS
     public static final String PENCIL = "PENCIL", ERASER = "ERASER", FILL = "FILL";

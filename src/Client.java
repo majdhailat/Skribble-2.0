@@ -88,7 +88,7 @@ public class Client extends JFrame {
                                 canReceiveMessages = true;
                                 //checking if the user started the game
                             } else if (dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && usersTextMessage.equals("start")) {
-                                out.writeObject("START");
+                                out.writeObject("/START");//a command alerting the server to start the game
                             } else {//the user is just sending a message
                                 out.writeObject(usersTextMessage);//sending the users message to the server
                                 //displaying the users message back to the chat panel
@@ -225,18 +225,21 @@ public class Client extends JFrame {
     }
 
     // ------------ Graphics ------------------------------------------
+    //sets up JFrame and starts the JPanel
     public class Gui extends JFrame {
         private Panel panel;
         public Gui(){
             super("Skribble");
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             setSize(1300, 740);
-            Timer myTimer = new Timer(100, new TickListener());// trigger every 100 ms
+            Timer myTimer = new Timer(100, new TickListener());// trigger every 100 ms. used to refresh graphics
             myTimer.start();
             panel = new Panel();
             add(panel);
             setResizable(false);
             setVisible(true);
+            //this line of code executes anything inside the curly brackets when the user closes the window
+            //we are setting running to false to close all threads properly
             addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
@@ -245,6 +248,7 @@ public class Client extends JFrame {
             });
         }
 
+        //triggered every 100 ms by myTimer
         class TickListener implements ActionListener {
             public void actionPerformed(ActionEvent evt) {
                 if (panel != null && panel.ready) {
@@ -254,16 +258,18 @@ public class Client extends JFrame {
         }
     }
 
+    /*
+    Plays music
+     */
     public class Panel extends JPanel implements MouseListener, MouseMotionListener{
         public boolean ready = false;
-        private JTextArea timerText = new JTextArea();
 
         public Panel(){
             //sets running to false when windows is closed to close all threads
-            setLayout(null);
-            addMouseListener(this);
-            addMouseMotionListener(this);
-            startMidi("bgmusic.mid");
+            setLayout(null);//prevents any form of auto layout
+            addMouseListener(this);//used to detect mouse actions
+            addMouseMotionListener(this);//used to detect mouse dragging
+            startMidi("bgmusic.mid");//starting music
         }
 
         public void addNotify() {
@@ -272,6 +278,7 @@ public class Client extends JFrame {
             ready = true;
         }
 
+        //takes music file path, loads music and plays it in loop
         public void startMidi(String midFilename) {
             try {
                 File midiFile = new File(midFilename);
@@ -279,33 +286,40 @@ public class Client extends JFrame {
                 Sequencer midiPlayer = MidiSystem.getSequencer();
                 midiPlayer.open();
                 midiPlayer.setSequence(song);
-                midiPlayer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY); // repeat 0 times (play once)
+                midiPlayer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
                 midiPlayer.start();
             } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {
                 e.printStackTrace();
             }
         }
 
+        //the canvas rectangle where the image is drawn
         private Rectangle canvasPanel = new Rectangle(201, 64, 749, 562);
+        //the box on the left that displays all messages
         private Rectangle chatPanel = new Rectangle(958, 64, 312, 562);
+        //loading the color palette image
         private Image colorPickerImage = new ImageIcon("Color picker.png").getImage();
+        //the rectangle around the color picker (not actually displayed, but used to check if the user clicks in it)
         private Rectangle colorPickerPanel = new Rectangle(260, 632, colorPickerImage.getWidth(null), colorPickerImage.getHeight(null));
+        //renders the GUI and calls any methods relates to the GUI
         public void paintComponent(Graphics g) {
             if (g != null) {
-                g.setColor(new Color(10, 180, 150));
-                g.fillRect(0, 0, getWidth(), getHeight());
+                g.setColor(new Color(10, 180, 150));//background color
+                g.fillRect(0, 0, getWidth(), getHeight());//background
                 g.setColor(Color.white);
-                g.fillRect((int) canvasPanel.getX(), (int) canvasPanel.getY(),
+                g.fillRect((int) canvasPanel.getX(), (int) canvasPanel.getY(),//filling the canvas with white
                         (int) canvasPanel.getWidth(), (int) canvasPanel.getHeight());
-                g.setColor(Color.black);
                 g.setColor(new Color(237, 237, 237));
-                g.fillRect((int) chatPanel.getX(), (int) chatPanel.getY(),
+                g.fillRect((int) chatPanel.getX(), (int) chatPanel.getY(),//drawing the chat panel
                         (int) chatPanel.getWidth(), (int) chatPanel.getHeight());
+                //drawing the color palette image
                 g.drawImage(colorPickerImage, (int)colorPickerPanel.getX(), (int)colorPickerPanel.getY(), null);
 
+                //iterating through the drawing components and drawing each component onto the screen
+                //basically drawing the image
                 if (drawingComponents.size() > 0) {
                     for (DrawingComponent s : drawingComponents) {
-                        g.setColor(s.getCol());
+                        g.setColor(s.getCol());//each component has its own color
                         g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
                     }
                 }
@@ -316,7 +330,9 @@ public class Client extends JFrame {
             }
         }
 
+        private JTextArea timerText = new JTextArea();//the timer text box
         private boolean initializedTimerTextArea = false;
+        //initializes the timer text box then continuously updates the timer if the timer is actually running
         public void updateTimerTextArea(){
             if (!initializedTimerTextArea){
                 timerText.setBounds(100, 100, 30, 22);
@@ -325,16 +341,17 @@ public class Client extends JFrame {
                 add(timerText);
                 initializedTimerTextArea = true;
             }else {
-                if (dataPackage.getTimeRemaining() == -1) {
-                    timerText.setVisible(false);
+                if (dataPackage.getTimeRemaining() == -1) {//-1 is the null state (probably not a good idea)
+                    timerText.setVisible(false);//hiding timer
                 }else{
+                    //showing timer (probably should'nt run this every time but idk what else to do)
                     timerText.setVisible(true);
-                    timerText.setText(""+dataPackage.getTimeRemaining());
+                    timerText.setText(""+dataPackage.getTimeRemaining());//updating the timer text using data package
                 }
             }
         }
         
-        //the text boxes that display the messages from queue
+        //the 17 text boxes that display the messages from queue
         private JTextArea[] messageTextAreas = new JTextArea[messageQueue.length];
         private JTextField textField = new JTextField();//the box in which the user can type their message
         private boolean initializedMessageTextAreas = false;
@@ -344,93 +361,106 @@ public class Client extends JFrame {
                 textField.setBounds(964, 590, 294, 22);
                 textField.addKeyListener((KeyListener) new MKeyListener());
                 add(textField);
+                //adding all 17 text boxes but making them initially hidden
                 for (int i = 0; i < messageQueue.length; i++) {
-                    JTextArea txtArea = new JTextArea();
+                    JTextArea txtArea = new JTextArea();//creating new text box
                     txtArea.setVisible(false);
                     txtArea.setEditable(false);
                     txtArea.setBounds(964, 73+(30*i), 300, 20);
                     add(txtArea);
-                    messageTextAreas[i] = txtArea;
+                    messageTextAreas[i] = txtArea;//adding it to array
                 }
                 initializedMessageTextAreas = true;
             }
 
-            for (int i = 0; i < messageQueue.length; i++) {
-                String message = messageQueue[i];
-                Color col = Color.black;
-                if (messageQueue[i] != null){
-                    if (messageQueue[i].contains("~")){
-                        String [] messageParts = messageQueue[i].split("~");
-                        col = Color.decode(messageParts[0]);
-                        message = messageParts[1];
+            for (int i = 0; i < messageQueue.length; i++) {//looping through each message in queue
+                String message = messageQueue[i];//getting message
+                Color col = Color.black;//default color is black
+                if (messageQueue[i] != null){//checking for null
+                    if (messageQueue[i].contains("~")){//checking if this is a special message from
+                        // (could be from client code or server code)
+                        String [] messageParts = messageQueue[i].split("~");//special messages contain ~.
+                        //i think i will change this to a / at the front of the message to make it more consistent
+
+                        //special messages have a specific format it is as follows:
+                        //"#FFFFFF~MyMessage" ~ the #FFFFFF Is the color in hex code form
+                        //then after the ~ is the actual message
+                        col = Color.decode(messageParts[0]);//reassigning color instead of black
+                        message = messageParts[1];//reassigning the message to JUST the message part
                     }
 
-                    int numOfChars = message.length();
+                    int numOfChars = message.length();//getting the num of chars of the message
                     int maxCharsPerLine = 38;//the # of characters a single message can be until it must be wrapped
                     //message wrapping
                     if (numOfChars > maxCharsPerLine) {
+                        //determining the # of wraps
                         int numOfWraps = (int) Math.ceil((double) numOfChars / (double) maxCharsPerLine);
                         for (int j = 0; j < numOfWraps; j++) {
+                            //getting the part of the message for each line in the message wrap
                             String line = message.substring((maxCharsPerLine * j),
                                     Math.min(((maxCharsPerLine * j) + maxCharsPerLine), message.length()));
-                            if (j == 0){
+                            if (j == 0){//if its the first line in the wrap its simply displayes at this spot
                                 messageQueue[i] = line;
-                            }else {
+                            }else {//all other lines get re added to queue
                                 addMessageToQueue(line);
                             }
                         }
                     }
                     messageTextAreas[i].setVisible(true);
-                    messageTextAreas[i].setText(message);
-                    messageTextAreas[i].setForeground(col);
+                    messageTextAreas[i].setText(message);//setting message
+                    messageTextAreas[i].setForeground(col);//setting message color
                 }
             }
         }
 
         private JTextArea[] playerNameLabels = new JTextArea[8];//the text boxes that display the players names
         private boolean initializedPlayerNameLabels = false;
-        private Font nameLabelFont = new Font("Arial", Font.PLAIN,14);
-        private Font myNameLabelFont = new Font("Arial", Font.BOLD,14);
+        private Font nameLabelFont = new Font("Arial", Font.PLAIN,14);//font of all players except their self
+        private Font myNameLabelFont = new Font("Arial", Font.BOLD,14);//font for their own player
         //reads the array of players from the data package and displays boxes for each player on the left of the screen
+        //boxes will include name, score, who the artist is and any new info needed further down the line
         public void updatePlayerTextAreas(Graphics g){
             if (!initializedPlayerNameLabels){
+                //maximum of 8 players will ever be displayed - adding all 8 name labels to array
                 for (int i = 0; i < 8; i++) {
                     JTextArea label = new JTextArea();
                     label.setVisible(false);
                     label.setEditable(false);
                     label.setBounds(12, 90 +  (75 * i), 181, 30);
                     add(label);
-                    playerNameLabels[i] = label;
+                    playerNameLabels[i] = label;//adding to array
                 }
                 initializedPlayerNameLabels = true;
             }
 
-           for (int i = 0; i < playerNameLabels.length; i++){
-               JTextArea label = playerNameLabels[i];
-               if (i < dataPackage.getPlayers().size()){
-                   g.setColor(dataPackage.getPlayers().get(i).getColor());
-                   g.fillRect(10, 64 + (75 * i), 183, 70);
-                   label.setBackground(dataPackage.getPlayers().get(i).getColor());
+           for (int i = 0; i < playerNameLabels.length; i++){//iterating through name labels
+               JTextArea label = playerNameLabels[i];//getting label
+               if (i < dataPackage.getPlayers().size()){//checking if there is a player for that label
+                   g.setColor(dataPackage.getPlayers().get(i).getColor());//setting the color of the label to the
+                   //players customized color specified in the player object
+                   g.fillRect(10, 64 + (75 * i), 183, 70);//filling the box around the stats
+                   label.setBackground(dataPackage.getPlayers().get(i).getColor());//setting the label background
                    label.setAlignmentX(CENTER_ALIGNMENT);
-                   if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()){
-                       label.setFont(myNameLabelFont);
-                       label.setText(dataPackage.getPlayers().get(i).getName()+" (You)");
+                   if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()){//checking if its the users player
+                       label.setFont(myNameLabelFont);//setting bolded font
+                       label.setText(dataPackage.getPlayers().get(i).getName()+" (You)");//setting name as text
                    }else{
-                       label.setText(dataPackage.getPlayers().get(i).getName());
-                       label.setFont(nameLabelFont);
+                       label.setFont(nameLabelFont);//setting non bolded font
+                       label.setText(dataPackage.getPlayers().get(i).getName());//setting name as text
                    }
                    label.setVisible(true);
-                   label.setForeground(Color.black);
+                   label.setForeground(Color.black);//text color
                }
-               else {
-                   if (label.isVisible()) {
-                       label.setVisible(false);
+               else {//this is a label that does not have a player
+                   if (label.isVisible()) {//checking if the label is visible (this only happens after a player DCs)
+                       label.setVisible(false);//hiding it
                    }
                }
            }
         }
 
         // ------------ MouseListener ------------------------------------------
+        //I WILL ADD COMMENTS LATER BECAUSE THERE IS A LOT MORE CODE TO ADD HERE 
         private int x1, y1, x2, y2;
         public void mouseEntered(MouseEvent e) {}
         public void mouseExited(MouseEvent e) {}
