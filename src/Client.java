@@ -156,7 +156,6 @@ public class Client extends JFrame {
                     dataPackage = (DataPackage) objectInputStream.readUnshared();
                     //checking if the server has cleared the canvas -> clearing my canvas
                     if (dataPackage.getDrawingComponents() == null){
-                        System.out.println("cleared");
                         drawingComponents.clear();
                     }
                     if (!dataPackage.amIArtist()) {//checking if i am not the artist
@@ -460,7 +459,7 @@ public class Client extends JFrame {
         }
 
         // ------------ MouseListener ------------------------------------------
-        //I WILL ADD COMMENTS LATER BECAUSE THERE IS A LOT MORE CODE TO ADD HERE 
+        //I WILL ADD COMMENTS LATER BECAUSE THERE IS A LOT MORE CODE TO ADD HERE
         private int x1, y1, x2, y2;
         public void mouseEntered(MouseEvent e) {}
         public void mouseExited(MouseEvent e) {}

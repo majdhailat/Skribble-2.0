@@ -311,7 +311,7 @@ class OutputThread extends Thread{
         try {
             while (server.isRunning()) {
                 try {
-                    TimeUnit.MILLISECONDS.sleep(300);//delay for .3 seconds
+                    TimeUnit.MILLISECONDS.sleep(100);
                 } catch (InterruptedException e) {e.printStackTrace();}
                 DataPackage dataPackage = server.getDataPackage(player);//getting data package
                 objectOutputStream.writeUnshared(dataPackage);//sending data package
