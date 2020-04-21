@@ -15,8 +15,6 @@ public class Client extends JFrame {
     private volatile boolean running = true;//If the client is running or not
     private DataPackage dataPackage;//the object that stores all game info that the client will ever need
 
-    private boolean madeChangesToDrawing = false;//if the user has added anything to the drawing since the last time
-    //it has been updated to the server
     private volatile ArrayList<DrawingComponent> drawingComponents = new ArrayList<>();//the list of all individual
     //pieces that make up the drawing. It is iterated through in the GUI and each component in the
     //array is drawn onto the canvas.
@@ -107,8 +105,6 @@ public class Client extends JFrame {
                             try {
                                 TimeUnit.MILLISECONDS.sleep(100);
                             } catch (InterruptedException e) {e.printStackTrace();}
-                            if(madeChangesToDrawing) {
-                                madeChangesToDrawing = false;
                                 try {
                                     //converting drawing components from arrayList to array because there were
                                     //issues serializing an array list for a reason that I forgot
@@ -118,7 +114,6 @@ public class Client extends JFrame {
                                     out.flush();
                                     out.reset();//may be unnecessary
                                 } catch (IOException e) {e.printStackTrace();}
-                            }
                         }
                         try {
                             out.writeObject(0);//this is a "band aid" fix
@@ -161,6 +156,7 @@ public class Client extends JFrame {
                     dataPackage = (DataPackage) objectInputStream.readUnshared();
                     //checking if the server has cleared the canvas -> clearing my canvas
                     if (dataPackage.getDrawingComponents() == null){
+                        System.out.println("cleared");
                         drawingComponents.clear();
                     }
                     if (!dataPackage.amIArtist()) {//checking if i am not the artist
@@ -458,7 +454,6 @@ public class Client extends JFrame {
             y2 = e.getY();
 
             if (canvasPanel.contains(x1, y1) && dataPackage.amIArtist()) {
-                madeChangesToDrawing = true;
                 if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL)) {
                     if (x2 < canvasPanel.getX()){
                         x2 = (int) canvasPanel.getX();

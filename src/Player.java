@@ -35,7 +35,7 @@ public class Player implements Serializable {
     public ArrayList<String> getMessageOnlyForMe() {
         return this.messagesOnlyForMe;
     }
-    
+
     public void addMessageOnlyForMe(String msg){
         messagesOnlyForMe.add(msg);
     }

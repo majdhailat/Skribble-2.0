@@ -54,7 +54,6 @@ public class Server {
     //cleans up variables from the last round and starts a new round
     public void endRound(){
         gameTimer.stop();
-        timeRemaining = 90;
         drawingComponents = null;
         artist = null;
         winners.clear();
@@ -63,6 +62,7 @@ public class Server {
 
     //starts the timer, chooses an artist and magic word
     public void newRound(){
+        timeRemaining = 90;
         gameTimer.start();
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));//getting random magic word
         magicWords.remove(currentMagicWord);
@@ -125,7 +125,7 @@ public class Server {
                 message = ("#FF0000~"+sender.getName() + " has guessed correctly!");//setting the server message rather than the "addMessageOnlyForMe" because the player will be added as a reader
                 sender.addMessageOnlyForMe("#FF0000~You have guessed correctly!");
                 if(winners.size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
-                    newRound();//starting a new round
+                    endRound();
                 }
             }
             else{
@@ -185,7 +185,7 @@ public class Server {
     class TickListener implements ActionListener {
         public void actionPerformed(ActionEvent evt) {
             timeRemaining--;
-            if (timeRemaining == 0){
+            if (timeRemaining <= 0){
                 endRound();
             }
         }
