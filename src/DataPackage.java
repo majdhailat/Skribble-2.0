@@ -1,9 +1,13 @@
 import java.io.Serializable;
 import java.util.ArrayList;
-//a class that stores all information from the server in order to be distributed to all clients
+//Stores all information that the client will need about the game.
+//An object of this class is constantly created in the server output thread with new info and sent to the clients
+//input thread
+
+//variables comments available in the server
 public class DataPackage implements Serializable {
     private static final long serialVersionUID = 69420;
-    cprivate int timeRemaining;
+    private int timeRemaining;
 
     private ArrayList<Player> players;
     private Player myPlayer;//the player that is receiving the package

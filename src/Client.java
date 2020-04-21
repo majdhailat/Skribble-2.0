@@ -1,4 +1,4 @@
-//imports
+//Imports
 import javax.imageio.ImageIO;
 import javax.sound.midi.*;
 import javax.swing.*;
@@ -12,26 +12,31 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 public class Client extends JFrame {
-    private volatile boolean running = true;//state of client
+    private volatile boolean running = true;//If the client is running or not
     private DataPackage dataPackage;//the object that stores all game info that the client will ever need
-    private volatile ArrayList<DrawingComponent> drawingComponents = new ArrayList<>();
 
-    private String usersTextMessage = null;//the message that the user types
-    private String [] messageQueue = new String[17];//the past 17 messages
+    private boolean madeChangesToDrawing = false;//if the user has added anything to the drawing since the last time
+    //it has been updated to the server
+    private volatile ArrayList<DrawingComponent> drawingComponents = new ArrayList<>();//the list of all individual
+    //pieces that make up the drawing. It is iterated through in the GUI and each component in the
+    //array is drawn onto the canvas.
+
+    private String usersTextMessage = null;//the most recent message that the user typed and pressed enter on
+    private String [] messageQueue = new String[17];//the past 17 messages displayed for the user in the chat panel
     private boolean canReceiveMessages = false;//if the client can display other user's messages
-
-    private boolean madeChangesToDrawing = false;
 
     public static void main(String[] args)  {
         new Client();
     }
 
     public Client(){
-        String hostName = "localhost";
+        String hostName = "localhost";//local host means you the server is on the same machine. If the server is on a
+        //different machine but on the same network you must replace this with the host name followed by .local
+        //on windows the host name can be found by going to the cmd line and typing hostname
         int portNumber = 4445;
-        try (Socket socket = new Socket(hostName, portNumber)){
-            new ClientInputThread(socket).start();
-            new ClientOutputThread(socket).start();
+        try (Socket socket = new Socket(hostName, portNumber)){//connecting to server
+            new InputThread(socket).start();
+            new OutputThread(socket).start();
             new Gui();
             while (running) {
                 Thread.onSpinWait();//keeps thread alive
@@ -46,108 +51,152 @@ public class Client extends JFrame {
     }
 
     // ------------ Networking ------------------------------------------
-    //Reads the message from the user and sends it to the server
-    public class ClientOutputThread extends Thread {
-        private ObjectOutputStream out;
-        private boolean gotUserName = false;
+    /*
+    Sends output to server
 
-        public ClientOutputThread(Socket socket) throws IOException {
+    If the client is an artist this thread sends the drawing components (the canvas instructions) to the server
+    input thread which then updates it to the server
+
+    If the client is not an artist this thread simply sends messages to the server input thread these messages are
+    either commands from the client or they are the users text message which is obtained from the user text message
+    string which is updated when the user clicks enter
+    */
+    public class OutputThread extends Thread {
+        //The stream is used to send both the drawing components and the users string message
+        private ObjectOutputStream out;
+        private boolean gotUserName = false;//if the player has input their user name
+
+        public OutputThread(Socket socket) throws IOException {
             out = new ObjectOutputStream(socket.getOutputStream());
-            addMessageToQueue("#008000~Enter a user name");
+            addMessageToQueue("#008000~Enter a user name");//prompting user for their name
         }
 
+        //if the message that tells the user to type start has been prompted
         private boolean promptedStartMessage = false;
         public void run() {
             while (running) {
                 if (dataPackage != null) {
                     if (!promptedStartMessage && dataPackage.getPlayers().size() >= 2 && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer()) {
+                        //prompting user to type start when they want to start the game
                         addMessageToQueue("#008000~Type start to start the game");
                         promptedStartMessage = true;
                     }
+                    //NON ARTIST MODE
                     if (!dataPackage.amIArtist() && usersTextMessage != null) {
                         try {
-                            if (!gotUserName) {
-                                out.writeObject(usersTextMessage);
-                                //addMessageToQueue("#008000~Welcome to Skribble " + usersTextMessage);
+                            if (!gotUserName) {//checking if user name has not been obtained
+                                out.writeObject(usersTextMessage);//sending the user name
                                 gotUserName = true;
                                 canReceiveMessages = true;
+                                //checking if the user started the game
                             } else if (dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && usersTextMessage.equals("start")) {
                                 out.writeObject("START");
-                            } else {
-                                out.writeObject(usersTextMessage);
+                            } else {//the user is just sending a message
+                                out.writeObject(usersTextMessage);//sending the users message to the server
+                                //displaying the users message back to the chat panel
                                 addMessageToQueue("Me: " + usersTextMessage);
                             }
+                            //resetting the users text message so that it does'nt get resent to the server
                             usersTextMessage = null;
                             out.flush();
                         }catch(IOException e){e.printStackTrace();}
                     }
-                    else if (dataPackage.amIArtist()){
-                        while(dataPackage.amIArtist()){
+                    //ARTIST MODE
+                    else if (dataPackage.amIArtist()){//checking if the user is an artist
+                        while(dataPackage.amIArtist()){//starting artist loop
                             try {
                                 TimeUnit.MILLISECONDS.sleep(100);
                             } catch (InterruptedException e) {e.printStackTrace();}
                             if(madeChangesToDrawing) {
                                 madeChangesToDrawing = false;
                                 try {
+                                    //converting drawing components from arrayList to array because there were
+                                    //issues serializing an array list for a reason that I forgot
                                     DrawingComponent[] drawingComponentsArray = new DrawingComponent[drawingComponents.size()];
                                     drawingComponentsArray = drawingComponents.toArray(drawingComponentsArray);
-                                    out.writeObject(drawingComponentsArray);
+                                    out.writeObject(drawingComponentsArray);//sending drawing components array
                                     out.flush();
-                                    out.reset();
+                                    out.reset();//may be unnecessary
                                 } catch (IOException e) {e.printStackTrace();}
                             }
                         }
                         try {
                             out.writeObject(0);//this is a "band aid" fix
-                            //but what it does is on the server side, the server is currently in a waiting stage because
-                            //it is waiting for a drawing components array but since this loop just ended the next thing it will get is a message
-                            //that will cause the server to throw a class cast exception because it tried casting a string to an array
-                            //this exception can be ignored harmlessly but it will mean that the message never makes it to the server
-                            //so this out statement will trigger the exception and get it over with so that the message that is coming up will
-                            //not be the thing to cause the exception thus it will make it to the server
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                            /*
+                            but what it does is on the server side, the server is currently in a waiting stage because
+                            it is waiting for a drawing components array but since this loop just ended the next thing it will get is a message
+                            that will cause the server to throw a class cast exception because it tried casting a string to an array
+                            this exception can be ignored harmlessly but it will mean that the message never makes it to the server
+                            so this out statement will trigger the exception and get it over with so that the message that is coming up will
+                            not be the thing to cause the exception thus it will make it to the server
+                            */
+                        } catch (IOException e) {e.printStackTrace();}
                     }
                 }
             }
         }
     }
 
-    //Reads the data package from the server and stores it for the rest of the client to use
-    public class ClientInputThread extends Thread {
-        private ObjectInputStream objectInputStream;
-        private ArrayList<String> previousMessagesOnlyForMe = new ArrayList<>();
+    /*
+    Gets input from server:
 
-        public ClientInputThread(Socket socket) throws IOException {
+    this class gets the data package from the server and then updates the data package filed in the client
+    so that the rest of the client processes have all the info from the server that they need
+
+    after receiving the data package this class also updates the drawing components list as well as any new message
+     */
+    public class InputThread extends Thread {
+        private ObjectInputStream objectInputStream;//this stream is used to read the data package object
+        //the messages that have been read from the messages only for me list in the player
+        private ArrayList<String> readMessagesOnlyForMe = new ArrayList<>();
+
+        public InputThread(Socket socket) throws IOException {
             objectInputStream = new ObjectInputStream(socket.getInputStream());
         }
 
         public void run() {
             try {
                 while (running) {
+                    //WAITING for the server to send the data package then reading it from the server
                     dataPackage = (DataPackage) objectInputStream.readUnshared();
+                    //checking if the server has cleared the canvas -> clearing my canvas
                     if (dataPackage.getDrawingComponents() == null){
                         drawingComponents.clear();
                     }
-                    if (!dataPackage.amIArtist()) {
+                    if (!dataPackage.amIArtist()) {//checking if i am not the artist
                         if (dataPackage.getDrawingComponents() != null) {
+                            //setting my drawing components to that of the server so that my canvas is being updated
+                            //from the server which is coming from the artist
                             drawingComponents = new ArrayList<>(Arrays.asList(dataPackage.getDrawingComponents()));
                         }
                     }
 
-                    String message = dataPackage.getMessage();
+                    String message = dataPackage.getMessage();//getting message from the data package
                     if (message != null && canReceiveMessages) {
-                        addMessageToQueue(message);
+                        addMessageToQueue(message);//adding message to the chat panel
                     }
+
+                    //getting messages that are only for this player
                     ArrayList<String> messageOnlyForMe = dataPackage.getMyPlayer().getMessageOnlyForMe();
-                    if (messageOnlyForMe.size() > previousMessagesOnlyForMe.size()){
-                        int numOfNewMessages = messageOnlyForMe.size() - previousMessagesOnlyForMe.size();
+                    //checking if there are any unread messages
+                    if (messageOnlyForMe.size() > readMessagesOnlyForMe.size()){
+                        //getting the num of un read messages
+                        int numOfNewMessages = messageOnlyForMe.size() - readMessagesOnlyForMe.size();
                         for (int i = 0; i < numOfNewMessages; i++){
-                            addMessageToQueue(messageOnlyForMe.get(previousMessagesOnlyForMe.size() + i));
+                            //adding messages
+                            addMessageToQueue(messageOnlyForMe.get(readMessagesOnlyForMe.size() + i));
                         }
-                        previousMessagesOnlyForMe = messageOnlyForMe;
+                        //updating read messages
+                        readMessagesOnlyForMe = messageOnlyForMe;
                     }
+                    /*
+                    The reason why we have to store the read messages here on the client rather than just removing
+                    them from the array list inside of the player is because when the client modifies the player object
+                    it never gets modified on the server because when transmitting the object its as if we did a deep
+                    copy so, the next time we check the clients messages it will be as if we never read any because
+                    again, the client CANNOT modify the player object in any way, if it does it only happens locally and
+                    is totally useless
+                     */
                 }
             }catch (IOException | ClassNotFoundException e) {e.printStackTrace();}
         }
@@ -155,26 +204,27 @@ public class Client extends JFrame {
 
     //Takes a message and adds it to the array of the past 17 messages, when the array is full
     //and a new message is added it shift all messages back deleting the oldest message from queue
-    private boolean messageQueueIsFull = false;
+    private boolean messageQueueIsFull = false;//if the chat panel has filled up and now we have to start deleting
+    //the 17th last message to make room for the new message
     public void addMessageToQueue(String message){
         if (!messageQueueIsFull) {
             boolean messageWasAdded = false;
-            for (int i = 0; i < messageQueue.length; i++) {
-                if (messageQueue[i] == null) {
-                    messageQueue[i] = message;
+            for (int i = 0; i < messageQueue.length; i++) {//iterating through the 17 spots
+                if (messageQueue[i] == null) {//checking if there is an empty spot
+                    messageQueue[i] = message;//setting the message to that spot
                     messageWasAdded = true;
                     break;
                 }
             }
-            if (!messageWasAdded){
+            if (!messageWasAdded){//there were no empty spots
                 messageQueueIsFull = true;
             }
         }
         else{
-            messageQueue[0] = null;
+            messageQueue[0] = null;//deleting the last message
             //shifting all messages back
             System.arraycopy(messageQueue, 1, messageQueue, 0, messageQueue.length - 1);
-            messageQueue[messageQueue.length - 1] = message;
+            messageQueue[messageQueue.length - 1] = message;//adding the new message to the front of the queue
         }
     }
 

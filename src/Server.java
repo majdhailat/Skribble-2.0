@@ -22,7 +22,7 @@ public class Server {
     private ArrayList<Player> messageReaders = new ArrayList<>();//the players who read the text message
 
     private DrawingComponent[] drawingComponents = null;//the list of all individual pieces that make up the
-    // drawing. It is iterated through in the GUI and each component in the array is drawn onto the canvas.
+    //drawing. It is iterated through in the GUI of the client and each component in the array is drawn onto the canvas.
     private Player artist = null;//the current artist that has access to drawing
     private ArrayList<Player> previousArtists = new ArrayList<>();//the players that have already been the artists
     //this is reset when all players have had a turn
@@ -264,7 +264,7 @@ class InputThread extends Thread {
                     try {
                         //WAITING for the client to send a string then reading that string
                         if ((inputLine = (String) in.readObject()) != null) {
-                            if (!gotUserName) {//checking if user name has not been gotten
+                            if (!gotUserName) {//checking if user name has not been obtained
                                 player.setName(inputLine);//setting user name
                                 server.playerConnected(player);//alerting server of new player
                                 gotUserName = true;
@@ -316,8 +316,8 @@ class OutputThread extends Thread{
                 DataPackage dataPackage = server.getDataPackage(player);//getting data package
                 objectOutputStream.writeUnshared(dataPackage);//sending data package
                 objectOutputStream.flush();
-                objectOutputStream.reset();//must reset output stream otherwise certain items in the data package
-                //might not get update
+                //must reset output stream otherwise certain items in the data package might not get update
+                objectOutputStream.reset();
             }
         }
         catch (IOException e) {e.printStackTrace();}
