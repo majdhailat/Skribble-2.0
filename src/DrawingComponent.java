@@ -18,7 +18,11 @@ class DrawingComponent implements Serializable{
         this.x2 = x2;
         this.y2 = y2;
         this.stroke = currentStrokeSize;
-        this.col = currentColor;
+        if (toolType.equals(ERASER)){
+            this.col = Color.white;
+        }else {
+            this.col = currentColor;
+        }
     }
 
     //NON STATIC METHODS

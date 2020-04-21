@@ -209,6 +209,9 @@ class ListenForClients extends Thread{
                 Player player = new Player();//creating the clients player object
                 //creating input and output threads used to communicate with the client
                 new OutputThread(server, player, socket).start();
+                try {
+                    TimeUnit.MILLISECONDS.sleep(5000);
+                } catch (InterruptedException e) {e.printStackTrace();}
                 new InputThread(server, player, socket).start();
             }
         } catch (IOException e) {

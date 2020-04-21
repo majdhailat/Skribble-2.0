@@ -35,6 +35,9 @@ public class Client extends JFrame {
         int portNumber = 4445;
         try (Socket socket = new Socket(hostName, portNumber)){//connecting to server
             new InputThread(socket).start();
+            try {
+                TimeUnit.MILLISECONDS.sleep(5000);
+            } catch (InterruptedException e) {e.printStackTrace();}
             new OutputThread(socket).start();
             new Gui();
             while (running) {
@@ -102,6 +105,7 @@ public class Client extends JFrame {
                     }
                     //ARTIST MODE
                     else if (dataPackage.amIArtist()){//checking if the user is an artist
+                        drawingComponents.clear();
                         while(dataPackage.amIArtist()){//starting artist loop
                             try {
                                 TimeUnit.MILLISECONDS.sleep(100);
@@ -330,9 +334,12 @@ public class Client extends JFrame {
                     Graphics2D g2 = (Graphics2D) g;
                     for (DrawingComponent s : drawingComponents) {
                         g2.setStroke(new BasicStroke(s.getStroke()));
+                        /*
                         if(DrawingComponent.getToolType().equals(DrawingComponent.ERASER)){
                             DrawingComponent.setColor(Color.white);
                         }
+
+                         */
                         g2.setColor(s.getCol());
                         g2.draw(new Line2D.Float(s.getX1(), s.getY1(), s.getX2(), s.getY2()));
 //                        g.setColor(s.getCol());//each component has its own color
@@ -415,7 +422,7 @@ public class Client extends JFrame {
                             //getting the part of the message for each line in the message wrap
                             String line = message.substring((maxCharsPerLine * j),
                                     Math.min(((maxCharsPerLine * j) + maxCharsPerLine), message.length()));
-                            if (j == 0){//if its the first line in the wrap its simply displayes at this spot
+                            if (j == 0){//if its the first line in the wrap its simply displays at this spot
                                 messageQueue[i] = line;
                             }else {//all other lines get re added to queue
                                 addMessageToQueue(line);
