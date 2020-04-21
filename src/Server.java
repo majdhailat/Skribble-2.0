@@ -1,4 +1,7 @@
 //Imports
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class Server {
     private boolean running = true;
     private String gameState = DataPackage.WAITINGFORPLAYERS;
+    private int timeRemaining = -1;
 
     private ArrayList<Player> players = new ArrayList<Player>();
     private String message;//the text message
@@ -44,6 +48,9 @@ public class Server {
     public String getGameState(){return gameState;}
 
     public void newRound(){
+        drawingComponents = null;
+        timeRemaining = 90;
+        gameTimer.start();
         if (previousArtists.size() >= players.size()){
             previousArtists.clear();
         }
@@ -57,7 +64,6 @@ public class Server {
             }
         }
         winners = new ArrayList<Player>();
-        drawingComponents = null;
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));
         magicWords.remove(currentMagicWord);
         if (magicWords.size() == 0){
@@ -120,7 +126,9 @@ public class Server {
         }
     }
 
-    public synchronized void setDrawingComponents(DrawingComponent[] components) {this.drawingComponents = components;}
+    public synchronized void setDrawingComponents(DrawingComponent[] components) {
+        this.drawingComponents = components;
+    }
 
     public boolean isArtist(Player player){
         return (player == artist);
@@ -131,7 +139,7 @@ public class Server {
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(gameState, players, player, getMessage(player), drawingComponents, artist, winners);
+        return new DataPackage(gameState,timeRemaining, players, player, getMessage(player), drawingComponents, artist, winners);
     }
 
     public void loadMagicWords(String filename) throws IOException{
@@ -147,6 +155,17 @@ public class Server {
     public static int randint(int low, int high){
         //this method returns a random int between the low and high args inclusive
         return (int)(Math.random()*(high-low+1)+low);
+    }
+
+    private Timer gameTimer = new Timer(1000, new TickListener());
+    class TickListener implements ActionListener {
+        public void actionPerformed(ActionEvent evt) {
+            timeRemaining--;
+            if (timeRemaining == 0){
+                gameTimer.stop();
+                newRound();
+            }
+        }
     }
 }
 

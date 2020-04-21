@@ -1,0 +1,26 @@
+Things to do:
+==========================================================================================
+Fatures:
+1. Fix the timers look
+2. Create point system and point calculating algorithm
+3. Add some sort of pause between rounds instead of jumping to the next round instantly
+4. Add more tools for the artists as well as thickness customization and fill bucket
+5. Add a button to mute/ unmute the music 
+------------------------------------------------------------------------------------------
+Possible Features:
+1. Add host commands (I.e. kicking, restarting game etc)
+2. Add randomly selected transition messages that are funny, kinda like discord. For example, when choosing the next artist have it say consulting Jesus to determine artist
+------------------------------------------------------------------------------------------
+Code:
+1. Clean up messaging system between classes and users 
+==========================================================================================
+Bugs:
+1. The first line outputted in the users chat log (wither it be from the user, server or another user) after the log is filled and needs to start scrolling up, disappears and never makes it to the users chat log
+Cause: Unknown 
+
+2.  If the artist has their mouse clicked at the time when the round ends and the canvas is supposed to clear, the canvas never clears
+Cause: Unknown 
+
+
+
+

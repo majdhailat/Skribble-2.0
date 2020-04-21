@@ -27,7 +27,7 @@ public class Client extends JFrame {
     }
 
     public Client(){
-        String hostName = "MajdsPC.local";
+        String hostName = "localhost";
         int portNumber = 4445;
         try (Socket socket = new Socket(hostName, portNumber)){
             new ClientInputThread(socket).start();
@@ -210,6 +210,7 @@ public class Client extends JFrame {
 
     public class Panel extends JPanel implements MouseListener, MouseMotionListener{
         public boolean ready = false;
+        private JTextArea timerText = new JTextArea();
 
         public Panel(){
             //sets running to false when windows is closed to close all threads
@@ -256,15 +257,34 @@ public class Client extends JFrame {
                         (int) chatPanel.getWidth(), (int) chatPanel.getHeight());
                 g.drawImage(colorPickerImage, (int)colorPickerPanel.getX(), (int)colorPickerPanel.getY(), null);
 
-                    if (drawingComponents.size() > 0) {
-                        for (DrawingComponent s : drawingComponents) {
-                            g.setColor(s.getCol());
-                            g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
-                        }
+                if (drawingComponents.size() > 0) {
+                    for (DrawingComponent s : drawingComponents) {
+                        g.setColor(s.getCol());
+                        g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
                     }
+                }
 
+                updateTimerTextArea();
                 updateMessageTextAreas();
                 updatePlayerTextAreas(g);
+            }
+        }
+
+        private boolean initializedTimerTextArea = false;
+        public void updateTimerTextArea(){
+            if (!initializedTimerTextArea){
+                timerText.setBounds(100, 100, 30, 22);
+                timerText.setEditable(false);
+                timerText.setVisible(false);
+                add(timerText);
+                initializedTimerTextArea = true;
+            }else {
+                if (dataPackage.getTimeRemaining() == -1) {
+                    timerText.setVisible(false);
+                }else{
+                    timerText.setVisible(true);
+                    timerText.setText(""+dataPackage.getTimeRemaining());
+                }
             }
         }
         
@@ -401,6 +421,7 @@ public class Client extends JFrame {
                         y2 = (int) (canvasPanel.getY() + canvasPanel.getHeight());
                     }
                     drawingComponents.add(new DrawingComponent(x1, y1, x2, y2));
+
                 }
             }
             x1 = x2;

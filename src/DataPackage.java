@@ -6,6 +6,7 @@ public class DataPackage implements Serializable {
 
     public static final String WAITINGFORPLAYERS = "waiting for players", ROUNDINPROGRESS = "round in progress", GAMESTARTING = "game starting";
     private String gameState;
+    private int timeRemaining;
 
     private ArrayList<Player> players;
     private Player myPlayer;//the player that is receiving the package
@@ -15,8 +16,9 @@ public class DataPackage implements Serializable {
     private Player artist;
     private ArrayList<Player> winners;
 
-    public DataPackage(String gameState, ArrayList<Player>players, Player myPlayer, String message, DrawingComponent[] drawingComponents, Player artist, ArrayList<Player> winners){
+    public DataPackage(String gameState, int timeRemaining, ArrayList<Player>players, Player myPlayer, String message, DrawingComponent[] drawingComponents, Player artist, ArrayList<Player> winners){
         this.gameState = gameState;
+        this.timeRemaining = timeRemaining;
         this.players = players;
         this.myPlayer = myPlayer;
         this.message = message;
@@ -26,6 +28,8 @@ public class DataPackage implements Serializable {
     }
 
     public String getGameState(){return gameState;}
+
+    public int getTimeRemaining(){return timeRemaining;}
 
     public synchronized ArrayList<Player> getPlayers() {return players;}
 
