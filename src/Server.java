@@ -59,8 +59,7 @@ public class Server {
         System.out.println("end round started");
         gameTimer.stop();
         drawingComponents = null;
-        calculateAndUpdatePointsForNonArtists();
-        calculateAndUpdatePointsForArtist();
+        calculateAndUpdatePoints();
         artist = null;
         System.out.println("here");
         winners.clear();
@@ -147,21 +146,17 @@ public class Server {
         messageReaders.add(sender);//adding the sender to the list of players who read the message
     }
 
-    public void calculateAndUpdatePointsForNonArtists() {
-        Player[] playersList = this.winners.keySet().toArray(new Player[this.winners.keySet().size()]);
-        for (int i = 0; i < playersList.length; i++){
-            int points = (int) ((lengthOfMagicWord*(150 - this.winners.get(playersList[i]))) / (0.75 * Math.pow(i + 1, 1.3)));
-            playersList[i].setScore(playersList[i].getScore() + points);
-        }
-    }
+    public void calculateAndUpdatePoints(){
+        Player[] winnersArray = this.winners.keySet().toArray(new Player[this.winners.keySet().size()]);
 
-    public void calculateAndUpdatePointsForArtist(){
-        int points = 150*lengthOfMagicWord;
-        Player[] playersList = this.winners.keySet().toArray(new Player[this.winners.keySet().size()]);
-        for (int i = 0; i < playersList.length; i++) {
-            points -= winners.get(playersList[i]) * 35/lengthOfMagicWord/Math.pow(i + 1, 2.5);
+        int artistsPoints = 150 * lengthOfMagicWord;
+        for (int pos = 0; pos < winnersArray.length; pos++){
+            int timeTaken = winners.get(winnersArray[pos]);
+            int playersPoints = (int) ((lengthOfMagicWord*(150 - timeTaken)) / (0.75 * Math.pow(pos + 1, 1.3)));
+            winnersArray[pos].setScore(winnersArray[pos].getScore() + playersPoints);
+            artistsPoints -= timeTaken * 35/lengthOfMagicWord/Math.pow(pos + 1, 2.5);
         }
-        artist.setScore(artist.getScore() + points);
+        artist.setScore(artist.getScore() + artistsPoints);
     }
 
 
