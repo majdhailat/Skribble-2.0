@@ -56,11 +56,13 @@ public class Server {
 
     //cleans up variables from the last round and starts a new round
     public void endRound(){
+        System.out.println("end round started");
         gameTimer.stop();
         drawingComponents = null;
-        artist = null;
         calculateAndUpdatePointsForNonArtists();
         calculateAndUpdatePointsForArtist();
+        artist = null;
+        System.out.println("here");
         winners.clear();
         newRound();
     }
@@ -131,7 +133,10 @@ public class Server {
                 winners.put(sender, roundLength - timeRemaining);
                 message = ("#FF0000~"+sender.getName() + " has guessed correctly!");//setting the server message rather than the "addMessageOnlyForMe" because the player will be added as a reader
                 sender.addMessageOnlyForMe("#FF0000~You have guessed correctly!");
+                System.out.println(winners.size());
+                System.out.println(players.size());
                 if(winners.size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
+                    System.out.println("called end round");
                     endRound();
                 }
             }
@@ -143,17 +148,18 @@ public class Server {
     }
 
     public void calculateAndUpdatePointsForNonArtists() {
-        Player[] players = (Player[]) this.winners.keySet().toArray();
-        for (int i = 0; i < players.length; i++){
-            players[i].setScore(players[i].getScore() + (int) (lengthOfMagicWord*(150 - this.winners.get(players[i])) / (0.75* Math.pow(i, 1.3))));
+        Player[] playersList = this.winners.keySet().toArray(new Player[this.winners.keySet().size()]);
+        for (int i = 0; i < playersList.length; i++){
+            int points = (int) ((lengthOfMagicWord*(150 - this.winners.get(playersList[i]))) / (0.75 * Math.pow(i + 1, 1.3)));
+            playersList[i].setScore(playersList[i].getScore() + points);
         }
     }
 
     public void calculateAndUpdatePointsForArtist(){
         int points = 150*lengthOfMagicWord;
-        Player[] players = (Player[]) this.winners.keySet().toArray();
-        for (int i = 0; i < players.length; i++) {
-            points -= winners.get(players[i]) * 35/lengthOfMagicWord/Math.pow(i, 2.5);
+        Player[] playersList = this.winners.keySet().toArray(new Player[this.winners.keySet().size()]);
+        for (int i = 0; i < playersList.length; i++) {
+            points -= winners.get(playersList[i]) * 35/lengthOfMagicWord/Math.pow(i + 1, 2.5);
         }
         artist.setScore(artist.getScore() + points);
     }
