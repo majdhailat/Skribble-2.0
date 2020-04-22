@@ -1,20 +1,20 @@
 //Imports
-import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.List;
-import java.util.Scanner;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 //Stores all the global information about the game and starts the listening thread
 public class Server {
     private boolean running = true;//if the server is running
     private boolean waitingToStart = true;//if the game has begun yet or not (triggered when the host types ready)
+
+    private int roundLength = 90;
     private int timeRemaining = -1;//the time remaining in the round
 
     private ArrayList<Player> players = new ArrayList<>();//the players playing
@@ -26,9 +26,12 @@ public class Server {
     private Player artist = null;//the current artist that has access to drawing
     private ArrayList<Player> previousArtists = new ArrayList<>();//the players that have already been the artists
     //this is reset when all players have had a turn
-    private ArrayList<Player> winners = new ArrayList<>();//the players who have guessed the correct magic word
     private String currentMagicWord = null;//the word that the artist is responsible for drawing
     private ArrayList<String> magicWords = new ArrayList<>();//all possible magic words loaded from the txt file
+
+    private Map<Player, Integer> winners = new HashMap<>();
+
+    private int lengthOfMagicWord;
 
     public static void main(String[] args){
         Server server = new Server();
@@ -56,15 +59,18 @@ public class Server {
         gameTimer.stop();
         drawingComponents = null;
         artist = null;
+        calculateAndUpdatePointsForNonArtists();
+        calculateAndUpdatePointsForArtist();
         winners.clear();
         newRound();
     }
 
     //starts the timer, chooses an artist and magic word
     public void newRound(){
-        timeRemaining = 90;
+        timeRemaining = roundLength;
         gameTimer.start();
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));//getting random magic word
+        lengthOfMagicWord = currentMagicWord.length();
         magicWords.remove(currentMagicWord);
 
         if (previousArtists.size() >= players.size()){//checking if all the players have been an artist already
@@ -121,7 +127,8 @@ public class Server {
             message = msg;//setting the message directly instead of adding the name tag
         } else {
             if(currentMagicWord != null && msg.toLowerCase().equals(currentMagicWord.toLowerCase())){//checking if the player guessed the correct magic word
-                winners.add(sender);
+                //winners.add();
+                winners.put(sender, roundLength - timeRemaining);
                 message = ("#FF0000~"+sender.getName() + " has guessed correctly!");//setting the server message rather than the "addMessageOnlyForMe" because the player will be added as a reader
                 sender.addMessageOnlyForMe("#FF0000~You have guessed correctly!");
                 if(winners.size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
@@ -134,6 +141,23 @@ public class Server {
         }
         messageReaders.add(sender);//adding the sender to the list of players who read the message
     }
+
+    public void calculateAndUpdatePointsForNonArtists() {
+        Player[] players = (Player[]) this.winners.keySet().toArray();
+        for (int i = 0; i < players.length; i++){
+            players[i].setScore(players[i].getScore() + (int) (lengthOfMagicWord*(150 - this.winners.get(players[i])) / (0.75* Math.pow(i, 1.3))));
+        }
+    }
+
+    public void calculateAndUpdatePointsForArtist(){
+        int points = 150*lengthOfMagicWord;
+        Player[] players = (Player[]) this.winners.keySet().toArray();
+        for (int i = 0; i < players.length; i++) {
+            points -= winners.get(players[i]) * 35/lengthOfMagicWord/Math.pow(i, 2.5);
+        }
+        artist.setScore(artist.getScore() + points);
+    }
+
 
     //checks if the player requesting the message has not already read the message, if not it returns the message
     public synchronized String getMessage(Player player) {

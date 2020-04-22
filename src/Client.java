@@ -466,10 +466,10 @@ public class Client extends JFrame {
                    label.setAlignmentX(CENTER_ALIGNMENT);
                    if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()){//checking if its the users player
                        label.setFont(myNameLabelFont);//setting bolded font
-                       label.setText(dataPackage.getPlayers().get(i).getName()+" (You)");//setting name as text
+                       label.setText(dataPackage.getPlayers().get(i).getName()+" (You)   "+ dataPackage.getPlayers().get(i).getScore());//setting name as text
                    }else{
                        label.setFont(nameLabelFont);//setting non bolded font
-                       label.setText(dataPackage.getPlayers().get(i).getName());//setting name as text
+                       label.setText(dataPackage.getPlayers().get(i).getName()+"   "+dataPackage.getPlayers().get(i).getScore());//setting name as text
                    }
                    label.setVisible(true);
                    label.setForeground(Color.black);//text color

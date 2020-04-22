@@ -1,5 +1,6 @@
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Map;
 //Stores all information that the client will need about the game.
 //An object of this class is constantly created in the server output thread with new info and sent to the clients
 //input thread
@@ -15,9 +16,9 @@ public class DataPackage implements Serializable {
 
     private DrawingComponent[] drawingComponents;
     private Player artist;
-    private ArrayList<Player> winners;
+    private Map<Player, Integer> winners;
 
-    public DataPackage(int timeRemaining, ArrayList<Player>players, Player myPlayer, String message, DrawingComponent[] drawingComponents, Player artist, ArrayList<Player> winners){
+    public DataPackage(int timeRemaining, ArrayList<Player>players, Player myPlayer, String message, DrawingComponent[] drawingComponents, Player artist, Map<Player, Integer> winners){
         this.timeRemaining = timeRemaining;
         this.players = players;
         this.myPlayer = myPlayer;
@@ -39,5 +40,5 @@ public class DataPackage implements Serializable {
 
     public boolean amIArtist(){return (myPlayer == artist);}
 
-    public ArrayList<Player> getWinners(){return winners;}
+    public Map<Player, Integer> getWinners(){return winners;}
 }
