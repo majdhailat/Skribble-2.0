@@ -148,7 +148,7 @@ public class Client extends JFrame {
     public class InputThread extends Thread {
         private ObjectInputStream objectInputStream;//this stream is used to read the data package object
         //the messages that have been read from the messages only for me list in the player
-        private ArrayList<String> readMessagesOnlyForMe = new ArrayList<>();
+        private ArrayList<String> readMessages = new ArrayList<>();
 
         public InputThread(Socket socket) throws IOException {
             objectInputStream = new ObjectInputStream(socket.getInputStream());
@@ -171,23 +171,22 @@ public class Client extends JFrame {
                         }
                     }
 
-                    String message = dataPackage.getMessage();//getting message from the data package
-                    if (message != null && canReceiveMessages) {
-                        addMessageToQueue(message);//adding message to the chat panel
-                    }
+
 
                     //getting messages that are only for this player
-                    ArrayList<String> messageOnlyForMe = dataPackage.getMyPlayer().getMessageOnlyForMe();
+                    ArrayList<String> myMessages = dataPackage.getMyPlayer().getMessages();
                     //checking if there are any unread messages
-                    if (messageOnlyForMe.size() > readMessagesOnlyForMe.size()){
+                    if (myMessages.size() > readMessages.size()){
                         //getting the num of un read messages
-                        int numOfNewMessages = messageOnlyForMe.size() - readMessagesOnlyForMe.size();
+                        int numOfNewMessages = myMessages.size() - readMessages.size();
                         for (int i = 0; i < numOfNewMessages; i++){
                             //adding messages
-                            addMessageToQueue(messageOnlyForMe.get(readMessagesOnlyForMe.size() + i));
+                            if (canReceiveMessages) {
+                                addMessageToQueue(myMessages.get(readMessages.size() + i));
+                            }
                         }
                         //updating read messages
-                        readMessagesOnlyForMe = messageOnlyForMe;
+                        readMessages = myMessages;
                     }
                     /*
                     The reason why we have to store the read messages here on the client rather than just removing
@@ -492,8 +491,6 @@ public class Client extends JFrame {
         public void mousePressed(MouseEvent e) {
             x1 = e.getX();
             y1 = e.getY();
-            System.out.println(x1 + ", " + y1);
-            System.out.println(DrawingComponent.getToolType());
             if (colorPickerPanel.contains(x1, y1)){
                 try {
                     BufferedImage image = ImageIO.read(new File("Color picker.png"));

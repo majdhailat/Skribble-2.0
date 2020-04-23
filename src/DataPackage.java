@@ -12,17 +12,15 @@ public class DataPackage implements Serializable {
 
     private ArrayList<Player> players;
     private Player myPlayer;//the player that is receiving the package
-    private String message;
 
     private DrawingComponent[] drawingComponents;
     private Player artist;
     private Map<Player, Integer> winners;
 
-    public DataPackage(int timeRemaining, ArrayList<Player>players, Player myPlayer, String message, DrawingComponent[] drawingComponents, Player artist, Map<Player, Integer> winners){
+    public DataPackage(int timeRemaining, ArrayList<Player>players, Player myPlayer, DrawingComponent[] drawingComponents, Player artist, Map<Player, Integer> winners){
         this.timeRemaining = timeRemaining;
         this.players = players;
         this.myPlayer = myPlayer;
-        this.message = message;
         this.drawingComponents = drawingComponents;
         this.artist = artist;
         this.winners = winners;
@@ -33,8 +31,6 @@ public class DataPackage implements Serializable {
     public synchronized ArrayList<Player> getPlayers() {return players;}
 
     public Player getMyPlayer() {return myPlayer;}
-
-    public String getMessage() {return message;}
 
     public DrawingComponent[] getDrawingComponents() {return drawingComponents;}
 

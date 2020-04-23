@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class Player implements Serializable {
     private static final long serialVersionUID = 6942069;
 
-    private ArrayList<String>messagesOnlyForMe = new ArrayList<>();//any messages directed specifically to this player
+    private ArrayList<String> messages = new ArrayList<>();//the list of the players messages
     private String name;//the user name of the player selected by the user
     private int score;
     //this is the color used when displaying the box around the players name and stats in each users GUI
@@ -32,12 +32,12 @@ public class Player implements Serializable {
         return color;
     }
 
-    public ArrayList<String> getMessageOnlyForMe() {
-        return this.messagesOnlyForMe;
+    public ArrayList<String> getMessages() {
+        return this.messages;
     }
 
-    public void addMessageOnlyForMe(String msg){
-        messagesOnlyForMe.add(msg);
+    public void addMessage(String msg){
+        messages.add(msg);
     }
 
     public int getScore(){

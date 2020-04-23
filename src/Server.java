@@ -87,13 +87,13 @@ public class Server {
             }
         }
         //alerting artist that he is the artist and what his word is
-        randArtist.addMessageOnlyForMe("#FF0000~You are the artist");
-        randArtist.addMessageOnlyForMe("#FF0000~you must draw: "+currentMagicWord);
+        randArtist.addMessage("#FF0000~You are the artist");
+        randArtist.addMessage("#FF0000~you must draw: "+currentMagicWord);
 
         //alerting the rest of the players of who the new artist is
         for (Player p :players){
             if (p != randArtist){
-                p.addMessageOnlyForMe("#FF0000~"+randArtist.getName()+" Is the artist");
+                p.addMessage("#FF0000~"+randArtist.getName()+" Is the artist");
             }
         }
     }
@@ -104,11 +104,11 @@ public class Server {
     //called after the user enters their username
     public synchronized void playerConnected(Player player) {
         players.add(player);
-        player.addMessageOnlyForMe("#008000~Welcome to Skribble " + player.getName());//greeting new player
+        player.addMessage("#008000~Welcome to Skribble " + player.getName());//greeting new player
         //alerting the rest of the players of the new player
         for (Player p : players){
             if (p != player){
-                p.addMessageOnlyForMe("#FF0000~" + player.getName() + " has joined the game");
+                p.addMessage("#FF0000~" + player.getName() + " has joined the game");
             }
         }
     }
@@ -122,6 +122,7 @@ public class Server {
 
     //takes a message and the player that sent the message
     //checks if the player has guessed the correct magic word, if not it sets the servers current message to the inputted message
+    /*
     public synchronized void newMessage(String msg, Player sender){
         messageReaders.clear();
         if (msg.contains("~")) {//this means that the client is sending a message and not the user
@@ -144,6 +145,32 @@ public class Server {
             }
         }
         messageReaders.add(sender);//adding the sender to the list of players who read the message
+    }
+
+     */
+    public void newMessage(String msg, Player sender){
+        String message;
+        if (msg.contains("~")){
+            message = msg;
+        }else{
+            if (currentMagicWord != null && msg.toLowerCase().equals(currentMagicWord.toLowerCase())){
+                message = ("#FF0000~"+sender.getName() + " has guessed correctly!");
+                sender.addMessage("#FF0000~You have guessed correctly!");
+                winners.put(sender, roundLength - timeRemaining);
+                if(winners.size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
+                    System.out.println("called end round");
+                    endRound();
+                }
+            }
+            else{
+                message = (sender.getName()) + ": " + msg;
+            }
+        }
+        for (Player p : players){
+            if (p != sender){
+                p.addMessage(message);
+            }
+        }
     }
 
     public void calculateAndUpdatePoints(){
@@ -185,7 +212,7 @@ public class Server {
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(timeRemaining, players, player, getMessage(player), drawingComponents, artist, winners);
+        return new DataPackage(timeRemaining, players, player, drawingComponents, artist, winners);
     }
 
     //loads magic words from txt file and stores them in magic words array
