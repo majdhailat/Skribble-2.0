@@ -330,6 +330,7 @@ public class Client extends JFrame {
                         }
 
                     }
+
                     messageList.setListData(messagesToRender.toArray());
                     JScrollBar sb = messagePane.getVerticalScrollBar();
                     sb.setValue(sb.getMaximum());
