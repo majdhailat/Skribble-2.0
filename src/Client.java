@@ -10,6 +10,8 @@ import java.net.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 public class Client extends JFrame {
@@ -21,8 +23,10 @@ public class Client extends JFrame {
     //array is drawn onto the canvas.
 
     private String usersTextMessage = null;//the most recent message that the user typed and pressed enter on
-    private String [] messageQueue = new String[17];//the past 17 messages displayed for the user in the chat panel
+    //private String [] messageQueue = new String[17];//the past 17 messages displayed for the user in the chat panel
     private boolean canReceiveMessages = false;//if the client can display other user's messages
+
+    private ArrayList<String>messages = new ArrayList<>();
 
     public static void main(String[] args)  {
         new Client();
@@ -70,7 +74,7 @@ public class Client extends JFrame {
 
         public OutputThread(Socket socket) throws IOException {
             out = new ObjectOutputStream(socket.getOutputStream());
-            addMessageToQueue("#008000~Enter a user name");//prompting user for their name
+            messages.add("#008000~Enter a user name");//prompting user for their name
         }
 
         //if the message that tells the user to type start has been prompted
@@ -80,7 +84,7 @@ public class Client extends JFrame {
                 if (dataPackage != null) {
                     if (!promptedStartMessage && dataPackage.getPlayers().size() >= 2 && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer()) {
                         //prompting user to type start when they want to start the game
-                        addMessageToQueue("#008000~Type start to start the game");
+                        messages.add("#008000~Type start to start the game");
                         promptedStartMessage = true;
                     }
                     //NON ARTIST MODE
@@ -96,7 +100,7 @@ public class Client extends JFrame {
                             } else {//the user is just sending a message
                                 out.writeObject(usersTextMessage);//sending the users message to the server
                                 //displaying the users message back to the chat panel
-                                addMessageToQueue("Me: " + usersTextMessage);
+                                messages.add("Me: " + usersTextMessage);
                             }
                             //resetting the users text message so that it does'nt get resent to the server
                             usersTextMessage = null;
@@ -182,7 +186,8 @@ public class Client extends JFrame {
                         for (int i = 0; i < numOfNewMessages; i++){
                             //adding messages
                             if (canReceiveMessages) {
-                                addMessageToQueue(myMessages.get(readMessages.size() + i));
+                                //addMessageToQueue(myMessages.get(readMessages.size() + i));
+                                messages.add(myMessages.get(readMessages.size() + i));
                             }
                         }
                         //updating read messages
@@ -201,6 +206,7 @@ public class Client extends JFrame {
         }
     }
 
+    /*
     //Takes a message and adds it to the array of the past 17 messages, when the array is full
     //and a new message is added it shift all messages back deleting the oldest message from queue
     private boolean messageQueueIsFull = false;//if the chat panel has filled up and now we have to start deleting
@@ -209,7 +215,8 @@ public class Client extends JFrame {
         if (!messageQueueIsFull) {
             boolean messageWasAdded = false;
             for (int i = 0; i < messageQueue.length; i++) {//iterating through the 17 spots
-                if (messageQueue[i] == null) {//checking if there is an empty spot
+                if (messageQueue[i] == null
+                ) {//checking if there is an empty spot
                     messageQueue[i] = message;//setting the message to that spot
                     messageWasAdded = true;
                     break;
@@ -226,6 +233,8 @@ public class Client extends JFrame {
             messageQueue[messageQueue.length - 1] = message;//adding the new message to the front of the queue
         }
     }
+
+     */
 
     // ------------ Graphics ------------------------------------------
     //sets up JFrame and starts the JPanel
@@ -374,17 +383,20 @@ public class Client extends JFrame {
         }
         
         //the 17 text boxes that display the messages from queue
-        private JTextArea[] messageTextAreas = new JTextArea[messageQueue.length];
+        private final int maxMessagePerScreen = 17;
+        private JTextArea[] messageTextAreas = new JTextArea[maxMessagePerScreen];
         private JTextField textField = new JTextField();//the box in which the user can type their message
         private boolean initializedMessageTextAreas = false;
         //reads the message queue and sets the message text area with the right text
         public void updateMessageTextAreas(){
+            //ArrayList<String> messagesReveresed = (ArrayList<String>) messages.clone();
+            //Collections.reverse(messagesReveresed);
             if (!initializedMessageTextAreas) {
                 textField.setBounds(964, 590, 294, 22);
                 textField.addKeyListener((KeyListener) new MKeyListener());
                 add(textField);
                 //adding all 17 text boxes but making them initially hidden
-                for (int i = 0; i < messageQueue.length; i++) {
+                for (int i = 0; i <maxMessagePerScreen; i++) {
                     JTextArea txtArea = new JTextArea();//creating new text box
                     txtArea.setVisible(false);
                     txtArea.setEditable(false);
@@ -395,13 +407,13 @@ public class Client extends JFrame {
                 initializedMessageTextAreas = true;
             }
 
-            for (int i = 0; i < messageQueue.length; i++) {//looping through each message in queue
-                String message = messageQueue[i];//getting message
+            for (int i = 0; i < maxMessagePerScreen; i++) {//looping through each message in queue
                 Color col = Color.black;//default color is black
-                if (messageQueue[i] != null){//checking for null
-                    if (messageQueue[i].contains("~")){//checking if this is a special message from
+                if (i < messages.size() && messages.get(messages.size() - i - 1) != null){//checking for null
+                    String message = messages.get(messages.size() - 1 - i);//getting message
+                    if (message.contains("~")){//checking if this is a special message from
                         // (could be from client code or server code)
-                        String [] messageParts = messageQueue[i].split("~");//special messages contain ~.
+                        String [] messageParts = message.split("~");//special messages contain ~.
                         //i think i will change this to a / at the front of the message to make it more consistent
 
                         //special messages have a specific format it is as follows:
@@ -422,9 +434,10 @@ public class Client extends JFrame {
                             String line = message.substring((maxCharsPerLine * j),
                                     Math.min(((maxCharsPerLine * j) + maxCharsPerLine), message.length()));
                             if (j == 0){//if its the first line in the wrap its simply displays at this spot
-                                messageQueue[i] = line;
+                                    //messages.get(messages.size() - i - 1) = line;
+                                    messages.set(messages.size() - i - 1, line);
                             }else {//all other lines get re added to queue
-                                addMessageToQueue(line);
+                                messages.add(0, line);
                             }
                         }
                     }

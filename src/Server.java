@@ -15,23 +15,21 @@ public class Server {
     private boolean waitingToStart = true;//if the game has begun yet or not (triggered when the host types ready)
 
     private int roundLength = 90;
-    private int timeRemaining = -1;//the time remaining in the round
+    private int timeRemaining = roundLength;//the time remaining in the round
 
     private ArrayList<Player> players = new ArrayList<>();//the players playing
-    private String message;//the most recent text message sent (might be switched to an array)
-    private ArrayList<Player> messageReaders = new ArrayList<>();//the players who read the text message
+    private Map<Player, Integer> winners = new HashMap<>();//this dictionary store all players who guessed the correct word
+    //for the round as well as the length of time it took them to guess the word
 
-    private DrawingComponent[] drawingComponents = null;//the list of all individual pieces that make up the
+    private DrawingComponent[] drawingComponents;//the list of all individual pieces that make up the
     //drawing. It is iterated through in the GUI of the client and each component in the array is drawn onto the canvas.
-    private Player artist = null;//the current artist that has access to drawing
+    private Player artist;//the current artist that has access to drawing
     private ArrayList<Player> previousArtists = new ArrayList<>();//the players that have already been the artists
     //this is reset when all players have had a turn
-    private String currentMagicWord = null;//the word that the artist is responsible for drawing
-    private ArrayList<String> magicWords = new ArrayList<>();//all possible magic words loaded from the txt file
 
-    private Map<Player, Integer> winners = new HashMap<>();
-
+    private String currentMagicWord;//the word that the artist is responsible for drawing
     private int lengthOfMagicWord;
+    private ArrayList<String> magicWords = new ArrayList<>();//all possible magic words loaded from the txt file
 
     public static void main(String[] args){
         Server server = new Server();
@@ -44,26 +42,37 @@ public class Server {
 
     //sets up for a brand new game of x rounds (not determined yet)
     public void newGame(){
-        waitingToStart = false;
-        previousArtists.clear();
         try {
             loadMagicWords("words");
         } catch (IOException e) {
             e.printStackTrace();
         }
+        waitingToStart = false;
+        previousArtists.clear();
         newRound();
     }
 
     //cleans up variables from the last round and starts a new round
     public void endRound(){
-        System.out.println("end round started");
         gameTimer.stop();
         drawingComponents = null;
-        calculateAndUpdatePoints();
         artist = null;
-        System.out.println("here");
         winners.clear();
+        calculateAndUpdatePoints();
         newRound();
+    }
+
+    public void calculateAndUpdatePoints(){
+        Player[] winnersArray = this.winners.keySet().toArray(new Player[this.winners.keySet().size()]);
+
+        int artistsPoints = 150 * lengthOfMagicWord;
+        for (int pos = 0; pos < winnersArray.length; pos++){
+            int timeTaken = winners.get(winnersArray[pos]);
+            int playersPoints = (int) ((lengthOfMagicWord*(150 - timeTaken)) / (0.75 * Math.pow(pos + 1, 1.3)));
+            winnersArray[pos].setScore(winnersArray[pos].getScore() + playersPoints);
+            artistsPoints -= timeTaken * 35/lengthOfMagicWord/Math.pow(pos + 1, 2.5);
+        }
+        artist.setScore(artist.getScore() + artistsPoints);
     }
 
     //starts the timer, chooses an artist and magic word
@@ -71,12 +80,13 @@ public class Server {
         timeRemaining = roundLength;
         gameTimer.start();
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));//getting random magic word
-        lengthOfMagicWord = currentMagicWord.length();
         magicWords.remove(currentMagicWord);
+        lengthOfMagicWord = currentMagicWord.length();
 
         if (previousArtists.size() >= players.size()){//checking if all the players have been an artist already
             previousArtists.clear();
         }
+
         Player randArtist;
         while (true) {
             randArtist = players.get(randint(0, players.size() - 1));//getting random player to be the artist
@@ -86,14 +96,15 @@ public class Server {
                 break;
             }
         }
-        //alerting artist that he is the artist and what his word is
-        randArtist.addMessage("#FF0000~You are the artist");
-        randArtist.addMessage("#FF0000~you must draw: "+currentMagicWord);
 
         //alerting the rest of the players of who the new artist is
         for (Player p :players){
             if (p != randArtist){
                 p.addMessage("#FF0000~"+randArtist.getName()+" Is the artist");
+            }else {
+                //alerting artist that he is the artist and what his word is
+                p.addMessage("#FF0000~You are the artist");
+                p.addMessage("#FF0000~you must draw: " + currentMagicWord);
             }
         }
     }
@@ -120,34 +131,6 @@ public class Server {
         newMessage("#FF0000~" + player.getName() + " has left the game", player);
     }
 
-    //takes a message and the player that sent the message
-    //checks if the player has guessed the correct magic word, if not it sets the servers current message to the inputted message
-    /*
-    public synchronized void newMessage(String msg, Player sender){
-        messageReaders.clear();
-        if (msg.contains("~")) {//this means that the client is sending a message and not the user
-            message = msg;//setting the message directly instead of adding the name tag
-        } else {
-            if(currentMagicWord != null && msg.toLowerCase().equals(currentMagicWord.toLowerCase())){//checking if the player guessed the correct magic word
-                //winners.add();
-                winners.put(sender, roundLength - timeRemaining);
-                message = ("#FF0000~"+sender.getName() + " has guessed correctly!");//setting the server message rather than the "addMessageOnlyForMe" because the player will be added as a reader
-                sender.addMessageOnlyForMe("#FF0000~You have guessed correctly!");
-                System.out.println(winners.size());
-                System.out.println(players.size());
-                if(winners.size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
-                    System.out.println("called end round");
-                    endRound();
-                }
-            }
-            else{
-                message = (sender.getName()) + ": " + msg;//setting the servers current message including the senders name tag
-            }
-        }
-        messageReaders.add(sender);//adding the sender to the list of players who read the message
-    }
-
-     */
     public void newMessage(String msg, Player sender){
         String message;
         if (msg.contains("~")){
@@ -170,30 +153,6 @@ public class Server {
             if (p != sender){
                 p.addMessage(message);
             }
-        }
-    }
-
-    public void calculateAndUpdatePoints(){
-        Player[] winnersArray = this.winners.keySet().toArray(new Player[this.winners.keySet().size()]);
-
-        int artistsPoints = 150 * lengthOfMagicWord;
-        for (int pos = 0; pos < winnersArray.length; pos++){
-            int timeTaken = winners.get(winnersArray[pos]);
-            int playersPoints = (int) ((lengthOfMagicWord*(150 - timeTaken)) / (0.75 * Math.pow(pos + 1, 1.3)));
-            winnersArray[pos].setScore(winnersArray[pos].getScore() + playersPoints);
-            artistsPoints -= timeTaken * 35/lengthOfMagicWord/Math.pow(pos + 1, 2.5);
-        }
-        artist.setScore(artist.getScore() + artistsPoints);
-    }
-
-
-    //checks if the player requesting the message has not already read the message, if not it returns the message
-    public synchronized String getMessage(Player player) {
-        if (messageReaders.contains(player)){
-            return null;
-        }else{
-            messageReaders.add(player);
-            return message;
         }
     }
 
@@ -377,6 +336,7 @@ class OutputThread extends Thread{
         }
         catch (IOException e) {e.printStackTrace();}
         finally {
+            server.playerDisconnected(player);//disconnecting player
             try {
                 socket.close();
             } catch (IOException e) {e.printStackTrace();}
