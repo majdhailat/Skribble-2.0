@@ -10,8 +10,6 @@ import java.net.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 public class Client extends JFrame {
@@ -23,9 +21,7 @@ public class Client extends JFrame {
     //array is drawn onto the canvas.
 
     private String usersTextMessage = null;//the most recent message that the user typed and pressed enter on
-    //private String [] messageQueue = new String[17];//the past 17 messages displayed for the user in the chat panel
     private boolean canReceiveMessages = false;//if the client can display other user's messages
-
     private ArrayList<String>messages = new ArrayList<>();
 
     public static void main(String[] args)  {
@@ -152,7 +148,7 @@ public class Client extends JFrame {
     public class InputThread extends Thread {
         private ObjectInputStream objectInputStream;//this stream is used to read the data package object
         //the messages that have been read from the messages only for me list in the player
-        private ArrayList<String> readMessages = new ArrayList<>();
+        private int previousMessageArraySize = 0;
 
         public InputThread(Socket socket) throws IOException {
             objectInputStream = new ObjectInputStream(socket.getInputStream());
@@ -175,23 +171,22 @@ public class Client extends JFrame {
                         }
                     }
 
-
-
                     //getting messages that are only for this player
                     ArrayList<String> myMessages = dataPackage.getMyPlayer().getMessages();
                     //checking if there are any unread messages
-                    if (myMessages.size() > readMessages.size()){
+                    if (myMessages.size() > previousMessageArraySize){
                         //getting the num of un read messages
-                        int numOfNewMessages = myMessages.size() - readMessages.size();
+                        int numOfNewMessages = myMessages.size() - previousMessageArraySize;
                         for (int i = 0; i < numOfNewMessages; i++){
                             //adding messages
                             if (canReceiveMessages) {
                                 //addMessageToQueue(myMessages.get(readMessages.size() + i));
-                                messages.add(myMessages.get(readMessages.size() + i));
+                                messages.add(myMessages.get(previousMessageArraySize + i));
+
                             }
                         }
                         //updating read messages
-                        readMessages = myMessages;
+                        previousMessageArraySize = myMessages.size();
                     }
                     /*
                     The reason why we have to store the read messages here on the client rather than just removing
@@ -205,36 +200,6 @@ public class Client extends JFrame {
             }catch (IOException | ClassNotFoundException e) {e.printStackTrace();}
         }
     }
-
-    /*
-    //Takes a message and adds it to the array of the past 17 messages, when the array is full
-    //and a new message is added it shift all messages back deleting the oldest message from queue
-    private boolean messageQueueIsFull = false;//if the chat panel has filled up and now we have to start deleting
-    //the 17th last message to make room for the new message
-    public void addMessageToQueue(String message){
-        if (!messageQueueIsFull) {
-            boolean messageWasAdded = false;
-            for (int i = 0; i < messageQueue.length; i++) {//iterating through the 17 spots
-                if (messageQueue[i] == null
-                ) {//checking if there is an empty spot
-                    messageQueue[i] = message;//setting the message to that spot
-                    messageWasAdded = true;
-                    break;
-                }
-            }
-            if (!messageWasAdded){//there were no empty spots
-                messageQueueIsFull = true;
-            }
-        }
-        else{
-            messageQueue[0] = null;//deleting the last message
-            //shifting all messages back
-            System.arraycopy(messageQueue, 1, messageQueue, 0, messageQueue.length - 1);
-            messageQueue[messageQueue.length - 1] = message;//adding the new message to the front of the queue
-        }
-    }
-
-     */
 
     // ------------ Graphics ------------------------------------------
     //sets up JFrame and starts the JPanel
@@ -270,18 +235,28 @@ public class Client extends JFrame {
         }
     }
 
-    /*
-    Plays music
-     */
-    public class Panel extends JPanel implements MouseListener, MouseMotionListener{
+    public class Panel extends JPanel implements MouseListener, MouseMotionListener {
         public boolean ready = false;
 
-        public Panel(){
+        private int previousMessageArraySize = 0;
+        private ArrayList<String> messagesToRender = new ArrayList<>();
+        private JTextField textField = new JTextField();//the box in which the user can type their message
+        private JList messageList = new JList(messages.toArray());
+        private JScrollPane messagePane = new JScrollPane(messageList);
+
+        public Panel() {
             //sets running to false when windows is closed to close all threads
             setLayout(null);//prevents any form of auto layout
             addMouseListener(this);//used to detect mouse actions
             addMouseMotionListener(this);//used to detect mouse dragging
             startMidi("bgmusic.mid");//starting music
+
+            textField.setBounds(964, 590, 294, 22);
+            textField.addKeyListener((KeyListener) new MKeyListener());
+            add(textField);
+
+            messagePane.setBounds(958, 64, 312, 500);
+            add(messagePane);
         }
 
         public void addNotify() {
@@ -307,8 +282,6 @@ public class Client extends JFrame {
 
         //the canvas rectangle where the image is drawn
         private Rectangle canvasPanel = new Rectangle(201, 64, 749, 562);
-        //the box on the left that displays all messages
-        private Rectangle chatPanel = new Rectangle(958, 64, 312, 562);
         //loading the color palette image
         private Image colorPickerImage = new ImageIcon("Color picker.png").getImage();
         //the rectangle around the color picker (not actually displayed, but used to check if the user clicks in it)
@@ -328,13 +301,10 @@ public class Client extends JFrame {
                 g.fillRect((int) canvasPanel.getX(), (int) canvasPanel.getY(),//filling the canvas with white
                         (int) canvasPanel.getWidth(), (int) canvasPanel.getHeight());
                 g.setColor(new Color(237, 237, 237));
-                g.fillRect((int) chatPanel.getX(), (int) chatPanel.getY(),//drawing the chat panel
-                        (int) chatPanel.getWidth(), (int) chatPanel.getHeight());
-                //drawing the color palette image
-                g.drawImage(colorPickerImage, (int)colorPickerPanel.getX(), (int)colorPickerPanel.getY(), null);
+                g.drawImage(colorPickerImage, (int) colorPickerPanel.getX(), (int) colorPickerPanel.getY(), null);
                 //drawing the tool images
-                g.drawImage(pencilImage, (int)pencilPanel.getX(), (int)pencilPanel.getY(), null);
-                g.drawImage(eraserImage, (int)eraserPanel.getX(), (int)eraserPanel.getY(), null);
+                g.drawImage(pencilImage, (int) pencilPanel.getX(), (int) pencilPanel.getY(), null);
+                g.drawImage(eraserImage, (int) eraserPanel.getX(), (int) eraserPanel.getY(), null);
 
                 //iterating through the drawing components and drawing each component onto the screen
                 //basically drawing the image
@@ -342,198 +312,152 @@ public class Client extends JFrame {
                     Graphics2D g2 = (Graphics2D) g;
                     for (DrawingComponent s : drawingComponents) {
                         g2.setStroke(new BasicStroke(s.getStroke()));
-                        /*
-                        if(DrawingComponent.getToolType().equals(DrawingComponent.ERASER)){
-                            DrawingComponent.setColor(Color.white);
-                        }
 
-                         */
                         g2.setColor(s.getCol());
                         g2.draw(new Line2D.Float(s.getX1(), s.getY1(), s.getX2(), s.getY2()));
-//                        g.setColor(s.getCol());//each component has its own color
-//                        g.drawLine(s.getX1(), s.getY1(), s.getX2(), s.getY2());
                     }
                 }
 
+                if (messages.size() > previousMessageArraySize) {
+                    int numOfNewMessages = messages.size() - previousMessageArraySize;
+                    for (int i = 0; i < numOfNewMessages; i++) {
+                        String msg = messages.get(previousMessageArraySize + i);
+                        if (msg.contains("~")) {
+                            String[] messageParts = msg.split("~");
+                            messagesToRender.add(messageParts[1]);
+                        } else {
+                            messagesToRender.add(msg);
+                        }
+
+                    }
+                    messageList.setListData(messagesToRender.toArray());
+                    JScrollBar sb = messagePane.getVerticalScrollBar();
+                    sb.setValue(sb.getMaximum());
+                    previousMessageArraySize = messages.size();
+                }
+
                 updateTimerTextArea();
-                updateMessageTextAreas();
                 updatePlayerTextAreas(g);
             }
         }
 
         private JTextArea timerText = new JTextArea();//the timer text box
         private boolean initializedTimerTextArea = false;
+
         //initializes the timer text box then continuously updates the timer if the timer is actually running
-        public void updateTimerTextArea(){
-            if (!initializedTimerTextArea){
+        public void updateTimerTextArea() {
+            if (!initializedTimerTextArea) {
                 timerText.setBounds(100, 100, 30, 22);
                 timerText.setEditable(false);
                 timerText.setVisible(false);
                 add(timerText);
                 initializedTimerTextArea = true;
-            }else {
+            } else {
                 if (dataPackage.getTimeRemaining() == -1) {//-1 is the null state (probably not a good idea)
                     timerText.setVisible(false);//hiding timer
-                }else{
+                } else {
                     //showing timer (probably should'nt run this every time but idk what else to do)
                     timerText.setVisible(true);
-                    timerText.setText(""+dataPackage.getTimeRemaining());//updating the timer text using data package
+                    timerText.setText("" + dataPackage.getTimeRemaining());//updating the timer text using data package
                 }
             }
         }
-        
-        //the 17 text boxes that display the messages from queue
-        private final int maxMessagePerScreen = 17;
-        private JTextArea[] messageTextAreas = new JTextArea[maxMessagePerScreen];
-        private JTextField textField = new JTextField();//the box in which the user can type their message
-        private boolean initializedMessageTextAreas = false;
-        //reads the message queue and sets the message text area with the right text
-        public void updateMessageTextAreas(){
-            //ArrayList<String> messagesReveresed = (ArrayList<String>) messages.clone();
-            //Collections.reverse(messagesReveresed);
-            if (!initializedMessageTextAreas) {
-                textField.setBounds(964, 590, 294, 22);
-                textField.addKeyListener((KeyListener) new MKeyListener());
-                add(textField);
-                //adding all 17 text boxes but making them initially hidden
-                for (int i = 0; i <maxMessagePerScreen; i++) {
-                    JTextArea txtArea = new JTextArea();//creating new text box
-                    txtArea.setVisible(false);
-                    txtArea.setEditable(false);
-                    txtArea.setBounds(964, 73+(30*i), 300, 20);
-                    add(txtArea);
-                    messageTextAreas[i] = txtArea;//adding it to array
-                }
-                initializedMessageTextAreas = true;
-            }
 
-            for (int i = 0; i < maxMessagePerScreen; i++) {//looping through each message in queue
-                Color col = Color.black;//default color is black
-                if (i < messages.size() && messages.get(messages.size() - i - 1) != null){//checking for null
-                    String message = messages.get(messages.size() - 1 - i);//getting message
-                    if (message.contains("~")){//checking if this is a special message from
-                        // (could be from client code or server code)
-                        String [] messageParts = message.split("~");//special messages contain ~.
-                        //i think i will change this to a / at the front of the message to make it more consistent
-
-                        //special messages have a specific format it is as follows:
-                        //"#FFFFFF~MyMessage" ~ the #FFFFFF Is the color in hex code form
-                        //then after the ~ is the actual message
-                        col = Color.decode(messageParts[0]);//reassigning color instead of black
-                        message = messageParts[1];//reassigning the message to JUST the message part
-                    }
-
-                    int numOfChars = message.length();//getting the num of chars of the message
-                    int maxCharsPerLine = 38;//the # of characters a single message can be until it must be wrapped
-                    //message wrapping
-                    if (numOfChars > maxCharsPerLine) {
-                        //determining the # of wraps
-                        int numOfWraps = (int) Math.ceil((double) numOfChars / (double) maxCharsPerLine);
-                        for (int j = 0; j < numOfWraps; j++) {
-                            //getting the part of the message for each line in the message wrap
-                            String line = message.substring((maxCharsPerLine * j),
-                                    Math.min(((maxCharsPerLine * j) + maxCharsPerLine), message.length()));
-                            if (j == 0){//if its the first line in the wrap its simply displays at this spot
-                                    //messages.get(messages.size() - i - 1) = line;
-                                    messages.set(messages.size() - i - 1, line);
-                            }else {//all other lines get re added to queue
-                                messages.add(0, line);
-                            }
-                        }
-                    }
-                    messageTextAreas[i].setVisible(true);
-                    messageTextAreas[i].setText(message);//setting message
-                    messageTextAreas[i].setForeground(col);//setting message color
-                }
-            }
-        }
 
         private JTextArea[] playerNameLabels = new JTextArea[8];//the text boxes that display the players names
         private boolean initializedPlayerNameLabels = false;
-        private Font nameLabelFont = new Font("Arial", Font.PLAIN,14);//font of all players except their self
-        private Font myNameLabelFont = new Font("Arial", Font.BOLD,14);//font for their own player
+        private Font nameLabelFont = new Font("Arial", Font.PLAIN, 14);//font of all players except their self
+        private Font myNameLabelFont = new Font("Arial", Font.BOLD, 14);//font for their own player
+
         //reads the array of players from the data package and displays boxes for each player on the left of the screen
         //boxes will include name, score, who the artist is and any new info needed further down the line
-        public void updatePlayerTextAreas(Graphics g){
-            if (!initializedPlayerNameLabels){
+        public void updatePlayerTextAreas(Graphics g) {
+            if (!initializedPlayerNameLabels) {
                 //maximum of 8 players will ever be displayed - adding all 8 name labels to array
                 for (int i = 0; i < 8; i++) {
                     JTextArea label = new JTextArea();
                     label.setVisible(false);
                     label.setEditable(false);
-                    label.setBounds(12, 90 +  (75 * i), 181, 30);
+                    label.setBounds(12, 90 + (75 * i), 181, 30);
                     add(label);
                     playerNameLabels[i] = label;//adding to array
                 }
                 initializedPlayerNameLabels = true;
             }
 
-           for (int i = 0; i < playerNameLabels.length; i++){//iterating through name labels
-               JTextArea label = playerNameLabels[i];//getting label
-               if (i < dataPackage.getPlayers().size()){//checking if there is a player for that label
-                   g.setColor(dataPackage.getPlayers().get(i).getColor());//setting the color of the label to the
-                   //players customized color specified in the player object
-                   g.fillRect(10, 64 + (75 * i), 183, 70);//filling the box around the stats
-                   label.setBackground(dataPackage.getPlayers().get(i).getColor());//setting the label background
-                   label.setAlignmentX(CENTER_ALIGNMENT);
-                   if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()){//checking if its the users player
-                       label.setFont(myNameLabelFont);//setting bolded font
-                       label.setText(dataPackage.getPlayers().get(i).getName()+" (You)   "+ dataPackage.getPlayers().get(i).getScore());//setting name as text
-                   }else{
-                       label.setFont(nameLabelFont);//setting non bolded font
-                       label.setText(dataPackage.getPlayers().get(i).getName()+"   "+dataPackage.getPlayers().get(i).getScore());//setting name as text
-                   }
-                   label.setVisible(true);
-                   label.setForeground(Color.black);//text color
-               }
-               else {//this is a label that does not have a player
-                   if (label.isVisible()) {//checking if the label is visible (this only happens after a player DCs)
-                       label.setVisible(false);//hiding it
-                   }
-               }
-           }
+            for (int i = 0; i < playerNameLabels.length; i++) {//iterating through name labels
+                JTextArea label = playerNameLabels[i];//getting label
+                if (i < dataPackage.getPlayers().size()) {//checking if there is a player for that label
+                    g.setColor(dataPackage.getPlayers().get(i).getColor());//setting the color of the label to the
+                    //players customized color specified in the player object
+                    g.fillRect(10, 64 + (75 * i), 183, 70);//filling the box around the stats
+                    label.setBackground(dataPackage.getPlayers().get(i).getColor());//setting the label background
+                    label.setAlignmentX(CENTER_ALIGNMENT);
+                    if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()) {//checking if its the users player
+                        label.setFont(myNameLabelFont);//setting bolded font
+                        label.setText(dataPackage.getPlayers().get(i).getName() + " (You)   " + dataPackage.getPlayers().get(i).getScore());//setting name as text
+                    } else {
+                        label.setFont(nameLabelFont);//setting non bolded font
+                        label.setText(dataPackage.getPlayers().get(i).getName() + "   " + dataPackage.getPlayers().get(i).getScore());//setting name as text
+                    }
+                    label.setVisible(true);
+                    label.setForeground(Color.black);//text color
+                } else {//this is a label that does not have a player
+                    if (label.isVisible()) {//checking if the label is visible (this only happens after a player DCs)
+                        label.setVisible(false);//hiding it
+                    }
+                }
+            }
         }
 
         // ------------ MouseListener ------------------------------------------
         //I WILL ADD COMMENTS LATER BECAUSE THERE IS A LOT MORE CODE TO ADD HERE
         private int x1, y1, x2, y2;
-        public void mouseEntered(MouseEvent e) {}
-        public void mouseExited(MouseEvent e) {}
-        public void mouseReleased(MouseEvent e) {}
-        public void mouseClicked(MouseEvent e) {}
+
+        public void mouseEntered(MouseEvent e) {
+        }
+
+        public void mouseExited(MouseEvent e) {
+        }
+
+        public void mouseReleased(MouseEvent e) {
+        }
+
+        public void mouseClicked(MouseEvent e) {
+        }
+
         public void mousePressed(MouseEvent e) {
             x1 = e.getX();
             y1 = e.getY();
-            if (colorPickerPanel.contains(x1, y1)){
+            if (colorPickerPanel.contains(x1, y1)) {
                 try {
                     BufferedImage image = ImageIO.read(new File("Color picker.png"));
-                    Color c = new Color(image.getRGB((int)(x1-colorPickerPanel.getX()), (int)(y1-colorPickerPanel.getY())));
+                    Color c = new Color(image.getRGB((int) (x1 - colorPickerPanel.getX()), (int) (y1 - colorPickerPanel.getY())));
                     DrawingComponent.setColor(c);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
-            }
-            else if (pencilPanel.contains(x1, y1)){
+            } else if (pencilPanel.contains(x1, y1)) {
                 DrawingComponent.setToolType("PENCIL");
-            }
-            else if (eraserPanel.contains(x1, y1)){
+            } else if (eraserPanel.contains(x1, y1)) {
                 DrawingComponent.setToolType("ERASER");
             }
         }
+
         synchronized public void mouseDragged(MouseEvent e) {
             x2 = e.getX();
             y2 = e.getY();
 
             if (canvasPanel.contains(x1, y1) && dataPackage.amIArtist()) {
-                if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)){
-                    if (x2 < canvasPanel.getX()){
+                if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)) {
+                    if (x2 < canvasPanel.getX()) {
                         x2 = (int) canvasPanel.getX();
-                    }else if (x2 > canvasPanel.getX() + canvasPanel.getWidth()){
+                    } else if (x2 > canvasPanel.getX() + canvasPanel.getWidth()) {
                         x2 = (int) (canvasPanel.getX() + canvasPanel.getWidth());
                     }
-                    if (y2 < canvasPanel.getY()){
+                    if (y2 < canvasPanel.getY()) {
                         y2 = (int) canvasPanel.getY();
-                    }else if (y2 > canvasPanel.getY() + canvasPanel.getHeight()){
+                    } else if (y2 > canvasPanel.getY() + canvasPanel.getHeight()) {
                         y2 = (int) (canvasPanel.getY() + canvasPanel.getHeight());
                     }
                     drawingComponents.add(new DrawingComponent(x1, y1, x2, y2));
@@ -544,13 +468,16 @@ public class Client extends JFrame {
             y1 = y2;
         }
 
-        public void mouseMoved(MouseEvent e) {}
+        public void mouseMoved(MouseEvent e) {
+        }
 
         class MKeyListener extends KeyAdapter {
             public void keyPressed(KeyEvent event) {
-                if(event.getKeyCode() == KeyEvent.VK_ENTER){
-                    usersTextMessage = textField.getText();
-                    textField.setText("");
+                if (event.getKeyCode() == KeyEvent.VK_ENTER) {
+                    if (!textField.getText().equals("")) {
+                        usersTextMessage = textField.getText();
+                        textField.setText("");
+                    }
                 }
             }
         }
