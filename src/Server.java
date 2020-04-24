@@ -56,9 +56,9 @@ public class Server {
     public void endRound(){
         gameTimer.stop();
         drawingComponents = null;
+        calculateAndUpdatePoints();
         artist = null;
         winners.clear();
-        calculateAndUpdatePoints();
         newRound();
     }
 
@@ -72,6 +72,7 @@ public class Server {
             winnersArray[pos].setScore(winnersArray[pos].getScore() + playersPoints);
             artistsPoints -= timeTaken * 35/lengthOfMagicWord/Math.pow(pos + 1, 2.5);
         }
+        System.out.println(artist.getName());
         artist.setScore(artist.getScore() + artistsPoints);
     }
 
