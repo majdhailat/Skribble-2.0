@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-public class Client extends JFrame {
+public class Client extends JFrame{
     private volatile boolean running = true;//If the client is running or not
     private DataPackage dataPackage;//the object that stores all game info that the client will ever need
 
@@ -21,8 +21,11 @@ public class Client extends JFrame {
     //array is drawn onto the canvas.
 
     private String usersTextMessage = null;//the most recent message that the user typed and pressed enter on
+    private ArrayList<String> messagesToRender = new ArrayList<>();
     private boolean canReceiveMessages = false;//if the client can display other user's messages
-    private ArrayList<String>messages = new ArrayList<>();
+    //private ArrayList<String>messages = new ArrayList<>();//the list of messages for user
+    private int previousMessagesSize = 0;//keeps track of which messages were already rendered to the screen by index
+    //of the messages arrayList
 
     public static void main(String[] args)  {
         new Client();
@@ -70,7 +73,7 @@ public class Client extends JFrame {
 
         public OutputThread(Socket socket) throws IOException {
             out = new ObjectOutputStream(socket.getOutputStream());
-            messages.add("#008000~Enter a user name");//prompting user for their name
+            messagesToRender.add("#008000~Enter a user name");//prompting user for their name
         }
 
         //if the message that tells the user to type start has been prompted
@@ -80,23 +83,23 @@ public class Client extends JFrame {
                 if (dataPackage != null) {
                     if (!promptedStartMessage && dataPackage.getPlayers().size() >= 2 && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer()) {
                         //prompting user to type start when they want to start the game
-                        messages.add("#008000~Type start to start the game");
+                        messagesToRender.add("#008000~Type start to start the game");
                         promptedStartMessage = true;
                     }
                     //NON ARTIST MODE
                     if (!dataPackage.amIArtist() && usersTextMessage != null) {
                         try {
                             if (!gotUserName) {//checking if user name has not been obtained
+                                canReceiveMessages = true;
                                 out.writeObject(usersTextMessage);//sending the user name
                                 gotUserName = true;
-                                canReceiveMessages = true;
                                 //checking if the user started the game
                             } else if (dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && usersTextMessage.equals("start")) {
                                 out.writeObject("/START");//a command alerting the server to start the game
                             } else {//the user is just sending a message
                                 out.writeObject(usersTextMessage);//sending the users message to the server
                                 //displaying the users message back to the chat panel
-                                messages.add("Me: " + usersTextMessage);
+                                messagesToRender.add("Me: " + usersTextMessage);
                             }
                             //resetting the users text message so that it does'nt get resent to the server
                             usersTextMessage = null;
@@ -123,7 +126,7 @@ public class Client extends JFrame {
                         try {
                             out.writeObject(0);//this is a "band aid" fix
                             /*
-                            but what it does is on the server side, the server is currently in a waiting stage because
+                            what it does is on the server side, the server is currently in a waiting stage because
                             it is waiting for a drawing components array but since this loop just ended the next thing it will get is a message
                             that will cause the server to throw a class cast exception because it tried casting a string to an array
                             this exception can be ignored harmlessly but it will mean that the message never makes it to the server
@@ -148,7 +151,6 @@ public class Client extends JFrame {
     public class InputThread extends Thread {
         private ObjectInputStream objectInputStream;//this stream is used to read the data package object
         //the messages that have been read from the messages only for me list in the player
-        private int previousMessageArraySize = 0;
 
         public InputThread(Socket socket) throws IOException {
             objectInputStream = new ObjectInputStream(socket.getInputStream());
@@ -171,22 +173,22 @@ public class Client extends JFrame {
                         }
                     }
 
-                    //getting messages that are only for this player
-                    ArrayList<String> myMessages = dataPackage.getMyPlayer().getMessages();
-                    //checking if there are any unread messages
-                    if (myMessages.size() > previousMessageArraySize){
-                        //getting the num of un read messages
-                        int numOfNewMessages = myMessages.size() - previousMessageArraySize;
-                        for (int i = 0; i < numOfNewMessages; i++){
-                            //adding messages
-                            if (canReceiveMessages) {
-                                //addMessageToQueue(myMessages.get(readMessages.size() + i));
-                                messages.add(myMessages.get(previousMessageArraySize + i));
-
+                    ArrayList<String> messages = dataPackage.getMyPlayer().getMessages();
+                    if (dataPackage.getMyPlayer().getMessages().size() > previousMessagesSize) {
+                        if (canReceiveMessages) {
+                            int numOfNewMessages = messages.size() - previousMessagesSize;
+                            for (int i = 0; i < numOfNewMessages; i++) {
+                                String msg = messages.get(previousMessagesSize + i);
+                                if (msg.contains("~")) {
+                                    String[] messageParts = msg.split("~");
+                                    System.out.println(messageParts[1]);
+                                    messagesToRender.add(messageParts[1]);
+                                } else {
+                                    messagesToRender.add(msg);
+                                }
                             }
                         }
-                        //updating read messages
-                        previousMessageArraySize = myMessages.size();
+                        previousMessagesSize = messages.size();
                     }
                     /*
                     The reason why we have to store the read messages here on the client rather than just removing
@@ -238,11 +240,11 @@ public class Client extends JFrame {
     public class Panel extends JPanel implements MouseListener, MouseMotionListener {
         public boolean ready = false;
 
-        private int previousMessageArraySize = 0;
-        private ArrayList<String> messagesToRender = new ArrayList<>();
         private JTextField textField = new JTextField();//the box in which the user can type their message
-        private JList messageList = new JList(messages.toArray());
+        private JList messageList = new JList(messagesToRender.toArray());
         private JScrollPane messagePane = new JScrollPane(messageList);
+
+        private int previousMessagesToRenderSize = 0;
 
         public Panel() {
             //sets running to false when windows is closed to close all threads
@@ -318,24 +320,14 @@ public class Client extends JFrame {
                     }
                 }
 
-                if (messages.size() > previousMessageArraySize) {
-                    int numOfNewMessages = messages.size() - previousMessageArraySize;
-                    for (int i = 0; i < numOfNewMessages; i++) {
-                        String msg = messages.get(previousMessageArraySize + i);
-                        if (msg.contains("~")) {
-                            String[] messageParts = msg.split("~");
-                            messagesToRender.add(messageParts[1]);
-                        } else {
-                            messagesToRender.add(msg);
-                        }
-
-                    }
-
+                if (messagesToRender.size() > previousMessagesToRenderSize) {
                     messageList.setListData(messagesToRender.toArray());
                     JScrollBar sb = messagePane.getVerticalScrollBar();
                     sb.setValue(sb.getMaximum());
-                    previousMessageArraySize = messages.size();
+                    previousMessagesToRenderSize = messagesToRender.size();
                 }
+
+
 
                 updateTimerTextArea();
                 updatePlayerTextAreas(g);
