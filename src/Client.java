@@ -179,13 +179,7 @@ public class Client extends JFrame{
                             int numOfNewMessages = messages.size() - previousMessagesSize;
                             for (int i = 0; i < numOfNewMessages; i++) {
                                 String msg = messages.get(previousMessagesSize + i);
-                                if (msg.contains("~")) {
-                                    String[] messageParts = msg.split("~");
-                                    System.out.println(messageParts[1]);
-                                    messagesToRender.add(messageParts[1]);
-                                } else {
-                                    messagesToRender.add(msg);
-                                }
+                                messagesToRender.add(msg);
                             }
                         }
                         previousMessagesSize = messages.size();
@@ -244,8 +238,6 @@ public class Client extends JFrame{
         private JList messageList = new JList(messagesToRender.toArray());
         private JScrollPane messagePane = new JScrollPane(messageList);
 
-        private int previousMessagesToRenderSize = 0;
-
         public Panel() {
             //sets running to false when windows is closed to close all threads
             setLayout(null);//prevents any form of auto layout
@@ -257,8 +249,39 @@ public class Client extends JFrame{
             textField.addKeyListener((KeyListener) new MKeyListener());
             add(textField);
 
+            messageList.setCellRenderer(createListRenderer());
             messagePane.setBounds(958, 64, 312, 500);
             add(messagePane);
+        }
+
+        //I barley understand how this works so don't ask
+        private ListCellRenderer<? super String> createListRenderer() {
+            return new DefaultListCellRenderer() {
+                private int previousMessagesToRenderSize = 0;
+                @Override
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                    Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    if (c instanceof JLabel) {
+                        JLabel label = (JLabel) c;
+                        String message = messagesToRender.get(index);
+                        if (message.contains("~")){
+                            String[] messageParts = message.split("~");
+                            label.setForeground(Color.decode(messageParts[0]));
+                            label.setText(messageParts[1]);
+                        }else {
+                            label.setForeground(Color.black);
+                            label.setText(messagesToRender.get(index));
+                        }
+                        if (messagesToRender.size() > previousMessagesToRenderSize) {
+                            messageList.setListData(messagesToRender.toArray());
+                            JScrollBar sb = messagePane.getVerticalScrollBar();
+                            sb.setValue(sb.getMaximum());
+                            previousMessagesToRenderSize = messagesToRender.size();
+                        }
+                    }
+                    return c;
+                }
+            };
         }
 
         public void addNotify() {
@@ -320,15 +343,6 @@ public class Client extends JFrame{
                     }
                 }
 
-                if (messagesToRender.size() > previousMessagesToRenderSize) {
-                    messageList.setListData(messagesToRender.toArray());
-                    JScrollBar sb = messagePane.getVerticalScrollBar();
-                    sb.setValue(sb.getMaximum());
-                    previousMessagesToRenderSize = messagesToRender.size();
-                }
-
-
-
                 updateTimerTextArea();
                 updatePlayerTextAreas(g);
             }
@@ -355,7 +369,6 @@ public class Client extends JFrame{
                 }
             }
         }
-
 
         private JTextArea[] playerNameLabels = new JTextArea[8];//the text boxes that display the players names
         private boolean initializedPlayerNameLabels = false;
