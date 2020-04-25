@@ -294,11 +294,13 @@ public class Client extends JFrame{
                 @Override
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                     Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                    System.out.println("this is running");
                     if (c instanceof JLabel) {
                         JLabel label = (JLabel) c;
                         String message = messagesToRender.get(index);
                         label.setFont(textFont);
+                        if (index % 2 != 0){
+                            label.setBackground(new Color(235, 235, 235));
+                        }
                         if (message.contains("~")) {
                             String[] messageParts = message.split("~");
                             label.setForeground(Color.decode(messageParts[0]));
@@ -324,7 +326,9 @@ public class Client extends JFrame{
                         JLabel label = (JLabel) c;
                         label.setFont(textFont);
                         label.setIcon(avatar);
-                        label.setForeground(Color.black);
+                        if (index % 2 != 0){
+                            label.setBackground(new Color(235, 235, 235));
+                        }
                         if (dataPackage.getPlayers().get(index) == dataPackage.getMyPlayer()){
                             label.setText("<html>"+dataPackage.getPlayers().get(index).getName()+" (You)"+"<br>"+"Points: "+dataPackage.getPlayers().get(index).getScore()+"</html>");
                         }else {
