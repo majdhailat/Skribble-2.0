@@ -246,6 +246,8 @@ public class Client extends JFrame{
         private JScrollPane messagePane = new JScrollPane(messageList);
         JScrollBar scrollbar = messagePane.getVerticalScrollBar();
 
+        Font textFont = null;
+
         public Panel() {
             //sets running to false when windows is closed to close all threads
             setLayout(null);//prevents any form of auto layout
@@ -260,17 +262,16 @@ public class Client extends JFrame{
             messageList.setCellRenderer(createListRenderer());
             messagePane.setBounds(955, 50, 305, 525);
             add(messagePane);
-        }
 
-        //I barley understand how this works so don't ask
-        private ListCellRenderer<? super String> createListRenderer(){
-            Font textFont = null;
             try {
                 textFont = Font.createFont(Font.TRUETYPE_FONT, new File("tipper.otf")).deriveFont(15.5f);
             } catch (FontFormatException | IOException e) {
                 e.printStackTrace();
             }
-            Font finalTextFont = textFont;
+        }
+
+        //I barley understand how this works so don't ask
+        private ListCellRenderer<? super String> createListRenderer(){
             return new DefaultListCellRenderer() {
                 @Override
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -279,7 +280,7 @@ public class Client extends JFrame{
                     if (c instanceof JLabel) {
                         JLabel label = (JLabel) c;
                         String message = messagesToRender.get(index);
-                        label.setFont(finalTextFont);
+                        label.setFont(textFont);
                         if (message.contains("~")){
                             String[] messageParts = message.split("~");
                             label.setForeground(Color.decode(messageParts[0]));
@@ -362,6 +363,8 @@ public class Client extends JFrame{
                     scrollbar.setValue(scrollbar.getMaximum());
                 }
 
+                scrollbar.setValue(scrollbar.getMaximum());//temp until fix
+
                 g2.setColor(Color.black);
                 g2.drawRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
                 updateTimerTextArea();
@@ -376,7 +379,8 @@ public class Client extends JFrame{
         //initializes the timer text box then continuously updates the timer if the timer is actually running
         public void updateTimerTextArea() {
             if (!initializedTimerTextArea) {
-                timerText.setBounds(100, 100, 30, 22);
+                timerText.setBounds(50, 30, 75, 22);
+                timerText.setFont(textFont);
                 timerText.setEditable(false);
                 timerText.setVisible(false);
                 add(timerText);
@@ -387,7 +391,7 @@ public class Client extends JFrame{
                 } else {
                     //showing timer (probably should'nt run this every time but idk what else to do)
                     timerText.setVisible(true);
-                    timerText.setText("" + dataPackage.getTimeRemaining());//updating the timer text using data package
+                    timerText.setText("Timer: " + dataPackage.getTimeRemaining());//updating the timer text using data package
                 }
             }
         }
@@ -407,6 +411,7 @@ public class Client extends JFrame{
                     label.setVisible(false);
                     label.setEditable(false);
                     label.setBounds(12, 90 + (75 * i), 181, 30);
+                    label.setFont(textFont);
                     add(label);
                     playerNameLabels[i] = label;//adding to array
                 }
@@ -422,10 +427,8 @@ public class Client extends JFrame{
                     label.setBackground(dataPackage.getPlayers().get(i).getColor());//setting the label background
                     label.setAlignmentX(CENTER_ALIGNMENT);
                     if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()) {//checking if its the users player
-                        label.setFont(myNameLabelFont);//setting bolded font
                         label.setText(dataPackage.getPlayers().get(i).getName() + " (You)   " + dataPackage.getPlayers().get(i).getScore());//setting name as text
                     } else {
-                        label.setFont(nameLabelFont);//setting non bolded font
                         label.setText(dataPackage.getPlayers().get(i).getName() + "   " + dataPackage.getPlayers().get(i).getScore());//setting name as text
                     }
                     label.setVisible(true);
