@@ -65,15 +65,14 @@ public class Server {
     public void calculateAndUpdatePoints(){
         Player[] winnersArray = this.winners.keySet().toArray(new Player[this.winners.keySet().size()]);
 
-        int artistsPoints = 150 * lengthOfMagicWord;
+        int artistsPoints = 90 * lengthOfMagicWord;
         for (int pos = 0; pos < winnersArray.length; pos++){
             int timeTaken = winners.get(winnersArray[pos]);
-            int playersPoints = (int) ((lengthOfMagicWord*(150 - timeTaken)) / (0.75 * Math.pow(pos + 1, 1.3)));
+            int playersPoints = Math.max((int) ((lengthOfMagicWord*(90 - timeTaken)) / (0.75 * Math.pow(pos + 1, 1.3))), 0);
             winnersArray[pos].setScore(winnersArray[pos].getScore() + playersPoints);
             artistsPoints -= timeTaken * 35/lengthOfMagicWord/Math.pow(pos + 1, 2.5);
         }
-        System.out.println(artist.getName());
-        artist.setScore(artist.getScore() + artistsPoints);
+        artist.setScore(artist.getScore() + Math.max(artistsPoints, 0));
     }
 
     //starts the timer, chooses an artist and magic word

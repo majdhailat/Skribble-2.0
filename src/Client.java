@@ -125,6 +125,7 @@ public class Client extends JFrame{
                         }
                         try {
                             out.writeObject(0);//this is a "band aid" fix
+                            usersTextMessage = null;
                             /*
                             what it does is on the server side, the server is currently in a waiting stage because
                             it is waiting for a drawing components array but since this loop just ended the next thing it will get is a message
@@ -255,7 +256,14 @@ public class Client extends JFrame{
         }
 
         //I barley understand how this works so don't ask
-        private ListCellRenderer<? super String> createListRenderer() {
+        private ListCellRenderer<? super String> createListRenderer(){
+            Font textFont = null;
+            try {
+                textFont = Font.createFont(Font.TRUETYPE_FONT, new File("tipper.otf")).deriveFont(16f);
+            } catch (FontFormatException | IOException e) {
+                e.printStackTrace();
+            }
+            Font finalTextFont = textFont;
             return new DefaultListCellRenderer() {
                 private int previousMessagesToRenderSize = 0;
                 @Override
@@ -264,6 +272,7 @@ public class Client extends JFrame{
                     if (c instanceof JLabel) {
                         JLabel label = (JLabel) c;
                         String message = messagesToRender.get(index);
+                        label.setFont(finalTextFont);
                         if (message.contains("~")){
                             String[] messageParts = message.split("~");
                             label.setForeground(Color.decode(messageParts[0]));
@@ -273,9 +282,9 @@ public class Client extends JFrame{
                             label.setText(messagesToRender.get(index));
                         }
                         if (messagesToRender.size() > previousMessagesToRenderSize) {
-                            messageList.setListData(messagesToRender.toArray());
                             JScrollBar sb = messagePane.getVerticalScrollBar();
                             sb.setValue(sb.getMaximum());
+                            messageList.setListData(messagesToRender.toArray());
                             previousMessagesToRenderSize = messagesToRender.size();
                         }
                     }
