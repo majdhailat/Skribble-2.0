@@ -244,7 +244,11 @@ public class Client extends JFrame{
         private JTextField textField = new JTextField();//the box in which the user can type their message
         private JList messageList = new JList(messagesToRender.toArray());
         private JScrollPane messagePane = new JScrollPane(messageList);
-        JScrollBar scrollbar = messagePane.getVerticalScrollBar();
+        private JScrollBar scrollbar = messagePane.getVerticalScrollBar();
+
+        private JList playerList = new JList(dataPackage.getPlayers().toArray());
+
+        private JScrollPane playerPane = new JScrollPane(playerList);
 
         Font textFont = null;
 
@@ -259,9 +263,23 @@ public class Client extends JFrame{
             textField.addKeyListener((KeyListener) new MKeyListener());
             add(textField);
 
-            messageList.setCellRenderer(createListRenderer());
+
+            playerList.setCellRenderer(playerListRednerer());
+            playerPane.setVisible(false);
+            playerPane.setVerticalScrollBarPolicy(playerPane.VERTICAL_SCROLLBAR_NEVER);
+            playerPane.setHorizontalScrollBarPolicy(playerPane.HORIZONTAL_SCROLLBAR_NEVER);
+            add(playerPane);
+
+            playerList.setFixedCellHeight(75);
+
+
+            messageList.setCellRenderer(messageListRenderer());
             messagePane.setBounds(955, 50, 305, 525);
+            messagePane.setHorizontalScrollBarPolicy(messagePane.HORIZONTAL_SCROLLBAR_NEVER);
             add(messagePane);
+
+
+
 
             try {
                 textFont = Font.createFont(Font.TRUETYPE_FONT, new File("tipper.otf")).deriveFont(15.5f);
@@ -271,24 +289,51 @@ public class Client extends JFrame{
         }
 
         //I barley understand how this works so don't ask
-        private ListCellRenderer<? super String> createListRenderer(){
+        private ListCellRenderer<? super String> messageListRenderer() {
             return new DefaultListCellRenderer() {
                 @Override
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                     Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-
+                    System.out.println("this is running");
                     if (c instanceof JLabel) {
                         JLabel label = (JLabel) c;
                         String message = messagesToRender.get(index);
                         label.setFont(textFont);
-                        if (message.contains("~")){
+                        if (message.contains("~")) {
                             String[] messageParts = message.split("~");
                             label.setForeground(Color.decode(messageParts[0]));
                             label.setText(messageParts[1]);
-                        }else {
+                        } else {
                             label.setForeground(Color.black);
                             label.setText(messagesToRender.get(index));
                         }
+                    }
+                    return c;
+                }
+            };
+        }
+
+        private ImageIcon avatar = new ImageIcon("icon.png");
+        private ListCellRenderer<? super Player> playerListRednerer(){
+
+            return new DefaultListCellRenderer() {
+                @Override
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                    Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    if (c instanceof JLabel) {
+                        JLabel label = (JLabel) c;
+                        label.setFont(textFont);
+                        label.setIcon(avatar);
+                        label.setForeground(Color.black);
+                        if (dataPackage.getPlayers().get(index) == dataPackage.getMyPlayer()){
+                            label.setText("<html>"+dataPackage.getPlayers().get(index).getName()+" (You)"+"<br>"+"Points: "+dataPackage.getPlayers().get(index).getScore()+"</html>");
+                        }else {
+                            label.setText("<html>" + dataPackage.getPlayers().get(index).getName() + "<br>" +"Points: "+ dataPackage.getPlayers().get(index).getScore() + "</html>");
+                        }
+                        label.setFont(textFont);
+                        playerPane.setVisible(true);
+                        playerPane.setBounds(10, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+
                     }
                     return c;
                 }
@@ -318,7 +363,7 @@ public class Client extends JFrame{
 
         private Image bgImage = new ImageIcon("bg4.jpg").getImage();
         //the canvas rectangle where the image is drawn
-        private Rectangle canvasPanel = new Rectangle(200, 50, 750, 550);
+        private Rectangle canvasPanel = new Rectangle(225, 50, 725, 550);
         //loading the color palette image
         private Image colorPickerImage = new ImageIcon("Color picker.png").getImage();
         //the rectangle around the color picker (not actually displayed, but used to check if the user clicks in it)
@@ -363,12 +408,14 @@ public class Client extends JFrame{
                     scrollbar.setValue(scrollbar.getMaximum());
                 }
 
+                playerList.setListData(dataPackage.getPlayers().toArray());
+
                 scrollbar.setValue(scrollbar.getMaximum());//temp until fix
 
                 g2.setColor(Color.black);
                 g2.drawRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
                 updateTimerTextArea();
-                updatePlayerTextAreas(g);
+                //updatePlayerTextAreas(g);
             }
 
         }
@@ -392,51 +439,6 @@ public class Client extends JFrame{
                     //showing timer (probably should'nt run this every time but idk what else to do)
                     timerText.setVisible(true);
                     timerText.setText("Timer: " + dataPackage.getTimeRemaining());//updating the timer text using data package
-                }
-            }
-        }
-
-        private JTextArea[] playerNameLabels = new JTextArea[8];//the text boxes that display the players names
-        private boolean initializedPlayerNameLabels = false;
-        private Font nameLabelFont = new Font("Arial", Font.PLAIN, 14);//font of all players except their self
-        private Font myNameLabelFont = new Font("Arial", Font.BOLD, 14);//font for their own player
-
-        //reads the array of players from the data package and displays boxes for each player on the left of the screen
-        //boxes will include name, score, who the artist is and any new info needed further down the line
-        public void updatePlayerTextAreas(Graphics g) {
-            if (!initializedPlayerNameLabels) {
-                //maximum of 8 players will ever be displayed - adding all 8 name labels to array
-                for (int i = 0; i < 8; i++) {
-                    JTextArea label = new JTextArea();
-                    label.setVisible(false);
-                    label.setEditable(false);
-                    label.setBounds(12, 90 + (75 * i), 181, 30);
-                    label.setFont(textFont);
-                    add(label);
-                    playerNameLabels[i] = label;//adding to array
-                }
-                initializedPlayerNameLabels = true;
-            }
-
-            for (int i = 0; i < playerNameLabels.length; i++) {//iterating through name labels
-                JTextArea label = playerNameLabels[i];//getting label
-                if (i < dataPackage.getPlayers().size()) {//checking if there is a player for that label
-                    g.setColor(dataPackage.getPlayers().get(i).getColor());//setting the color of the label to the
-                    //players customized color specified in the player object
-                    g.fillRect(10, 64 + (75 * i), 183, 70);//filling the box around the stats
-                    label.setBackground(dataPackage.getPlayers().get(i).getColor());//setting the label background
-                    label.setAlignmentX(CENTER_ALIGNMENT);
-                    if (dataPackage.getPlayers().get(i) == dataPackage.getMyPlayer()) {//checking if its the users player
-                        label.setText(dataPackage.getPlayers().get(i).getName() + " (You)   " + dataPackage.getPlayers().get(i).getScore());//setting name as text
-                    } else {
-                        label.setText(dataPackage.getPlayers().get(i).getName() + "   " + dataPackage.getPlayers().get(i).getScore());//setting name as text
-                    }
-                    label.setVisible(true);
-                    label.setForeground(Color.black);//text color
-                } else {//this is a label that does not have a player
-                    if (label.isVisible()) {//checking if the label is visible (this only happens after a player DCs)
-                        label.setVisible(false);//hiding it
-                    }
                 }
             }
         }
