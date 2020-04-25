@@ -13,9 +13,12 @@ public class Player implements Serializable {
     //(purely aesthetic)
     private Color color;
 
+    private int pointsGainedLastRound;
+
     public Player(){
         this.name = "";
         this.score = 0;
+        this.pointsGainedLastRound = 0;
         //getting random color that is not too dark
         this.color = new Color(50 + (int)(Math.random() * ((255 - 50) + 1)), 50 + (int)(Math.random() * ((255 - 50) + 1)),  50 + (int)(Math.random() * ((255 - 50) + 1)));
     }
@@ -45,6 +48,7 @@ public class Player implements Serializable {
     }
 
     public void setScore(int score){
+        pointsGainedLastRound = this.score - score;
         this.score = score;
     }
 }

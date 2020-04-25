@@ -88,16 +88,14 @@ public class Client extends JFrame{
                     }
                     //NON ARTIST MODE
                     if (!dataPackage.amIArtist() && usersTextMessage != null) {
-                        System.out.println("name if checked");
                         try {
                             if (!gotUserName) {//checking if user name has not been obtained
-                                System.out.println("flipped can recieve");
 
                                 canReceiveMessages = true;
                                 out.writeObject(usersTextMessage);//sending the user name
                                 gotUserName = true;
                                 //checking if the user started the game
-                            } else if (dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && usersTextMessage.equals("start")) {
+                            } else if (dataPackage.getGameStatus().equals(DataPackage.WAITINGTOSTART) && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && usersTextMessage.equals("start")) {
                                 out.writeObject("/START");//a command alerting the server to start the game
                             } else {//the user is just sending a message
                                 out.writeObject(usersTextMessage);//sending the users message to the server
@@ -111,7 +109,7 @@ public class Client extends JFrame{
                     }
                     //ARTIST MODE
                     else if (dataPackage.amIArtist()){//checking if the user is an artist
-                        drawingComponents.clear();
+                        //drawingComponents.clear();
                         while(dataPackage.amIArtist()){//starting artist loop
                             try {
                                 TimeUnit.MILLISECONDS.sleep(100);
@@ -166,9 +164,9 @@ public class Client extends JFrame{
                     //WAITING for the server to send the data package then reading it from the server
                     dataPackage = (DataPackage) objectInputStream.readUnshared();
                     //checking if the server has cleared the canvas -> clearing my canvas
-                    if (dataPackage.getDrawingComponents() == null){
-                        drawingComponents.clear();
-                    }
+                    //if (dataPackage.getDrawingComponents() == null){
+                        //drawingComponents.clear();
+                    //}
                     if (!dataPackage.amIArtist()) {//checking if i am not the artist
                         if (dataPackage.getDrawingComponents() != null) {
                             //setting my drawing components to that of the server so that my canvas is being updated
@@ -177,15 +175,13 @@ public class Client extends JFrame{
                         }
                     }
 
+
                     ArrayList<String> messages = dataPackage.getMyPlayer().getMessages();
                     if (messages.size() > previousMessagesSize) {
-                        System.out.println("size checked");
                         if (canReceiveMessages) {
-                            System.out.println("can recive: "+canReceiveMessages);
                             int numOfNewMessages = messages.size() - previousMessagesSize;
                             for (int i = 0; i < numOfNewMessages; i++) {
                                 String msg = messages.get(previousMessagesSize + i);
-                                System.out.println("updated render messages");
                                 messagesToRender.add(msg);
                             }
                         }
@@ -247,10 +243,16 @@ public class Client extends JFrame{
         private JScrollBar scrollbar = messagePane.getVerticalScrollBar();
 
         private JList playerList = new JList(dataPackage.getPlayers().toArray());
-
         private JScrollPane playerPane = new JScrollPane(playerList);
 
         Font textFont = null;
+
+
+
+        private JList pointsGainedList = new JList(dataPackage.getPlayers().toArray());
+        private JScrollPane pointsGainedPane = new JScrollPane(pointsGainedList);
+
+
 
         public Panel() {
             //sets running to false when windows is closed to close all threads
@@ -264,7 +266,7 @@ public class Client extends JFrame{
             add(textField);
 
 
-            playerList.setCellRenderer(playerListRednerer());
+            playerList.setCellRenderer(playerListRenderer());
             playerPane.setVisible(false);
             playerPane.setVerticalScrollBarPolicy(playerPane.VERTICAL_SCROLLBAR_NEVER);
             playerPane.setHorizontalScrollBarPolicy(playerPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -278,6 +280,13 @@ public class Client extends JFrame{
             messagePane.setHorizontalScrollBarPolicy(messagePane.HORIZONTAL_SCROLLBAR_NEVER);
             add(messagePane);
 
+
+
+
+            pointsGainedList.setCellRenderer(pointsGainedListRenderer());
+            pointsGainedPane.setVisible(false);
+            add(pointsGainedPane);
+            pointsGainedList.setFixedCellHeight(75);
 
 
 
@@ -316,7 +325,7 @@ public class Client extends JFrame{
         }
 
         private ImageIcon avatar = new ImageIcon("icon.png");
-        private ListCellRenderer<? super Player> playerListRednerer(){
+        private ListCellRenderer<? super Player> playerListRenderer(){
 
             return new DefaultListCellRenderer() {
                 @Override
@@ -337,6 +346,27 @@ public class Client extends JFrame{
                         label.setFont(textFont);
                         playerPane.setVisible(true);
                         playerPane.setBounds(10, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+
+                    }
+                    return c;
+                }
+            };
+        }
+
+
+        private ListCellRenderer<? super Player> pointsGainedListRenderer(){
+
+            return new DefaultListCellRenderer() {
+                @Override
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                    Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    if (c instanceof JLabel) {
+                        JLabel label = (JLabel) c;
+                        label.setFont(textFont);
+                        label.setIcon(avatar);
+
+                        label.setFont(textFont);
+                        pointsGainedPane.setBounds(440, 50, 300, pointsGainedList.getFixedCellHeight()*dataPackage.getPlayers().size());
 
                     }
                     return c;
@@ -420,9 +450,19 @@ public class Client extends JFrame{
                 g2.drawRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
                 updateTimerTextArea();
                 //updatePlayerTextAreas(g);
+
+
+                if (dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
+                    System.out.println("set visible for: "+dataPackage.getMyPlayer().getName());
+                    drawingComponents.clear();
+                    pointsGainedPane.setVisible(true);
+                }
             }
 
         }
+
+
+
 
         private JTextArea timerText = new JTextArea();//the timer text box
         private boolean initializedTimerTextArea = false;

@@ -1,5 +1,6 @@
 //Imports
 import javax.swing.Timer;
+import javax.xml.crypto.Data;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -12,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 //Stores all the global information about the game and starts the listening thread
 public class Server {
     private boolean running = true;//if the server is running
-    private boolean waitingToStart = true;//if the game has begun yet or not (triggered when the host types ready)
+    private String gameStatus = DataPackage.WAITINGTOSTART;
 
     private int roundLength = 90;
     private int timeRemaining = roundLength;//the time remaining in the round
@@ -38,7 +39,7 @@ public class Server {
 
     public boolean isRunning(){return running;}
 
-    public boolean isWaitingToStart(){return waitingToStart;}
+    public String getGameStatus(){return gameStatus;}
 
     //sets up for a brand new game of x rounds (not determined yet)
     public void newGame(){
@@ -48,18 +49,21 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        waitingToStart = false;
         previousArtists.clear();
         newRound();
     }
 
     //cleans up variables from the last round and starts a new round
     public void endRound(){
+        gameStatus = DataPackage.BETWEENROUND;
         gameTimer.stop();
         drawingComponents = null;
         calculateAndUpdatePoints();
         artist = null;
         winners.clear();
+        try {
+            TimeUnit.MILLISECONDS.sleep(5000);
+        } catch (InterruptedException e) {e.printStackTrace();}
         newRound();
     }
 
@@ -78,7 +82,7 @@ public class Server {
 
     //starts the timer, chooses an artist and magic word
     public void newRound(){
-        System.out.println("round started");
+        gameStatus = DataPackage.ROUNDINPROGRESS;
         timeRemaining = roundLength;
         gameTimer.start();
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));//getting random magic word
@@ -142,10 +146,6 @@ public class Server {
                 message = ("#FF0000~"+sender.getName() + " has guessed correctly!");
                 sender.addMessage("#FF0000~You have guessed correctly!");
                 winners.put(sender, roundLength - timeRemaining);
-                if(winners.size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
-                    System.out.println("called end round");
-                    endRound();
-                }
             }
             else{
                 message = (sender.getName()) + ": " + msg;
@@ -155,6 +155,9 @@ public class Server {
             if (p != sender){
                 p.addMessage(message);
             }
+        }
+        if(winners.size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
+            endRound();
         }
     }
 
@@ -173,7 +176,7 @@ public class Server {
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(timeRemaining, players, player, drawingComponents, artist, winners);
+        return new DataPackage(gameStatus, timeRemaining, players, player, drawingComponents, artist, winners);
     }
 
     //loads magic words from txt file and stores them in magic words array
@@ -285,7 +288,7 @@ class InputThread extends Thread {
                                 server.playerConnected(player);//alerting server of new player
                                 gotUserName = true;
                                 //checking if the user triggered the game to start
-                            } else if (server.isWaitingToStart() && inputLine.equals("/START") && server.getPlayers().get(0) == player) {
+                            } else if (server.getGameStatus().equals(DataPackage.WAITINGTOSTART )&& inputLine.equals("/START") && server.getPlayers().get(0) == player) {
                                 server.newGame();//starting new game
                             } else {//just a message - not a command
                                 server.newMessage(inputLine, player);
