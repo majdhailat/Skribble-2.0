@@ -42,6 +42,7 @@ public class Server {
 
     //sets up for a brand new game of x rounds (not determined yet)
     public void newGame(){
+        System.out.println("game started");
         try {
             loadMagicWords("words");
         } catch (IOException e) {
@@ -77,6 +78,7 @@ public class Server {
 
     //starts the timer, chooses an artist and magic word
     public void newRound(){
+        System.out.println("round started");
         timeRemaining = roundLength;
         gameTimer.start();
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));//getting random magic word
