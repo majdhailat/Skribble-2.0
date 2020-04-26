@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 //Stores all the global information about the game and starts the listening thread
 public class Server {
     private boolean running = true;//if the server is running
-    private boolean waitingToStart = true;//if the game has begun yet or not (triggered when the host types ready)
+    private String gameStatus = DataPackage.WAITINGTOSTART;
 
     private int roundLength = 90;
     private int timeRemaining = roundLength;//the time remaining in the round
@@ -38,46 +38,50 @@ public class Server {
 
     public boolean isRunning(){return running;}
 
-    public boolean isWaitingToStart(){return waitingToStart;}
+    public String getGameStatus(){return gameStatus;}
 
     //sets up for a brand new game of x rounds (not determined yet)
     public void newGame(){
+        System.out.println("game started");
         try {
             loadMagicWords("words");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        waitingToStart = false;
         previousArtists.clear();
         newRound();
     }
 
     //cleans up variables from the last round and starts a new round
     public void endRound(){
+        gameStatus = DataPackage.BETWEENROUND;
         gameTimer.stop();
         drawingComponents = null;
         calculateAndUpdatePoints();
         artist = null;
         winners.clear();
+        try {
+            TimeUnit.MILLISECONDS.sleep(5000);
+        } catch (InterruptedException e) {e.printStackTrace();}
         newRound();
     }
 
     public void calculateAndUpdatePoints(){
         Player[] winnersArray = this.winners.keySet().toArray(new Player[this.winners.keySet().size()]);
 
-        int artistsPoints = 150 * lengthOfMagicWord;
+        int artistsPoints = 90 * lengthOfMagicWord;
         for (int pos = 0; pos < winnersArray.length; pos++){
             int timeTaken = winners.get(winnersArray[pos]);
-            int playersPoints = (int) ((lengthOfMagicWord*(150 - timeTaken)) / (0.75 * Math.pow(pos + 1, 1.3)));
+            int playersPoints = Math.max((int) ((lengthOfMagicWord*(90 - timeTaken)) / (0.75 * Math.pow(pos + 1, 1.3))), 0);
             winnersArray[pos].setScore(winnersArray[pos].getScore() + playersPoints);
             artistsPoints -= timeTaken * 35/lengthOfMagicWord/Math.pow(pos + 1, 2.5);
         }
-        System.out.println(artist.getName());
-        artist.setScore(artist.getScore() + artistsPoints);
+        artist.setScore(artist.getScore() + Math.max(artistsPoints, 0));
     }
 
     //starts the timer, chooses an artist and magic word
     public void newRound(){
+        gameStatus = DataPackage.ROUNDINPROGRESS;
         timeRemaining = roundLength;
         gameTimer.start();
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));//getting random magic word
@@ -133,6 +137,7 @@ public class Server {
     }
 
     public void newMessage(String msg, Player sender){
+        boolean endRound = false;
         String message;
         if (msg.contains("~")){
             message = msg;
@@ -141,9 +146,9 @@ public class Server {
                 message = ("#FF0000~"+sender.getName() + " has guessed correctly!");
                 sender.addMessage("#FF0000~You have guessed correctly!");
                 winners.put(sender, roundLength - timeRemaining);
+
                 if(winners.size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
-                    System.out.println("called end round");
-                    endRound();
+                    endRound = true;
                 }
             }
             else{
@@ -154,6 +159,9 @@ public class Server {
             if (p != sender){
                 p.addMessage(message);
             }
+        }
+        if (endRound){
+            endRound();
         }
     }
 
@@ -172,7 +180,7 @@ public class Server {
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(timeRemaining, players, player, drawingComponents, artist, winners);
+        return new DataPackage(gameStatus, timeRemaining, players, player, drawingComponents, artist, winners);
     }
 
     //loads magic words from txt file and stores them in magic words array
@@ -284,7 +292,7 @@ class InputThread extends Thread {
                                 server.playerConnected(player);//alerting server of new player
                                 gotUserName = true;
                                 //checking if the user triggered the game to start
-                            } else if (server.isWaitingToStart() && inputLine.equals("/START") && server.getPlayers().get(0) == player) {
+                            } else if (server.getGameStatus().equals(DataPackage.WAITINGTOSTART )&& inputLine.equals("/START") && server.getPlayers().get(0) == player) {
                                 server.newGame();//starting new game
                             } else {//just a message - not a command
                                 server.newMessage(inputLine, player);
@@ -329,10 +337,12 @@ class OutputThread extends Thread{
                     TimeUnit.MILLISECONDS.sleep(100);
                 } catch (InterruptedException e) {e.printStackTrace();}
                 DataPackage dataPackage = server.getDataPackage(player);//getting data package
-                objectOutputStream.writeUnshared(dataPackage);//sending data package
-                objectOutputStream.flush();
-                //must reset output stream otherwise certain items in the data package might not get update
-                objectOutputStream.reset();
+                try {
+                    objectOutputStream.writeUnshared(dataPackage);//sending data package
+                    objectOutputStream.flush();
+                    //must reset output stream otherwise certain items in the data package might not get update
+                    objectOutputStream.reset();
+                }catch (ConcurrentModificationException ignore){}
             }
         }
         catch (IOException e) {e.printStackTrace();}
