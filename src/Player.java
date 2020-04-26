@@ -48,7 +48,7 @@ public class Player implements Serializable {
     }
 
     public void setScore(int score){
-        pointsGainedLastRound = this.score - score;
+        pointsGainedLastRound = score - this.score ;
         this.score = score;
     }
 

@@ -253,8 +253,11 @@ public class Client extends JFrame{
         private JList playerList = new JList(dataPackage.getPlayers().toArray());
         private JScrollPane playerPane = new JScrollPane(playerList);
 
-        private JList pointsGainedList = new JList(dataPackage.getPlayers().toArray());
-        private JScrollPane pointsGainedPane = new JScrollPane(pointsGainedList);
+        private JList pointsGainedNameList = new JList(dataPackage.getPlayers().toArray());
+        private JScrollPane pointsGainedNamePane = new JScrollPane(pointsGainedNameList);
+
+        private JList pointsGainedPointsList = new JList(dataPackage.getPlayers().toArray());
+        private JScrollPane pointsGainedPointsPane = new JScrollPane(pointsGainedPointsList);
 
         public Panel() {
             //sets running to false when windows is closed to close all threads
@@ -284,9 +287,13 @@ public class Client extends JFrame{
             messagePane.setHorizontalScrollBarPolicy(messagePane.HORIZONTAL_SCROLLBAR_NEVER);
             add(messagePane);
 
-            pointsGainedList.setCellRenderer(pointsGainedListRenderer());
-            pointsGainedList.setFixedCellHeight(75);
-            add(pointsGainedPane);
+            pointsGainedNameList.setCellRenderer(pointsGainedNameListRenderer());
+            pointsGainedNameList.setFixedCellHeight(75);
+            add(pointsGainedNamePane);
+
+            pointsGainedPointsList.setCellRenderer(pointsGainedPointListRenderer());
+            pointsGainedPointsList.setFixedCellHeight(75);
+            add(pointsGainedPointsPane);
         }
 
         //I barley understand how this works so don't ask
@@ -342,16 +349,42 @@ public class Client extends JFrame{
             };
         }
 
-        private ListCellRenderer<? super Player> pointsGainedListRenderer(){
+        private ListCellRenderer<? super Player> pointsGainedNameListRenderer(){
             return new DefaultListCellRenderer() {
                 @Override
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                     Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                     if (c instanceof JLabel) {
                         JLabel label = (JLabel) c;
-                        label.setFont(textFont);
+                        label.setFont(textFont.deriveFont(35f));
                         label.setText(dataPackage.getPlayers().get(index).getName());
-                        //pointsGainedPane.setBounds(200, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+                        pointsGainedNamePane.setBorder(null);
+                        pointsGainedNamePane.setBounds(380, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+                    }
+                    return c;
+                }
+            };
+        }
+
+        private ListCellRenderer<? super Player> pointsGainedPointListRenderer(){
+            return new DefaultListCellRenderer() {
+                @Override
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                    Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    if (c instanceof JLabel) {
+                        JLabel label = (JLabel) c;
+                        label.setFont(textFont.deriveFont(35f));
+                        if (dataPackage.getPlayers().get(index).getPointsGainedLastRound() == 0){
+                            label.setText(""+dataPackage.getPlayers().get(index).getPointsGainedLastRound());
+                            label.setForeground(Color.red);
+                        }else{
+                            label.setText("+"+dataPackage.getPlayers().get(index).getPointsGainedLastRound());
+                            label.setForeground(Color.GREEN);
+                        }
+                        label.setHorizontalAlignment(SwingConstants.CENTER);
+
+                        pointsGainedPointsPane.setBorder(null);
+                        pointsGainedPointsPane.setBounds(580, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
                     }
                     return c;
                 }
@@ -373,7 +406,7 @@ public class Client extends JFrame{
                 midiPlayer.open();
                 midiPlayer.setSequence(song);
                 midiPlayer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
-                midiPlayer.start();
+                //midiPlayer.start();
             } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {
                 e.printStackTrace();
             }
@@ -441,17 +474,19 @@ public class Client extends JFrame{
                 playerList.setListData(dataPackage.getPlayers().toArray());
 
                 //POINTS GAINED PANEL
-                /*
+
                 if (dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
-                    pointsGainedList.setListData(dataPackage.getPlayers().toArray());
-                    pointsGainedPane.setVisible(true);
+                    g.setColor(new Color(3, 3, 3));
+                    pointsGainedPointsList.setListData(dataPackage.getPlayers().toArray());
+                    pointsGainedPointsPane.setVisible(true);
+
+                    pointsGainedNameList.setListData(dataPackage.getPlayers().toArray());
+                    pointsGainedNamePane.setVisible(true);
                 }else{
-                    pointsGainedPane.setVisible(false);
+                    pointsGainedPointsPane.setVisible(false);
+                    pointsGainedNamePane.setVisible(false);
                 }
 
-                 */
-                pointsGainedList.setListData(dataPackage.getPlayers().toArray());
-                pointsGainedPane.setVisible(true);
             }
         }
 
