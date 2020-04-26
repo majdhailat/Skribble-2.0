@@ -236,23 +236,25 @@ public class Client extends JFrame{
 
     public class Panel extends JPanel implements MouseListener, MouseMotionListener {
         public boolean ready = false;
+        Font textFont;{
+            try {
+                textFont = Font.createFont(Font.TRUETYPE_FONT, new File("tipper.otf")).deriveFont(15.5f);
+            } catch (FontFormatException | IOException e) {e.printStackTrace();}
+        }
+
+        private JTextArea timerText = new JTextArea();//the timer text box
 
         private JTextField textField = new JTextField();//the box in which the user can type their message
+
         private JList messageList = new JList(messagesToRender.toArray());
         private JScrollPane messagePane = new JScrollPane(messageList);
-        private JScrollBar scrollbar = messagePane.getVerticalScrollBar();
+        private JScrollBar messagePaneScrollBar = messagePane.getVerticalScrollBar();
 
         private JList playerList = new JList(dataPackage.getPlayers().toArray());
         private JScrollPane playerPane = new JScrollPane(playerList);
 
-        Font textFont = null;
-
-
-
         private JList pointsGainedList = new JList(dataPackage.getPlayers().toArray());
         private JScrollPane pointsGainedPane = new JScrollPane(pointsGainedList);
-
-
 
         public Panel() {
             //sets running to false when windows is closed to close all threads
@@ -261,40 +263,30 @@ public class Client extends JFrame{
             addMouseMotionListener(this);//used to detect mouse dragging
             startMidi("bgmusic.mid");//starting music
 
+            timerText.setBounds(50, 30, 75, 22);
+            timerText.setFont(textFont);
+            timerText.setEditable(false);
+            timerText.setVisible(false);
+            add(timerText);
+
             textField.setBounds(955, 578, 305, 22);
             textField.addKeyListener((KeyListener) new MKeyListener());
             add(textField);
 
-
             playerList.setCellRenderer(playerListRenderer());
-            playerPane.setVisible(false);
             playerPane.setVerticalScrollBarPolicy(playerPane.VERTICAL_SCROLLBAR_NEVER);
             playerPane.setHorizontalScrollBarPolicy(playerPane.HORIZONTAL_SCROLLBAR_NEVER);
             add(playerPane);
-
             playerList.setFixedCellHeight(75);
-
 
             messageList.setCellRenderer(messageListRenderer());
             messagePane.setBounds(955, 50, 305, 525);
             messagePane.setHorizontalScrollBarPolicy(messagePane.HORIZONTAL_SCROLLBAR_NEVER);
             add(messagePane);
 
-
-
-
             pointsGainedList.setCellRenderer(pointsGainedListRenderer());
-            pointsGainedPane.setVisible(false);
-            add(pointsGainedPane);
             pointsGainedList.setFixedCellHeight(75);
-
-
-
-            try {
-                textFont = Font.createFont(Font.TRUETYPE_FONT, new File("tipper.otf")).deriveFont(15.5f);
-            } catch (FontFormatException | IOException e) {
-                e.printStackTrace();
-            }
+            add(pointsGainedPane);
         }
 
         //I barley understand how this works so don't ask
@@ -326,7 +318,6 @@ public class Client extends JFrame{
 
         private ImageIcon avatar = new ImageIcon("icon.png");
         private ListCellRenderer<? super Player> playerListRenderer(){
-
             return new DefaultListCellRenderer() {
                 @Override
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -344,18 +335,14 @@ public class Client extends JFrame{
                             label.setText("<html>" + dataPackage.getPlayers().get(index).getName() + "<br>" +"Points: "+ dataPackage.getPlayers().get(index).getScore() + "</html>");
                         }
                         label.setFont(textFont);
-                        playerPane.setVisible(true);
                         playerPane.setBounds(10, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
-
                     }
                     return c;
                 }
             };
         }
 
-
         private ListCellRenderer<? super Player> pointsGainedListRenderer(){
-
             return new DefaultListCellRenderer() {
                 @Override
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -363,11 +350,8 @@ public class Client extends JFrame{
                     if (c instanceof JLabel) {
                         JLabel label = (JLabel) c;
                         label.setFont(textFont);
-                        label.setIcon(avatar);
-
-                        label.setFont(textFont);
-                        pointsGainedPane.setBounds(440, 50, 300, pointsGainedList.getFixedCellHeight()*dataPackage.getPlayers().size());
-
+                        label.setText(dataPackage.getPlayers().get(index).getName());
+                        //pointsGainedPane.setBounds(200, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
                     }
                     return c;
                 }
@@ -414,13 +398,11 @@ public class Client extends JFrame{
         public void paintComponent(Graphics g) {
             if (g != null) {
                 Graphics2D g2 = (Graphics2D) g;
-                g.setColor(new Color(10, 180, 150));//background color
-               // g.fillRect(0, 0, getWidth(), getHeight());//background
                 g.drawImage(bgImage, 0,0, null);
                 g.setColor(Color.white);
                 g.fillRect((int) canvasPanel.getX(), (int) canvasPanel.getY(),//filling the canvas with white
                         (int) canvasPanel.getWidth(), (int) canvasPanel.getHeight());
-                g.setColor(new Color(237, 237, 237));
+                g2.drawRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
                 g.drawImage(colorPickerImage, (int) colorPickerPanel.getX(), (int) colorPickerPanel.getY(), null);
                 //drawing the tool images
                 g.drawImage(pencilImage, (int) pencilPanel.getX(), (int) pencilPanel.getY(), null);
@@ -431,59 +413,45 @@ public class Client extends JFrame{
                 if (drawingComponents.size() > 0) {
                     for (DrawingComponent s : drawingComponents) {
                         g2.setStroke(new BasicStroke(s.getStroke()));
-
                         g2.setColor(s.getCol());
                         g2.draw(new Line2D.Float(s.getX1(), s.getY1(), s.getX2(), s.getY2()));
                     }
                 }
+                if (dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
+                   drawingComponents.clear();
+                }
+
+                //TIMER
+                if (dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)){
+                    timerText.setVisible(true);
+                    timerText.setText("Timer: " + dataPackage.getTimeRemaining());//updating the timer text using data package
+                }else{
+                    timerText.setVisible(false);
+                }
+
+                //MESSAGE LIST
                 if (messagesToRender.size() > previousMessagesToRenderSize) {
                     messageList.setListData(messagesToRender.toArray());
                     previousMessagesToRenderSize = messagesToRender.size();
-                    scrollbar.setValue(scrollbar.getMaximum());
+                    messagePaneScrollBar.setValue(messagePaneScrollBar.getMaximum());
                 }
+                messagePaneScrollBar.setValue(messagePaneScrollBar.getMaximum());//temp until fix
 
+                //PLAYER LIST
                 playerList.setListData(dataPackage.getPlayers().toArray());
 
-                scrollbar.setValue(scrollbar.getMaximum());//temp until fix
-
-                g2.setColor(Color.black);
-                g2.drawRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
-                updateTimerTextArea();
-                //updatePlayerTextAreas(g);
-
-
+                //POINTS GAINED PANEL
+                /*
                 if (dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
-                    System.out.println("set visible for: "+dataPackage.getMyPlayer().getName());
-                    drawingComponents.clear();
+                    pointsGainedList.setListData(dataPackage.getPlayers().toArray());
                     pointsGainedPane.setVisible(true);
+                }else{
+                    pointsGainedPane.setVisible(false);
                 }
-            }
 
-        }
-
-
-
-
-        private JTextArea timerText = new JTextArea();//the timer text box
-        private boolean initializedTimerTextArea = false;
-
-        //initializes the timer text box then continuously updates the timer if the timer is actually running
-        public void updateTimerTextArea() {
-            if (!initializedTimerTextArea) {
-                timerText.setBounds(50, 30, 75, 22);
-                timerText.setFont(textFont);
-                timerText.setEditable(false);
-                timerText.setVisible(false);
-                add(timerText);
-                initializedTimerTextArea = true;
-            } else {
-                if (dataPackage.getTimeRemaining() == -1) {//-1 is the null state (probably not a good idea)
-                    timerText.setVisible(false);//hiding timer
-                } else {
-                    //showing timer (probably should'nt run this every time but idk what else to do)
-                    timerText.setVisible(true);
-                    timerText.setText("Timer: " + dataPackage.getTimeRemaining());//updating the timer text using data package
-                }
+                 */
+                pointsGainedList.setListData(dataPackage.getPlayers().toArray());
+                pointsGainedPane.setVisible(true);
             }
         }
 

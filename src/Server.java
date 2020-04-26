@@ -146,6 +146,9 @@ public class Server {
                 message = ("#FF0000~"+sender.getName() + " has guessed correctly!");
                 sender.addMessage("#FF0000~You have guessed correctly!");
                 winners.put(sender, roundLength - timeRemaining);
+                if(winners.size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
+                    endRound();
+                }
             }
             else{
                 message = (sender.getName()) + ": " + msg;
@@ -155,9 +158,6 @@ public class Server {
             if (p != sender){
                 p.addMessage(message);
             }
-        }
-        if(winners.size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
-            endRound();
         }
     }
 

@@ -45,4 +45,5 @@ public class DataPackage implements Serializable {
     public String getGameStatus() {
         return gameStatus;
     }
+
 }

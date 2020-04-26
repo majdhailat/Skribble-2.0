@@ -51,4 +51,8 @@ public class Player implements Serializable {
         pointsGainedLastRound = this.score - score;
         this.score = score;
     }
+
+    public int getPointsGainedLastRound(){
+        return pointsGainedLastRound;
+    }
 }
