@@ -288,6 +288,8 @@ public class Client extends JFrame{
             add(messagePane);
 
             pointsGainedNameList.setCellRenderer(pointsGainedNameListRenderer());
+            pointsGainedNamePane.setVerticalScrollBarPolicy(playerPane.VERTICAL_SCROLLBAR_NEVER);
+            pointsGainedNamePane.setHorizontalScrollBarPolicy(playerPane.HORIZONTAL_SCROLLBAR_NEVER);
             pointsGainedNameList.setFixedCellHeight(75);
             add(pointsGainedNamePane);
 
@@ -356,10 +358,11 @@ public class Client extends JFrame{
                     Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                     if (c instanceof JLabel) {
                         JLabel label = (JLabel) c;
+                        label.setBackground(new Color(235, 235, 235));
                         label.setFont(textFont.deriveFont(35f));
                         label.setText(dataPackage.getPlayers().get(index).getName());
                         pointsGainedNamePane.setBorder(null);
-                        pointsGainedNamePane.setBounds(380, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+                        pointsGainedNamePane.setBounds(400, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
                     }
                     return c;
                 }
@@ -374,17 +377,18 @@ public class Client extends JFrame{
                     if (c instanceof JLabel) {
                         JLabel label = (JLabel) c;
                         label.setFont(textFont.deriveFont(35f));
+                        label.setBackground(new Color(235, 235, 235));
                         if (dataPackage.getPlayers().get(index).getPointsGainedLastRound() == 0){
                             label.setText(""+dataPackage.getPlayers().get(index).getPointsGainedLastRound());
                             label.setForeground(Color.red);
                         }else{
                             label.setText("+"+dataPackage.getPlayers().get(index).getPointsGainedLastRound());
-                            label.setForeground(Color.GREEN);
+                            label.setForeground(new Color(40, 200, 40));
                         }
                         label.setHorizontalAlignment(SwingConstants.CENTER);
 
                         pointsGainedPointsPane.setBorder(null);
-                        pointsGainedPointsPane.setBounds(580, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+                        pointsGainedPointsPane.setBounds(600, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
                     }
                     return c;
                 }
@@ -450,9 +454,6 @@ public class Client extends JFrame{
                         g2.draw(new Line2D.Float(s.getX1(), s.getY1(), s.getX2(), s.getY2()));
                     }
                 }
-                if (dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
-                   drawingComponents.clear();
-                }
 
                 //TIMER
                 if (dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)){
@@ -476,7 +477,9 @@ public class Client extends JFrame{
                 //POINTS GAINED PANEL
 
                 if (dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
-                    g.setColor(new Color(3, 3, 3));
+                    drawingComponents.clear();
+                    g.setColor(new Color(235, 235, 235));
+                    g.fillRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
                     pointsGainedPointsList.setListData(dataPackage.getPlayers().toArray());
                     pointsGainedPointsPane.setVisible(true);
 

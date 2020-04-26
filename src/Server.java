@@ -337,10 +337,12 @@ class OutputThread extends Thread{
                     TimeUnit.MILLISECONDS.sleep(100);
                 } catch (InterruptedException e) {e.printStackTrace();}
                 DataPackage dataPackage = server.getDataPackage(player);//getting data package
-                objectOutputStream.writeUnshared(dataPackage);//sending data package
-                objectOutputStream.flush();
-                //must reset output stream otherwise certain items in the data package might not get update
-                objectOutputStream.reset();
+                try {
+                    objectOutputStream.writeUnshared(dataPackage);//sending data package
+                    objectOutputStream.flush();
+                    //must reset output stream otherwise certain items in the data package might not get update
+                    objectOutputStream.reset();
+                }catch (ConcurrentModificationException ignore){}
             }
         }
         catch (IOException e) {e.printStackTrace();}
