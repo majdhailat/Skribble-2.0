@@ -32,7 +32,7 @@ class InputThread extends Thread {
         try {
             while (server.isRunning()) {
                 //ARTIST MODE
-                if (Player.getArtist() == player){
+                if (player.isArtist()){
                     try {
                         //WAITING for the client to send a drawing component array, then reading it from the client
                         DrawingComponent[] shapesArray = (DrawingComponent[]) in.readObject();

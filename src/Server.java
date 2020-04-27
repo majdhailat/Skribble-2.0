@@ -3,9 +3,6 @@ import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -154,7 +151,7 @@ public class Server {
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(gameStatus, timeRemaining, players, player, drawingComponents, Player.getArtist());
+        return new DataPackage(gameStatus, timeRemaining, players, player, drawingComponents);
     }
 
     //loads magic words from txt file and stores them in magic words array

@@ -14,6 +14,7 @@ public class Player implements Serializable {
     private String name;
     private int score;
     private ArrayList<String> messages = new ArrayList<>();
+    private boolean isArtist;
 
     private int pointsGainedLastRound;
     private int secondsTakenToGuessWordLastRound;
@@ -23,6 +24,7 @@ public class Player implements Serializable {
         this.name = "";
         this.score = 0;
         this.pointsGainedLastRound = 0;
+        isArtist = false;
     }
 
     public synchronized static void incrementNumOfPlayer(){numOfPlayers ++;}
@@ -35,7 +37,9 @@ public class Player implements Serializable {
         while (true) {
             randArtist = players.get(Server.randint(0, players.size() - 1));//getting random player to be the artist
             if (!previousArtists.contains(randArtist)) {//checking if the player has already been the artist
+                artist.isArtist = false;
                 artist = randArtist;
+                artist.isArtist = true;
                 previousArtists.add(randArtist);
                 return randArtist;
             }
@@ -59,6 +63,10 @@ public class Player implements Serializable {
     public int getScore(){return score;}
 
     public void addMessage(String msg){messages.add(msg);}
+
+    public boolean isArtist(){
+        return isArtist;
+    }
 
 
     public ArrayList<String> getMessages() {return this.messages;}

@@ -87,7 +87,7 @@ public class Client extends JFrame{
                         promptedStartMessage = true;
                     }
                     //NON ARTIST MODE
-                    if (!dataPackage.amIArtist() && usersTextMessage != null) {
+                    if (!dataPackage.getMyPlayer().isArtist() && usersTextMessage != null) {
                         try {
                             if (!gotUserName) {//checking if user name has not been obtained
                                 canReceiveMessages = true;
@@ -107,9 +107,9 @@ public class Client extends JFrame{
                         }catch(IOException e){e.printStackTrace();}
                     }
                     //ARTIST MODE
-                    else if (dataPackage.amIArtist()){//checking if the user is an artist
+                    else if (dataPackage.getMyPlayer().isArtist()){//checking if the user is an artist
                         //drawingComponents.clear();
-                        while(dataPackage.amIArtist()){//starting artist loop
+                        while(dataPackage.getMyPlayer().isArtist()){//starting artist loop
                             try {
                                 TimeUnit.MILLISECONDS.sleep(100);
                             } catch (InterruptedException e) {e.printStackTrace();}
@@ -167,7 +167,7 @@ public class Client extends JFrame{
                         //drawingComponents.clear();
                     //}
 
-                    if (!dataPackage.amIArtist()) {//checking if i am not the artist
+                    if (!dataPackage.getMyPlayer().isArtist()) {//checking if i am not the artist
                         if (dataPackage.getDrawingComponents() != null) {
                             //setting my drawing components to that of the server so that my canvas is being updated
                             //from the server which is coming from the artist
@@ -531,7 +531,7 @@ public class Client extends JFrame{
             x2 = e.getX();
             y2 = e.getY();
 
-            if (canvasPanel.contains(x1, y1) && dataPackage.amIArtist()) {
+            if (canvasPanel.contains(x1, y1) && dataPackage.getMyPlayer().isArtist()) {
                 if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)) {
 
                     if (x2 < canvasPanel.getX()) {
