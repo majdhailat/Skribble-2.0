@@ -24,7 +24,6 @@ class OutputThread extends Thread{
     public void run(){
         try {
             while (server.isRunning()) {
-                System.out.println("server side   "+Player.getArtist());
                 try {
                     TimeUnit.MILLISECONDS.sleep(100);
                 } catch (InterruptedException e) {e.printStackTrace();}

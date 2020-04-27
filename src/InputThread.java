@@ -54,7 +54,7 @@ class InputThread extends Thread {
                                 server.playerConnected(player);//alerting server of new player
                                 gotUserName = true;
                                 //checking if the user triggered the game to start
-                            } else if (server.getGameStatus().equals(DataPackage.WAITINGTOSTART )&& inputLine.equals("/START") && server.getPlayers().get(0) == player) {
+                            } else if (server.getGameStatus().equals(DataPackage.WAITINGTOSTART) && inputLine.equals("/START") && server.getPlayers().get(0) == player) {
                                 server.newGame();//starting new game
                             } else {//just a message - not a command
                                 server.newMessage(inputLine, player);
