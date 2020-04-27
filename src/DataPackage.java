@@ -15,12 +15,12 @@ public class DataPackage implements Serializable {
 
     private DrawingComponent[] drawingComponents;
     private Player artist;
-    private Map<Player, Integer> winners;
+    private ArrayList<Player> winners;
 
     private String gameStatus;
     public static final String WAITINGTOSTART = "waiting", BETWEENROUND = "between round", ROUNDINPROGRESS = "in progress";
 
-    public DataPackage(String gameStatus, int timeRemaining, ArrayList<Player>players, Player myPlayer, DrawingComponent[] drawingComponents, Player artist, Map<Player, Integer> winners){
+    public DataPackage(String gameStatus, int timeRemaining, ArrayList<Player>players, Player myPlayer, DrawingComponent[] drawingComponents, Player artist, ArrayList<Player> winners){
         this.gameStatus = gameStatus;
         this.timeRemaining = timeRemaining;
         this.players = players;
@@ -40,7 +40,7 @@ public class DataPackage implements Serializable {
 
     public boolean amIArtist(){return (myPlayer == artist);}
 
-    public Map<Player, Integer> getWinners(){return winners;}
+    public ArrayList<Player> getWinners(){return winners;}
 
     public String getGameStatus() {
         return gameStatus;

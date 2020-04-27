@@ -18,7 +18,7 @@ public class Server {
     private int timeRemaining = roundLength;//the time remaining in the round
 
     private ArrayList<Player> players = new ArrayList<>();//the players playing
-    private Map<Player, Integer> winners = new HashMap<>();//this dictionary store all players who guessed the correct word
+    private ArrayList<Player> winners = new ArrayList<>();
     //for the round as well as the length of time it took them to guess the word
 
     private DrawingComponent[] drawingComponents;//the list of all individual pieces that make up the
@@ -53,11 +53,29 @@ public class Server {
     }
 
     //cleans up variables from the last round and starts a new round
-    public void endRound(){
+    public void endRound(String reason){
+        if (reason.equals("all won")){
+
+        }
+        else if (reason.equals("end time")){
+            for (Player p : players){
+                boolean isWinner = false;
+                for (Player w : winners){
+                    if (p == w){
+                        isWinner = true;
+                        break;
+                    }
+                }
+                if (!isWinner){
+                    p.setScore(p.getScore());
+                }
+            }
+
+        }
+        artist.setScore(artist.getScore() + calculatePointsForArtist(lengthOfMagicWord, players.size(), winners));
         gameStatus = DataPackage.BETWEENROUND;
         gameTimer.stop();
         drawingComponents = null;
-        calculateAndUpdatePoints();
         artist = null;
         winners.clear();
         try {
@@ -66,18 +84,6 @@ public class Server {
         newRound();
     }
 
-    public void calculateAndUpdatePoints(){
-        Player[] winnersArray = this.winners.keySet().toArray(new Player[this.winners.keySet().size()]);
-
-        int artistsPoints = 90 * lengthOfMagicWord;
-        for (int pos = 0; pos < winnersArray.length; pos++){
-            int timeTaken = winners.get(winnersArray[pos]);
-            int playersPoints = Math.max((int) ((lengthOfMagicWord*(90 - timeTaken)) / (0.75 * Math.pow(pos + 1, 1.3))), 0);
-            winnersArray[pos].setScore(winnersArray[pos].getScore() + playersPoints);
-            artistsPoints -= timeTaken * 35/lengthOfMagicWord/Math.pow(pos + 1, 2.5);
-        }
-        artist.setScore(artist.getScore() + Math.max(artistsPoints, 0));
-    }
 
     //starts the timer, chooses an artist and magic word
     public void newRound(){
@@ -145,8 +151,8 @@ public class Server {
             if (currentMagicWord != null && msg.toLowerCase().equals(currentMagicWord.toLowerCase())){
                 message = ("#FF0000~"+sender.getName() + " has guessed correctly!");
                 sender.addMessage("#FF0000~You have guessed correctly!");
-                winners.put(sender, roundLength - timeRemaining);
-
+                sender.setScore(sender.getScore() + calculatePoints(lengthOfMagicWord, roundLength - timeRemaining, players.size(), winners.size() + 1));
+                winners.add(sender);
                 if(winners.size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
                     endRound = true;
                 }
@@ -161,8 +167,19 @@ public class Server {
             }
         }
         if (endRound){
-            endRound();
+            endRound(" all won");
         }
+    }
+
+    public int calculatePoints(int wordLen, int secondsTaken, int numOfPlayers, int pos){
+        double points = 50 * Math.pow(wordLen, 1/1.5);
+        points -= (1.3 * secondsTaken);
+        points *= Math.pow(numOfPlayers - pos, 1 + ((double)numOfPlayers/10))/5;
+        return (Math.max((int)points, 0));
+    }
+
+    public int calculatePointsForArtist(int wordLen, int numOfPlayers, ArrayList<Player> winners){
+        return 1;
     }
 
     //sets the servers drawing components
@@ -206,7 +223,7 @@ public class Server {
         public void actionPerformed(ActionEvent evt) {
             timeRemaining--;
             if (timeRemaining <= 0){
-                endRound();
+                endRound("end time");
             }
         }
     }
