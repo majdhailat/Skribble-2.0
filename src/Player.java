@@ -6,53 +6,104 @@ import java.util.ArrayList;
 public class Player implements Serializable {
     private static final long serialVersionUID = 6942069;
 
-    private ArrayList<String> messages = new ArrayList<>();//the list of the players messages
-    private String name;//the user name of the player selected by the user
+    private volatile static int numOfPlayers;
+    private volatile static Player artist;
+    private static ArrayList<Player> winners = new ArrayList<>();
+    private static ArrayList<Player> previousArtists = new ArrayList<>();
+
+    private String name;
     private int score;
-    //this is the color used when displaying the box around the players name and stats in each users GUI
-    //(purely aesthetic)
-    private Color color;
+    private ArrayList<String> messages = new ArrayList<>();
 
     private int pointsGainedLastRound;
+    private int secondsTakenToGuessWordLastRound;
+    private int placeLastRound;
 
     public Player(){
         this.name = "";
         this.score = 0;
         this.pointsGainedLastRound = 0;
-        //getting random color that is not too dark
-        this.color = new Color(50 + (int)(Math.random() * ((255 - 50) + 1)), 50 + (int)(Math.random() * ((255 - 50) + 1)),  50 + (int)(Math.random() * ((255 - 50) + 1)));
     }
 
-    public void setName(String name){
-        this.name = name;
+    public synchronized static void incrementNumOfPlayer(){numOfPlayers ++;}
+
+    public static Player chooseArtist(ArrayList<Player> players){
+        if (previousArtists.size() >= numOfPlayers){//checking if all the players have been an artist already
+            previousArtists.clear();
+        }
+        Player randArtist;
+        while (true) {
+            randArtist = players.get(Server.randint(0, players.size() - 1));//getting random player to be the artist
+            if (!previousArtists.contains(randArtist)) {//checking if the player has already been the artist
+                artist = randArtist;
+                previousArtists.add(randArtist);
+                return randArtist;
+            }
+        }
     }
 
-    public String getName() {
-        return name;
+    public static void clearPreviousArtists(){previousArtists.clear();}
+
+    public static Player getArtist(){return artist;}
+
+    public static void clearWinners(){winners.clear();}
+
+    public static ArrayList<Player> getWinners(){return winners;}
+
+    //==========================================================================
+
+    public void setName(String name){this.name = name;}
+
+    public String getName() {return name;}
+
+    public int getScore(){return score;}
+
+    public void addMessage(String msg){messages.add(msg);}
+
+
+    public ArrayList<String> getMessages() {return this.messages;}
+
+    //==========================================================================
+
+    public void setPointsGainedDuringRound(int points){pointsGainedLastRound = points;}
+
+    public int getPointsGainedLastRound(){return pointsGainedLastRound;}
+
+    public void updateScore(){
+        if (artist == this || winners.contains(this)) {
+            this.score += pointsGainedLastRound;
+        }
+        this.pointsGainedLastRound = 0;
+        this.secondsTakenToGuessWordLastRound = 0;
+        this.placeLastRound = 0;
+
     }
 
-    public Color getColor(){
-        return color;
-    }
+    public int getSecondsTakenToGuessWordLastRound(){return secondsTakenToGuessWordLastRound;}
 
-    public ArrayList<String> getMessages() {
-        return this.messages;
-    }
+    public int getPlaceLastRound(){return placeLastRound;}
 
-    public void addMessage(String msg){
-        messages.add(msg);
-    }
 
-    public int getScore(){
-        return score;
-    }
 
-    public void setScore(int score){
-        pointsGainedLastRound = score - this.score ;
-        this.score = score;
-    }
-
-    public int getPointsGainedLastRound(){
-        return pointsGainedLastRound;
+    public void calculatePoints(int wordLen, int secondsPassed){
+        this.secondsTakenToGuessWordLastRound = secondsPassed;
+        winners.add(this);
+        placeLastRound = winners.size();
+        if (this != artist) {
+            double points = 50 * Math.pow(wordLen, 1 / 1.5);
+            points -= (1.3 * secondsTakenToGuessWordLastRound);
+            points *= Math.pow(numOfPlayers - placeLastRound, 1 + ((double) numOfPlayers / 10)) / 5;
+            this.pointsGainedLastRound = (Math.max((int) points, 0));
+        }else{
+            if (winners.size() == 0){
+                this.pointsGainedLastRound = 0;
+            }else{
+                double points = 50 * Math.pow(wordLen, 1/1.5);
+                for (Player p : winners){
+                    points -= Math.pow((1.3 * p.getSecondsTakenToGuessWordLastRound()), 1/(double)p.getPlaceLastRound());
+                }
+                this.pointsGainedLastRound = (Math.max((int) points, 0));
+            }
+        }
     }
 }

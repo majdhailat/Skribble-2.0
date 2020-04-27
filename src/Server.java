@@ -18,14 +18,10 @@ public class Server {
     private int timeRemaining = roundLength;//the time remaining in the round
 
     private ArrayList<Player> players = new ArrayList<>();//the players playing
-    private ArrayList<Player> winners = new ArrayList<>();
     //for the round as well as the length of time it took them to guess the word
 
     private DrawingComponent[] drawingComponents;//the list of all individual pieces that make up the
     //drawing. It is iterated through in the GUI of the client and each component in the array is drawn onto the canvas.
-    private Player artist;//the current artist that has access to drawing
-    private ArrayList<Player> previousArtists = new ArrayList<>();//the players that have already been the artists
-    //this is reset when all players have had a turn
 
     private String currentMagicWord;//the word that the artist is responsible for drawing
     private int lengthOfMagicWord;
@@ -42,45 +38,28 @@ public class Server {
 
     //sets up for a brand new game of x rounds (not determined yet)
     public void newGame(){
-        System.out.println("game started");
         try {
             loadMagicWords("words");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        previousArtists.clear();
+        Player.clearPreviousArtists();
         newRound();
     }
 
     //cleans up variables from the last round and starts a new round
-    public void endRound(String reason){
-        if (reason.equals("all won")){
-
-        }
-        else if (reason.equals("end time")){
-            for (Player p : players){
-                boolean isWinner = false;
-                for (Player w : winners){
-                    if (p == w){
-                        isWinner = true;
-                        break;
-                    }
-                }
-                if (!isWinner){
-                    p.setScore(p.getScore());
-                }
-            }
-
-        }
-        artist.setScore(artist.getScore() + calculatePointsForArtist(lengthOfMagicWord, players.size(), winners));
+    public void endRound(){
+        Player.getArtist().calculatePoints(lengthOfMagicWord, roundLength-timeRemaining);
         gameStatus = DataPackage.BETWEENROUND;
         gameTimer.stop();
         drawingComponents = null;
-        artist = null;
-        winners.clear();
+        Player.clearWinners();
         try {
             TimeUnit.MILLISECONDS.sleep(5000);
         } catch (InterruptedException e) {e.printStackTrace();}
+        for (Player p : players){
+            p.updateScore();
+        }
         newRound();
     }
 
@@ -88,30 +67,21 @@ public class Server {
     //starts the timer, chooses an artist and magic word
     public void newRound(){
         gameStatus = DataPackage.ROUNDINPROGRESS;
+        for (Player p : players){
+            p.updateScore();
+        }
         timeRemaining = roundLength;
         gameTimer.start();
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));//getting random magic word
         magicWords.remove(currentMagicWord);
         lengthOfMagicWord = currentMagicWord.length();
 
-        if (previousArtists.size() >= players.size()){//checking if all the players have been an artist already
-            previousArtists.clear();
-        }
-
-        Player randArtist;
-        while (true) {
-            randArtist = players.get(randint(0, players.size() - 1));//getting random player to be the artist
-            if (!previousArtists.contains(randArtist)) {//checking if the player has already been the artist
-                artist = randArtist;
-                previousArtists.add(randArtist);
-                break;
-            }
-        }
+        Player artist = Player.chooseArtist(players);
 
         //alerting the rest of the players of who the new artist is
-        for (Player p :players){
-            if (p != randArtist){
-                p.addMessage("#FF0000~"+randArtist.getName()+" Is the artist");
+        for (Player p : players){
+            if (p != artist){
+                p.addMessage("#FF0000~"+artist.getName()+" Is the artist");
             }else {
                 //alerting artist that he is the artist and what his word is
                 p.addMessage("#FF0000~You are the artist");
@@ -125,6 +95,7 @@ public class Server {
 
     //called after the user enters their username
     public synchronized void playerConnected(Player player) {
+        Player.incrementNumOfPlayer();
         players.add(player);
         player.addMessage("#008000~Welcome to Skribble " + player.getName());//greeting new player
         //alerting the rest of the players of the new player
@@ -151,9 +122,8 @@ public class Server {
             if (currentMagicWord != null && msg.toLowerCase().equals(currentMagicWord.toLowerCase())){
                 message = ("#FF0000~"+sender.getName() + " has guessed correctly!");
                 sender.addMessage("#FF0000~You have guessed correctly!");
-                sender.setScore(sender.getScore() + calculatePoints(lengthOfMagicWord, roundLength - timeRemaining, players.size(), winners.size() + 1));
-                winners.add(sender);
-                if(winners.size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
+                sender.calculatePoints(lengthOfMagicWord, roundLength-timeRemaining);
+                if(Player.getWinners().size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
                     endRound = true;
                 }
             }
@@ -167,19 +137,8 @@ public class Server {
             }
         }
         if (endRound){
-            endRound(" all won");
+            endRound();
         }
-    }
-
-    public int calculatePoints(int wordLen, int secondsTaken, int numOfPlayers, int pos){
-        double points = 50 * Math.pow(wordLen, 1/1.5);
-        points -= (1.3 * secondsTaken);
-        points *= Math.pow(numOfPlayers - pos, 1 + ((double)numOfPlayers/10))/5;
-        return (Math.max((int)points, 0));
-    }
-
-    public int calculatePointsForArtist(int wordLen, int numOfPlayers, ArrayList<Player> winners){
-        return 1;
     }
 
     //sets the servers drawing components
@@ -188,16 +147,14 @@ public class Server {
     }
 
     //returns true if the player is the artist
-    public boolean isArtist(Player player){
-        return (player == artist);
-    }
+
 
     //groups all of the global information into 1 object for distribution to all clients
     public synchronized DataPackage getDataPackage(Player player){
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(gameStatus, timeRemaining, players, player, drawingComponents, artist, winners);
+        return new DataPackage(gameStatus, timeRemaining, players, player, drawingComponents, Player.getArtist());
     }
 
     //loads magic words from txt file and stores them in magic words array
@@ -223,151 +180,13 @@ public class Server {
         public void actionPerformed(ActionEvent evt) {
             timeRemaining--;
             if (timeRemaining <= 0){
-                endRound("end time");
+                endRound();
             }
         }
     }
 }
 
-// ------------ Listening Thread ------------------------------------------
-//Listens for new clients and creates the I/O threads when a client joins
-class ListenForClients extends Thread{
-    private Server server;
-    public ListenForClients(Server server) {
-        this.server = server;
-    }
 
-    public void run( ){
-        int portNumber = 4445;
-        boolean listening = true;
-        try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
-            while (listening) {
-                Socket socket = serverSocket.accept();//waiting for clients to connect
-                Player player = new Player();//creating the clients player object
-                //creating input and output threads used to communicate with the client
-                new OutputThread(server, player, socket).start();
-                try {
-                    TimeUnit.MILLISECONDS.sleep(5000);
-                } catch (InterruptedException e) {e.printStackTrace();}
-                new InputThread(server, player, socket).start();
-            }
-        } catch (IOException e) {
-            System.err.println("Port error");
-            System.exit(-1);
-        }
-    }
-}
 
-// ------------ I/O TO Client Threads ------------------------------------------
-/*
-Gets input from client:
 
-If the client is an artist this thread gets the drawing components (the canvas instructions) from the client
-and updates it to the server.
 
-If the client is not an artist this thread simply reads messages from the client, these messages are either
-text messages typed by the client in the chat box or commands form the client code to do things like start
-the game or set the players user name
- */
-class InputThread extends Thread {
-    private Server server;
-    private Player player;
-    private Socket socket;
-    //This stream is used for both the drawing components array and the string text messages
-    private ObjectInputStream in;
-    private boolean gotUserName = false;//if the player has input their user name
-
-    public InputThread(Server server, Player player, Socket socket) throws IOException {
-        this.socket = socket;
-        this.server = server;
-        this.player = player;
-        in = new ObjectInputStream(socket.getInputStream());
-    }
-
-    public void run() {
-        try {
-            while (server.isRunning()) {
-                //ARTIST MODE
-                if (server.isArtist(player)){
-                    try {
-                        //WAITING for the client to send a drawing component array, then reading it from the client
-                        DrawingComponent[] shapesArray = (DrawingComponent[]) in.readObject();
-                        server.setDrawingComponents(shapesArray);//setting the drawing components in the server
-                    }catch(ClassCastException ignored){}
-                    //this exception WILL happen when the user goes from artist to non artist because the in stream
-                    //will be waiting for a drawing component array and then will receive a string and try to cast
-                    //the string to a drawing component array. The string that causes this exception will
-                    //not reach the server
-                } else {
-                    //NON ARTIST MODE
-                    String inputLine;
-                    try {
-                        //WAITING for the client to send a string then reading that string
-                        if ((inputLine = (String) in.readObject()) != null) {
-                            if (!gotUserName) {//checking if user name has not been obtained
-                                player.setName(inputLine);//setting user name
-                                server.playerConnected(player);//alerting server of new player
-                                gotUserName = true;
-                                //checking if the user triggered the game to start
-                            } else if (server.getGameStatus().equals(DataPackage.WAITINGTOSTART )&& inputLine.equals("/START") && server.getPlayers().get(0) == player) {
-                                server.newGame();//starting new game
-                            } else {//just a message - not a command
-                                server.newMessage(inputLine, player);
-                            }
-                        }
-                    }catch (SocketException | ClassCastException ignored){}
-                    //this exception is here for the same exact reason as the class cast exception above except
-                    //now a drawing component array is trying to be casted to a string
-                }
-            }
-        } catch(IOException | ClassNotFoundException e){e.printStackTrace();}
-        finally{
-            server.playerDisconnected(player);//disconnecting player
-            try {
-                socket.close();//closing socket
-            } catch (IOException e) {e.printStackTrace();}
-        }
-    }
-}
-
-/*
-sends output to client:
-all this class does is get a data package from the server containing all the info the client will need and then
-sends that package to the client
- */
-class OutputThread extends Thread{
-    private Server server;
-    private Player player;
-    private Socket socket;
-    private ObjectOutputStream objectOutputStream;//this stream is used to send the data package object
-    public OutputThread(Server server, Player player, Socket socket) throws IOException {
-        this.socket = socket;
-        this.server = server;
-        this.player = player;
-        objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-    }
-
-    public void run(){
-        try {
-            while (server.isRunning()) {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(100);
-                } catch (InterruptedException e) {e.printStackTrace();}
-                DataPackage dataPackage = server.getDataPackage(player);//getting data package
-                try {
-                    objectOutputStream.writeUnshared(dataPackage);//sending data package
-                    objectOutputStream.flush();
-                    //must reset output stream otherwise certain items in the data package might not get update
-                    objectOutputStream.reset();
-                }catch (ConcurrentModificationException ignore){}
-            }
-        }
-        catch (IOException e) {e.printStackTrace();}
-        finally {
-            server.playerDisconnected(player);//disconnecting player
-            try {
-                socket.close();
-            } catch (IOException e) {e.printStackTrace();}
-        }
-    }
-}

@@ -90,7 +90,6 @@ public class Client extends JFrame{
                     if (!dataPackage.amIArtist() && usersTextMessage != null) {
                         try {
                             if (!gotUserName) {//checking if user name has not been obtained
-
                                 canReceiveMessages = true;
                                 out.writeObject(usersTextMessage);//sending the user name
                                 gotUserName = true;
@@ -167,6 +166,7 @@ public class Client extends JFrame{
                     //if (dataPackage.getDrawingComponents() == null){
                         //drawingComponents.clear();
                     //}
+
                     if (!dataPackage.amIArtist()) {//checking if i am not the artist
                         if (dataPackage.getDrawingComponents() != null) {
                             //setting my drawing components to that of the server so that my canvas is being updated
