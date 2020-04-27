@@ -29,7 +29,7 @@ public class Player implements Serializable {
 
     public synchronized static void incrementNumOfPlayer(){numOfPlayers ++;}
 
-    public static Player chooseArtist(ArrayList<Player> players){
+    public static Player chooseAndSetArtist(ArrayList<Player> players){
         if (previousArtists.size() >= numOfPlayers){//checking if all the players have been an artist already
             previousArtists.clear();
         }
@@ -37,7 +37,10 @@ public class Player implements Serializable {
         while (true) {
             randArtist = players.get(Server.randint(0, players.size() - 1));//getting random player to be the artist
             if (!previousArtists.contains(randArtist)) {//checking if the player has already been the artist
-                artist.isArtist = false;
+
+                if (artist != null) {
+                    artist.isArtist = false;
+                }
                 artist = randArtist;
                 artist.isArtist = true;
                 previousArtists.add(randArtist);
@@ -49,8 +52,6 @@ public class Player implements Serializable {
     public static void clearPreviousArtists(){previousArtists.clear();}
 
     public static Player getArtist(){return artist;}
-
-    public static void clearWinners(){winners.clear();}
 
     public static ArrayList<Player> getWinners(){return winners;}
 
@@ -84,7 +85,7 @@ public class Player implements Serializable {
         this.pointsGainedLastRound = 0;
         this.secondsTakenToGuessWordLastRound = 0;
         this.placeLastRound = 0;
-
+        winners.clear();
     }
 
     public int getSecondsTakenToGuessWordLastRound(){return secondsTakenToGuessWordLastRound;}

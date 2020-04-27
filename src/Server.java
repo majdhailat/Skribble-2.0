@@ -50,7 +50,6 @@ public class Server {
         gameStatus = DataPackage.BETWEENROUND;
         gameTimer.stop();
         drawingComponents = null;
-        Player.clearWinners();
         try {
             TimeUnit.MILLISECONDS.sleep(5000);
         } catch (InterruptedException e) {e.printStackTrace();}
@@ -64,16 +63,13 @@ public class Server {
     //starts the timer, chooses an artist and magic word
     public void newRound(){
         gameStatus = DataPackage.ROUNDINPROGRESS;
-        for (Player p : players){
-            p.updateScore();
-        }
         timeRemaining = roundLength;
         gameTimer.start();
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));//getting random magic word
         magicWords.remove(currentMagicWord);
         lengthOfMagicWord = currentMagicWord.length();
 
-        Player artist = Player.chooseArtist(players);
+        Player artist = Player.chooseAndSetArtist(players);
 
         //alerting the rest of the players of who the new artist is
         for (Player p : players){
