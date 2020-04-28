@@ -11,8 +11,8 @@ public class Server {
     private boolean running = true;//if the server is running
     private String gameStatus = DataPackage.WAITINGTOSTART;
 
-    private int roundLength = 90;
-    private int timeRemaining = roundLength;//the time remaining in the round
+    private int roundTimeLength = 90;
+    private int timeRemainingInRound = roundTimeLength;//the time remaining in the round
 
     private ArrayList<Player> players = new ArrayList<>();//the players playing
     //for the round as well as the length of time it took them to guess the word
@@ -21,7 +21,7 @@ public class Server {
     //drawing. It is iterated through in the GUI of the client and each component in the array is drawn onto the canvas.
 
     private String currentMagicWord;//the word that the artist is responsible for drawing
-    private int lengthOfMagicWord;
+    private int charLengthOfMagicWord;
     private ArrayList<String> magicWords = new ArrayList<>();//all possible magic words loaded from the txt file
 
     public static void main(String[] args){
@@ -33,44 +33,29 @@ public class Server {
 
     public String getGameStatus(){return gameStatus;}
 
+    //returns players
+    public List<Player> getPlayers() {return players;}
+
+    //sets the servers drawing components
+    public synchronized void setDrawingComponents(DrawingComponent[] components){this.drawingComponents = components;}
+
     //sets up for a brand new game of x rounds (not determined yet)
     public void newGame(){
         try {
             loadMagicWords("words");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) {e.printStackTrace();}
         Player.clearPreviousArtists();
         newRound();
     }
 
-    //cleans up variables from the last round and starts a new round
-    public void endRound(){
-        Player.getArtist().calculatePoints(lengthOfMagicWord, roundLength-timeRemaining);
-        gameStatus = DataPackage.BETWEENROUND;
-        gameTimer.stop();
-        drawingComponents = null;
-        try {
-            TimeUnit.MILLISECONDS.sleep(5000);
-        } catch (InterruptedException e) {e.printStackTrace();}
-        for (Player p : players){
-            p.updateScore();
-        }
-        newRound();
-    }
-
-
     //starts the timer, chooses an artist and magic word
     public void newRound(){
         gameStatus = DataPackage.ROUNDINPROGRESS;
-        timeRemaining = roundLength;
-        gameTimer.start();
+        timeRemainingInRound = roundTimeLength;
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));//getting random magic word
         magicWords.remove(currentMagicWord);
-        lengthOfMagicWord = currentMagicWord.length();
-
+        charLengthOfMagicWord = currentMagicWord.length();
         Player artist = Player.chooseAndSetArtist(players);
-
         //alerting the rest of the players of who the new artist is
         for (Player p : players){
             if (p != artist){
@@ -81,10 +66,23 @@ public class Server {
                 p.addMessage("#FF0000~you must draw: " + currentMagicWord);
             }
         }
+        gameTimer.start();
     }
 
-    //returns players
-    public List<Player> getPlayers() {return players;}
+    //cleans up variables from the last round and starts a new round
+    public void endRound(){
+        gameTimer.stop();
+        gameStatus = DataPackage.BETWEENROUND;
+        Player.getArtist().calculatePoints(charLengthOfMagicWord, roundTimeLength - timeRemainingInRound);
+        drawingComponents = null;
+        try {
+            TimeUnit.MILLISECONDS.sleep(5000);
+        } catch (InterruptedException e) {e.printStackTrace();}
+        for (Player p : players){
+            p.updateScore();
+        }
+        newRound();
+    }
 
     //called after the user enters their username
     public synchronized void playerConnected(Player player) {
@@ -101,6 +99,7 @@ public class Server {
 
     //called when a player leaves
     public synchronized void playerDisconnected(Player player){
+        Player.decrementNumOfPlayers();
         players.remove(player);
         //setting the server message rather than adding it to "message only for me" because the disconnecting player has already left so the message is for everyone
         newMessage("#FF0000~" + player.getName() + " has left the game", player);
@@ -115,7 +114,7 @@ public class Server {
             if (currentMagicWord != null && msg.toLowerCase().equals(currentMagicWord.toLowerCase())){
                 message = ("#FF0000~"+sender.getName() + " has guessed correctly!");
                 sender.addMessage("#FF0000~You have guessed correctly!");
-                sender.calculatePoints(lengthOfMagicWord, roundLength-timeRemaining);
+                sender.calculatePoints(charLengthOfMagicWord, roundTimeLength - timeRemainingInRound);
                 if(Player.getWinners().size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
                     endRound = true;
                 }
@@ -134,20 +133,12 @@ public class Server {
         }
     }
 
-    //sets the servers drawing components
-    public synchronized void setDrawingComponents(DrawingComponent[] components) {
-        this.drawingComponents = components;
-    }
-
-    //returns true if the player is the artist
-
-
     //groups all of the global information into 1 object for distribution to all clients
     public synchronized DataPackage getDataPackage(Player player){
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(gameStatus, timeRemaining, players, player, drawingComponents);
+        return new DataPackage(gameStatus, timeRemainingInRound, players, player, drawingComponents);
     }
 
     //loads magic words from txt file and stores them in magic words array
@@ -171,15 +162,10 @@ public class Server {
     //triggered every second; subtracts 1 from time remaining. checks if timer ran out -> ends the round
     class TickListener implements ActionListener {
         public void actionPerformed(ActionEvent evt) {
-            timeRemaining--;
-            if (timeRemaining <= 0){
+            timeRemainingInRound--;
+            if (timeRemainingInRound <= 0){
                 endRound();
             }
         }
     }
 }
-
-
-
-
-

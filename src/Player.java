@@ -6,46 +6,39 @@ import java.util.ArrayList;
 public class Player implements Serializable {
     private static final long serialVersionUID = 6942069;
 
-    private volatile static int numOfPlayers;
-    private volatile static Player artist;
+    private static int numOfPlayers = 0;
+    private static Player artist;
     private static ArrayList<Player> winners = new ArrayList<>();
     private static ArrayList<Player> previousArtists = new ArrayList<>();
 
-    private String name;
-    private int score;
+    private String name = "";
+    private int score = 0;
     private ArrayList<String> messages = new ArrayList<>();
-    private boolean isArtist;
+    private boolean isArtist = false;
 
     private int pointsGainedLastRound;
     private int secondsTakenToGuessWordLastRound;
     private int placeLastRound;
 
-    public Player(){
-        this.name = "";
-        this.score = 0;
-        this.pointsGainedLastRound = 0;
-        isArtist = false;
-    }
 
-    public synchronized static void incrementNumOfPlayer(){numOfPlayers ++;}
+    public static void incrementNumOfPlayer(){numOfPlayers ++;}
+
+    public static void decrementNumOfPlayers(){numOfPlayers --;}
 
     public static Player chooseAndSetArtist(ArrayList<Player> players){
-        if (previousArtists.size() >= numOfPlayers){//checking if all the players have been an artist already
-            previousArtists.clear();
-        }
-        Player randArtist;
         while (true) {
-            randArtist = players.get(Server.randint(0, players.size() - 1));//getting random player to be the artist
-            if (!previousArtists.contains(randArtist)) {//checking if the player has already been the artist
-
-                if (artist != null) {
-                    artist.isArtist = false;
+            for (Player p : players) {
+                if (!previousArtists.contains(p)) {
+                    if (artist != null) {
+                        artist.isArtist = false;
+                    }
+                    artist = p;
+                    artist.isArtist = true;
+                    previousArtists.add(artist);
+                    return artist;
                 }
-                artist = randArtist;
-                artist.isArtist = true;
-                previousArtists.add(randArtist);
-                return randArtist;
             }
+            previousArtists.clear();
         }
     }
 
@@ -65,16 +58,11 @@ public class Player implements Serializable {
 
     public void addMessage(String msg){messages.add(msg);}
 
-    public boolean isArtist(){
-        return isArtist;
-    }
+    public boolean isArtist(){return isArtist;}
 
-
-    public ArrayList<String> getMessages() {return this.messages;}
+    public ArrayList<String> getMessages() {return messages;}
 
     //==========================================================================
-
-    public void setPointsGainedDuringRound(int points){pointsGainedLastRound = points;}
 
     public int getPointsGainedLastRound(){return pointsGainedLastRound;}
 
@@ -91,7 +79,6 @@ public class Player implements Serializable {
     public int getSecondsTakenToGuessWordLastRound(){return secondsTakenToGuessWordLastRound;}
 
     public int getPlaceLastRound(){return placeLastRound;}
-
 
 
     public void calculatePoints(int wordLen, int secondsPassed){
