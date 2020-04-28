@@ -452,9 +452,8 @@ public class Client extends JFrame{
                 //basically drawing the image
                 if (drawingComponents.size() > 0) {
                     for (DrawingComponent s : drawingComponents) {
-                        g2.setStroke(new BasicStroke(s.getStroke()));
-                        g2.setColor(s.getCol());
-                        g2.draw(new Line2D.Float(s.getX1(), s.getY1(), s.getX2(), s.getY2()));
+                        g.setColor(s.getCol());
+                        g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
                     }
                 }
 
@@ -499,6 +498,7 @@ public class Client extends JFrame{
         // ------------ MouseListener ------------------------------------------
         //I WILL ADD COMMENTS LATER BECAUSE THERE IS A LOT MORE CODE TO ADD HERE
         private int x1, y1, x2, y2;
+        private int mouseDist, dx, dy;
 
         public void mouseEntered(MouseEvent e) {
         }
@@ -536,20 +536,13 @@ public class Client extends JFrame{
 
             if (canvasPanel.contains(x1, y1) && dataPackage.getMyPlayer().isArtist()) {
                 if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)) {
-
-                    if (x2 < canvasPanel.getX()) {
-                        x2 = (int) canvasPanel.getX();
-                    } else if (x2 > canvasPanel.getX() + canvasPanel.getWidth()) {
-                        x2 = (int) (canvasPanel.getX() + canvasPanel.getWidth());
+                    mouseDist = (int)(Math.hypot(x2-x1, y2-y1)+.5);
+                    mouseDist = Math.max(mouseDist, 1);
+                    for(int i = 0; i < mouseDist; i++){
+                        dx = (int)(i*(x2-x1)/mouseDist+.5);
+                        dy = (int)(i*(y2-y1)/mouseDist+.5);
+                        drawingComponents.add(new DrawingComponent(x1+dx, y1+dy));
                     }
-                    if (y2 < canvasPanel.getY()) {
-                        y2 = (int) canvasPanel.getY();
-                    } else if (y2 > canvasPanel.getY() + canvasPanel.getHeight()) {
-                        y2 = (int) (canvasPanel.getY() + canvasPanel.getHeight());
-                    }
-
-                    drawingComponents.add(new DrawingComponent(x1, y1, x2, y2));
-
                 }
             }
             x1 = x2;
