@@ -14,7 +14,7 @@ public class Server {
     private int roundTimeLength = 90;
     private int timeRemainingInRound = roundTimeLength;//the time remaining in the round
 
-    private int totalNumOfRounds = 3;
+    private int totalNumOfRounds = 100;
     private int roundsLeft = totalNumOfRounds;
 
     private ArrayList<Player> players = new ArrayList<>();//the players playing
