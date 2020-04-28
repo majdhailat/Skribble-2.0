@@ -81,11 +81,13 @@ public class Client extends JFrame{
         public void run() {
             while (running) {
                 if (dataPackage != null) {
-                    if (!promptedStartMessage && dataPackage.getPlayers().size() >= 2 && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer()) {
+                    System.out.println(dataPackage.getGameStatus());
+                    if (!promptedStartMessage && dataPackage.getGameStatus().equals(DataPackage.WAITINGTOSTART) && dataPackage.getPlayers().size() >= 2 && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer()) {
                         //prompting user to type start when they want to start the game
                         messagesToRender.add("#008000~Type start to start the game");
                         promptedStartMessage = true;
                     }
+
                     //NON ARTIST MODE
                     if (!dataPackage.getMyPlayer().isArtist() && usersTextMessage != null) {
                         try {
@@ -96,6 +98,7 @@ public class Client extends JFrame{
                                 //checking if the user started the game
                             } else if (dataPackage.getGameStatus().equals(DataPackage.WAITINGTOSTART) && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && usersTextMessage.equals("start")) {
                                 out.writeObject("/START");//a command alerting the server to start the game
+                                promptedStartMessage = false;
                             } else {//the user is just sending a message
                                 out.writeObject(usersTextMessage);//sending the users message to the server
                                 //displaying the users message back to the chat panel

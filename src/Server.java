@@ -14,6 +14,9 @@ public class Server {
     private int roundTimeLength = 90;
     private int timeRemainingInRound = roundTimeLength;//the time remaining in the round
 
+    private int totalNumOfRounds = 3;
+    private int roundsLeft = totalNumOfRounds;
+
     private ArrayList<Player> players = new ArrayList<>();//the players playing
     //for the round as well as the length of time it took them to guess the word
 
@@ -51,7 +54,6 @@ public class Server {
     //starts the timer, chooses an artist and magic word
     public void newRound(){
         gameStatus = DataPackage.ROUNDINPROGRESS;
-        timeRemainingInRound = roundTimeLength;
         currentMagicWord = magicWords.get(randint(0,magicWords.size()-1));//getting random magic word
         magicWords.remove(currentMagicWord);
         charLengthOfMagicWord = currentMagicWord.length();
@@ -69,19 +71,34 @@ public class Server {
         gameTimer.start();
     }
 
+    public void endGame(){
+        roundsLeft = totalNumOfRounds;
+        gameStatus = DataPackage.WAITINGTOSTART;
+    }
+
     //cleans up variables from the last round and starts a new round
     public void endRound(){
+        roundsLeft --;
         gameTimer.stop();
+        timeRemainingInRound = roundTimeLength;
         gameStatus = DataPackage.BETWEENROUND;
         Player.getArtist().calculatePoints(charLengthOfMagicWord, roundTimeLength - timeRemainingInRound);
         drawingComponents = null;
+        //Player.setArtist(null);
+        currentMagicWord = null;
         try {
             TimeUnit.MILLISECONDS.sleep(5000);
         } catch (InterruptedException e) {e.printStackTrace();}
         for (Player p : players){
             p.updateScore();
         }
-        newRound();
+        if (roundsLeft == 0){
+            System.out.println("end game");
+            endGame();
+        }else {
+            System.out.println("new round");
+            newRound();
+        }
     }
 
     //called after the user enters their username
