@@ -4,9 +4,7 @@ Features:
 1. Fix the timers look
 2. Create point system and point calculating algorithm
 3. Add some sort of pause between rounds instead of jumping to the next round instantly
-4. Add more tools for the artists: thickness, fill bucket
-    a. change thickness
-    b. draw without having to move mouse
+4. Tools: fill bucket
 5. Add a button to mute/ unmute the music
     a. pick better music, upbeat simple stuff like kahoot
 ------------------------------------------------------------------------------------------
