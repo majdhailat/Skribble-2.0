@@ -548,6 +548,8 @@ public class Client extends JFrame{
                 DrawingComponent.setStroke(DrawingComponent.STROKE3);
             } else if (thickSelectPanel4.contains(x1, y1)) {
                 DrawingComponent.setStroke(DrawingComponent.STROKE4);
+            } else if (canvasPanel.contains(x1, y1)) {
+                drawingComponents.add(new DrawingComponent(x1, y1));
             }
         }
 
@@ -555,6 +557,7 @@ public class Client extends JFrame{
             x2 = e.getX();
             y2 = e.getY();
 
+//            if (canvasPanel.contains(x1, y1) && canvasPanel.contains(x2, y2) && dataPackage.getMyPlayer().isArtist()) {
             if (canvasPanel.contains(x1, y1) && dataPackage.getMyPlayer().isArtist()) {
                 if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)) {
                     mouseDist = (int)(Math.hypot(x2-x1, y2-y1)+.5);
