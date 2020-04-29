@@ -430,8 +430,16 @@ public class Client extends JFrame{
         //loads tool images and creates rectangle objects to check for collision
         private Image pencilImage = new ImageIcon("pencil.png").getImage();
         private Image eraserImage = new ImageIcon("eraser.png").getImage();
-        private Rectangle pencilPanel = new Rectangle(610, 632, pencilImage.getWidth(null), pencilImage.getHeight(null));
-        private Rectangle eraserPanel = new Rectangle(675, 632, eraserImage.getWidth(null), eraserImage.getHeight(null));
+        private Image thickSelectImage1 = new ImageIcon("thick1.png").getImage();
+        private Image thickSelectImage2 = new ImageIcon("thick2.png").getImage();
+        private Image thickSelectImage3 = new ImageIcon("thick3.png").getImage();
+        private Image thickSelectImage4 = new ImageIcon("thick4.png").getImage();
+        private Rectangle pencilPanel = new Rectangle(610, 610, pencilImage.getWidth(null), pencilImage.getHeight(null));
+        private Rectangle eraserPanel = new Rectangle(675, 610, eraserImage.getWidth(null), eraserImage.getHeight(null));
+        private Rectangle thickSelectPanel1 = new Rectangle(740, 610, thickSelectImage1.getWidth(null), thickSelectImage1.getHeight(null));
+        private Rectangle thickSelectPanel2 = new Rectangle(805, 610, thickSelectImage2.getWidth(null), thickSelectImage2.getHeight(null));
+        private Rectangle thickSelectPanel3 = new Rectangle(870, 610, thickSelectImage3.getWidth(null), thickSelectImage3.getHeight(null));
+        private Rectangle thickSelectPanel4 = new Rectangle(935, 610, thickSelectImage4.getWidth(null), thickSelectImage4.getHeight(null));
 
         private int previousMessagesToRenderSize = 0;
 
@@ -448,6 +456,10 @@ public class Client extends JFrame{
                 //drawing the tool images
                 g.drawImage(pencilImage, (int) pencilPanel.getX(), (int) pencilPanel.getY(), null);
                 g.drawImage(eraserImage, (int) eraserPanel.getX(), (int) eraserPanel.getY(), null);
+                g.drawImage(thickSelectImage1, (int) thickSelectPanel1.getX(), (int) thickSelectPanel1.getY(), null);
+                g.drawImage(thickSelectImage2, (int) thickSelectPanel2.getX(), (int) thickSelectPanel2.getY(), null);
+                g.drawImage(thickSelectImage3, (int) thickSelectPanel3.getX(), (int) thickSelectPanel3.getY(), null);
+                g.drawImage(thickSelectImage4, (int) thickSelectPanel4.getX(), (int) thickSelectPanel4.getY(), null);
 
                 //iterating through the drawing components and drawing each component onto the screen
                 //basically drawing the image
@@ -528,6 +540,14 @@ public class Client extends JFrame{
                 DrawingComponent.setToolType("PENCIL");
             } else if (eraserPanel.contains(x1, y1)) {
                 DrawingComponent.setToolType("ERASER");
+            } else if (thickSelectPanel1.contains(x1, y1)) {
+                DrawingComponent.setStroke(DrawingComponent.STROKE1);
+            } else if (thickSelectPanel2.contains(x1, y1)) {
+                DrawingComponent.setStroke(DrawingComponent.STROKE2);
+            } else if (thickSelectPanel3.contains(x1, y1)) {
+                DrawingComponent.setStroke(DrawingComponent.STROKE3);
+            } else if (thickSelectPanel4.contains(x1, y1)) {
+                DrawingComponent.setStroke(DrawingComponent.STROKE4);
             }
         }
 
