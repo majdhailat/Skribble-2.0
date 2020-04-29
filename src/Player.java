@@ -28,7 +28,12 @@ public class Player implements Serializable {
 
     public static Player getArtist(){return artist;}
 
-    public static void setArtist(Player art){artist = art;}
+    public static void nullifyArtist(){
+        if (artist != null){
+            artist.isArtist = false;
+            artist = null;
+        }
+    }
 
 
     public static Player chooseAndSetArtist(ArrayList<Player> players){

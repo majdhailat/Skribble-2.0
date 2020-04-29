@@ -14,7 +14,7 @@ public class Server {
     private int roundTimeLength = 90;
     private int timeRemainingInRound = roundTimeLength;//the time remaining in the round
 
-    private int totalNumOfRounds = 100;
+    private int totalNumOfRounds = 3;
     private int roundsLeft = totalNumOfRounds;
 
     private ArrayList<Player> players = new ArrayList<>();//the players playing
@@ -72,6 +72,7 @@ public class Server {
     }
 
     public void endGame(){
+        newMessage("#FF0000~The game has ended", null);
         roundsLeft = totalNumOfRounds;
         gameStatus = DataPackage.WAITINGTOSTART;
     }
@@ -84,7 +85,7 @@ public class Server {
         gameStatus = DataPackage.BETWEENROUND;
         Player.getArtist().calculatePoints(charLengthOfMagicWord, roundTimeLength - timeRemainingInRound);
         drawingComponents = null;
-        //Player.setArtist(null);
+        Player.nullifyArtist();
         currentMagicWord = null;
         try {
             TimeUnit.MILLISECONDS.sleep(5000);
@@ -93,10 +94,8 @@ public class Server {
             p.updateScore();
         }
         if (roundsLeft == 0){
-            System.out.println("end game");
             endGame();
         }else {
-            System.out.println("new round");
             newRound();
         }
     }

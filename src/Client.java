@@ -79,9 +79,8 @@ public class Client extends JFrame{
         //if the message that tells the user to type start has been prompted
         private boolean promptedStartMessage = false;
         public void run() {
-            while (running) {
+            while (running){
                 if (dataPackage != null) {
-                    System.out.println(dataPackage.getGameStatus());
                     if (!promptedStartMessage && dataPackage.getGameStatus().equals(DataPackage.WAITINGTOSTART) && dataPackage.getPlayers().size() >= 2 && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer()) {
                         //prompting user to type start when they want to start the game
                         messagesToRender.add("#008000~Type start to start the game");
@@ -98,8 +97,9 @@ public class Client extends JFrame{
                                 //checking if the user started the game
                             } else if (dataPackage.getGameStatus().equals(DataPackage.WAITINGTOSTART) && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && usersTextMessage.equals("start")) {
                                 out.writeObject("/START");//a command alerting the server to start the game
-                                promptedStartMessage = false;
+
                             } else {//the user is just sending a message
+                                promptedStartMessage = false;
                                 out.writeObject(usersTextMessage);//sending the users message to the server
                                 //displaying the users message back to the chat panel
                                 messagesToRender.add("Me: " + usersTextMessage);
@@ -107,12 +107,13 @@ public class Client extends JFrame{
                             //resetting the users text message so that it does'nt get resent to the server
                             usersTextMessage = null;
                             out.flush();
+
                         }catch(IOException e){e.printStackTrace();}
                     }
                     //ARTIST MODE
                     else if (dataPackage.getMyPlayer().isArtist()){//checking if the user is an artist
                         //drawingComponents.clear();
-                        while(dataPackage.getMyPlayer().isArtist()){//starting artist loop
+                        while(dataPackage.getMyPlayer().isArtist() && dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)){//starting artist loop
                             try {
                                 TimeUnit.MILLISECONDS.sleep(100);
                             } catch (InterruptedException e) {e.printStackTrace();}
