@@ -30,7 +30,7 @@ Cause: Unknown
     b. draw the image before iterating through and drawing from drawingComponents
     c. every round, the image of the canvas starts blank white
 
-5. pencil and eraser can draw outside the canvas
+5. Center of drawing circle cant go outside canvas, but the radius can
     a. gets worse as lag increases
 
 6. the artist gets points even if no one answers correctly.
