@@ -302,7 +302,7 @@ public class Client extends JFrame{
             add(pointsGainedPointsPane);
         }
 
-        //I barley understand how this works so don't ask
+        //I barely understand how this works so don't ask
         private ListCellRenderer<? super String> messageListRenderer() {
             return new DefaultListCellRenderer() {
                 @Override
@@ -449,6 +449,7 @@ public class Client extends JFrame{
         public void paintComponent(Graphics g) {
             if (g != null) {
                 Graphics2D g2 = (Graphics2D) g;
+                //drawing the background and canvas
                 g.drawImage(bgImage, 0,0, null);
                 g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
 //                g.setColor(Color.white);
@@ -502,7 +503,6 @@ public class Client extends JFrame{
                 playerList.setListData(dataPackage.getPlayers().toArray());
 
                 //POINTS GAINED PANEL
-
                 if (dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
                     drawingComponents.clear();
                     canvasImage = OGcanvasImage;
@@ -572,14 +572,17 @@ public class Client extends JFrame{
             y2 = e.getY();
 
 //            if (canvasPanel.contains(x1, y1) && canvasPanel.contains(x2, y2) && dataPackage.getMyPlayer().isArtist()) {
-            if (canvasPanel.contains(x1, y1) && canvasPanel.contains(x2, y2) && dataPackage.getMyPlayer().isArtist()) {
+            if (canvasPanel.contains(x1, y1) && dataPackage.getMyPlayer().isArtist()) {
                 if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)) {
                     mouseDist = (int)(Math.hypot(x2-x1, y2-y1)+.5);
                     mouseDist = Math.max(mouseDist, 1);
                     for(int i = 0; i < mouseDist; i++){
                         dx = (int)(i*(x2-x1)/mouseDist+.5);
                         dy = (int)(i*(y2-y1)/mouseDist+.5);
-                        drawingComponents.add(new DrawingComponent(x1+dx, y1+dy));
+                        if(!(x1+dx < canvasPanel.getX()) && !(x1+dx > canvasPanel.getX()+canvasPanel.getWidth()) &&
+                            !(y1+dy < canvasPanel.getY()) && !(y1+dy > canvasPanel.getY()+canvasPanel.getHeight())){
+                            drawingComponents.add(new DrawingComponent(x1+dx, y1+dy));
+                        }
                     }
                 }
             }
