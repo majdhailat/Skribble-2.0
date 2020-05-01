@@ -422,7 +422,9 @@ public class Client extends JFrame{
 
         private Image bgImage = new ImageIcon("bg4.jpg").getImage();
         //the canvas rectangle where the image is drawn
-        private Rectangle canvasPanel = new Rectangle(225, 50, 725, 550);
+        private Image OGcanvasImage = new ImageIcon("canvas.png").getImage();
+        private Image canvasImage = OGcanvasImage;
+        private Rectangle canvasPanel = new Rectangle(225, 50, OGcanvasImage.getWidth(null), OGcanvasImage.getHeight(null));
         //loading the color palette image
         private Image colorPickerImage = new ImageIcon("Color picker.png").getImage();
         //the rectangle around the color picker (not actually displayed, but used to check if the user clicks in it)
@@ -448,12 +450,13 @@ public class Client extends JFrame{
             if (g != null) {
                 Graphics2D g2 = (Graphics2D) g;
                 g.drawImage(bgImage, 0,0, null);
-                g.setColor(Color.white);
-                g.fillRect((int) canvasPanel.getX(), (int) canvasPanel.getY(),//filling the canvas with white
-                        (int) canvasPanel.getWidth(), (int) canvasPanel.getHeight());
-                g2.drawRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
-                g.drawImage(colorPickerImage, (int) colorPickerPanel.getX(), (int) colorPickerPanel.getY(), null);
+                g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
+//                g.setColor(Color.white);
+//                g.fillRect((int) canvasPanel.getX(), (int) canvasPanel.getY(),//filling the canvas with white
+//                        (int) canvasPanel.getWidth(), (int) canvasPanel.getHeight());
+//                g2.drawRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
                 //drawing the tool images
+                g.drawImage(colorPickerImage, (int) colorPickerPanel.getX(), (int) colorPickerPanel.getY(), null);
                 g.drawImage(pencilImage, (int) pencilPanel.getX(), (int) pencilPanel.getY(), null);
                 g.drawImage(eraserImage, (int) eraserPanel.getX(), (int) eraserPanel.getY(), null);
                 g.drawImage(thickSelectImage1, (int) thickSelectPanel1.getX(), (int) thickSelectPanel1.getY(), null);
@@ -468,6 +471,15 @@ public class Client extends JFrame{
                         g.setColor(s.getCol());
                         g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
                     }
+//                    System.out.println(drawingComponents.size());
+//                    if(drawingComponents.size() > 2000){
+//                        try {
+//                            canvasImage = takeScreenShot(canvasPanel);
+//                            drawingComponents.clear();
+//                        } catch (AWTException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
                 }
 
                 //TIMER
@@ -493,6 +505,7 @@ public class Client extends JFrame{
 
                 if (dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
                     drawingComponents.clear();
+                    canvasImage = OGcanvasImage;
                     g.setColor(new Color(235, 235, 235));
                     g.fillRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
                     pointsGainedPointsList.setListData(dataPackage.getPlayers().toArray());
@@ -528,6 +541,7 @@ public class Client extends JFrame{
         public void mousePressed(MouseEvent e) {
             x1 = e.getX();
             y1 = e.getY();
+            System.out.println(x1 + ", " + y1);
             if (colorPickerPanel.contains(x1, y1)) {
                 try {
                     BufferedImage image = ImageIO.read(new File("Color picker.png"));
@@ -574,6 +588,21 @@ public class Client extends JFrame{
         }
 
         public void mouseMoved(MouseEvent e) {
+        }
+
+        public BufferedImage takeScreenShot(Rectangle panel) throws AWTException {
+            BufferedImage image = new Robot().createScreenCapture(panel);
+            System.out.println("took picture");
+            System.out.println(image.getWidth());
+            System.out.println(image.getHeight());
+////            Rectangle newPanel = new Rectangle((int)panel.getX(), (int)panel.getY(), (int)panel.getWidth(), (int)panel.getHeight());
+//            Rectangle newPanel = new Rectangle(0, 0, (int)panel.getWidth(), (int)panel.getHeight());
+//            BufferedImage img = new BufferedImage(newPanel.width, newPanel.height, BufferedImage.TYPE_INT_RGB);
+//            Graphics2D g2d = img.createGraphics();
+//            g2d.translate(-newPanel.x, -newPanel.y);
+//            panel.print( g2d );
+//            g2d.dispose();
+            return image;
         }
 
         class MKeyListener extends KeyAdapter {
