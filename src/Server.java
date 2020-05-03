@@ -117,6 +117,11 @@ public class Server {
     public synchronized void playerDisconnected(Player player){
         Player.decrementNumOfPlayers();
         players.remove(player);
+        if (players.size() == 0){
+            roundsLeft = 0;
+            endRound();
+        }
+
         //setting the server message rather than adding it to "message only for me" because the disconnecting player has already left so the message is for everyone
         newMessage("#FF0000~" + player.getName() + " has left the game", player);
     }
@@ -154,7 +159,7 @@ public class Server {
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(gameStatus, timeRemainingInRound, players, player, drawingComponents);
+        return new DataPackage(gameStatus, timeRemainingInRound, totalNumOfRounds, roundsLeft, players, player, drawingComponents);
     }
 
     //loads magic words from txt file and stores them in magic words array

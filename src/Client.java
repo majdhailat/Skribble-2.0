@@ -242,11 +242,13 @@ public class Client extends JFrame{
         public boolean ready = false;
         Font textFont;{
             try {
-                textFont = Font.createFont(Font.TRUETYPE_FONT, new File("tipper.otf")).deriveFont(15.5f);
+                textFont = Font.createFont(Font.TRUETYPE_FONT, new File("assets/tipper.otf")).deriveFont(15.5f);
             } catch (FontFormatException | IOException e) {e.printStackTrace();}
         }
 
         private JTextArea timerText = new JTextArea();//the timer text box
+
+        private JTextArea roundProgressText = new JTextArea();
 
         private JTextField textField = new JTextField();//the box in which the user can type their message
 
@@ -268,13 +270,19 @@ public class Client extends JFrame{
             setLayout(null);//prevents any form of auto layout
             addMouseListener(this);//used to detect mouse actions
             addMouseMotionListener(this);//used to detect mouse dragging
-            startMidi("bgmusic.mid");//starting music
+            startMidi("assets/bgmusic.mid");//starting music
 
-            timerText.setBounds(50, 30, 75, 22);
-            timerText.setFont(textFont);
+            timerText.setBounds(58, 12, 23, 22);
+            timerText.setFont(textFont.deriveFont(20f));
             timerText.setEditable(false);
             timerText.setVisible(false);
             add(timerText);
+
+            roundProgressText.setBounds(100, 12, 200, 22);
+            roundProgressText.setFont(textFont.deriveFont(20f));
+            roundProgressText.setEditable(false);
+            roundProgressText.setVisible(false);
+            add(roundProgressText);
 
             textField.setBounds(955, 578, 305, 22);
             textField.addKeyListener((KeyListener) new MKeyListener());
@@ -329,7 +337,7 @@ public class Client extends JFrame{
             };
         }
 
-        private ImageIcon avatar = new ImageIcon("icon.png");
+        private ImageIcon avatar = new ImageIcon("image assets/icon.png");
         private ListCellRenderer<? super Player> playerListRenderer(){
             return new DefaultListCellRenderer() {
                 @Override
@@ -420,22 +428,23 @@ public class Client extends JFrame{
             }
         }
 
-        private Image bgImage = new ImageIcon("bg4.jpg").getImage();
+        private Image bgImage = new ImageIcon("image assets/bg4.jpg").getImage();
         //the canvas rectangle where the image is drawn
-        private Image OGcanvasImage = new ImageIcon("canvas.png").getImage();
+        private Image OGcanvasImage = new ImageIcon("image assets/canvas.png").getImage();
         private Image canvasImage = OGcanvasImage;
         private Rectangle canvasPanel = new Rectangle(225, 50, OGcanvasImage.getWidth(null), OGcanvasImage.getHeight(null));
         //loading the color palette image
-        private Image colorPickerImage = new ImageIcon("Color picker.png").getImage();
+        private Image colorPickerImage = new ImageIcon("image assets/Color picker.png").getImage();
         //the rectangle around the color picker (not actually displayed, but used to check if the user clicks in it)
         private Rectangle colorPickerPanel = new Rectangle(260, 610, colorPickerImage.getWidth(null), colorPickerImage.getHeight(null));
         //loads tool images and creates rectangle objects to check for collision
-        private Image pencilImage = new ImageIcon("pencil.png").getImage();
-        private Image eraserImage = new ImageIcon("eraser.png").getImage();
-        private Image thickSelectImage1 = new ImageIcon("thick1.png").getImage();
-        private Image thickSelectImage2 = new ImageIcon("thick2.png").getImage();
-        private Image thickSelectImage3 = new ImageIcon("thick3.png").getImage();
-        private Image thickSelectImage4 = new ImageIcon("thick4.png").getImage();
+        private Image pencilImage = new ImageIcon("image assets/pencil.png").getImage();
+        private Image eraserImage = new ImageIcon("image assets/eraser.png").getImage();
+        private Image thickSelectImage1 = new ImageIcon("image assets/thick1.png").getImage();
+        private Image thickSelectImage2 = new ImageIcon("image assets/thick2.png").getImage();
+        private Image thickSelectImage3 = new ImageIcon("image assets/thick3.png").getImage();
+        private Image thickSelectImage4 = new ImageIcon("image assets/thick4.png").getImage();
+        private Image alarmImage = new ImageIcon("image assets/alarm.png").getImage();
         private Rectangle pencilPanel = new Rectangle(610, 610, pencilImage.getWidth(null), pencilImage.getHeight(null));
         private Rectangle eraserPanel = new Rectangle(675, 610, eraserImage.getWidth(null), eraserImage.getHeight(null));
         private Rectangle thickSelectPanel1 = new Rectangle(740, 610, thickSelectImage1.getWidth(null), thickSelectImage1.getHeight(null));
@@ -465,6 +474,9 @@ public class Client extends JFrame{
                 g.drawImage(thickSelectImage3, (int) thickSelectPanel3.getX(), (int) thickSelectPanel3.getY(), null);
                 g.drawImage(thickSelectImage4, (int) thickSelectPanel4.getX(), (int) thickSelectPanel4.getY(), null);
 
+                g.setColor(Color.white);
+                g.fillRect(10, 5, getWidth()-30, 40);
+
                 //iterating through the drawing components and drawing each component onto the screen
                 //basically drawing the image
                 if (drawingComponents.size() > 0) {
@@ -483,10 +495,18 @@ public class Client extends JFrame{
 //                    }
                 }
 
+                if (dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS) || dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
+                    roundProgressText.setVisible(true);
+                    roundProgressText.setText("Round "+(dataPackage.getTotalNumOfRounds() - dataPackage.getRoundsLeft() + 1) +" of "+dataPackage.getTotalNumOfRounds());
+                }else{
+                    roundProgressText.setVisible(false);
+                }
+
                 //TIMER
-                if (dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)){
+                if (true){//dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)){
+                    g.drawImage(alarmImage, 50, 5, null);
                     timerText.setVisible(true);
-                    timerText.setText("Timer: " + dataPackage.getTimeRemaining());//updating the timer text using data package
+                    timerText.setText(""+dataPackage.getTimeRemaining());//updating the timer text using data package
                 }else{
                     timerText.setVisible(false);
                 }
@@ -544,7 +564,7 @@ public class Client extends JFrame{
             System.out.println(x1 + ", " + y1);
             if (colorPickerPanel.contains(x1, y1)) {
                 try {
-                    BufferedImage image = ImageIO.read(new File("Color picker.png"));
+                    BufferedImage image = ImageIO.read(new File("image assets/Color picker.png"));
                     Color c = new Color(image.getRGB((int) (x1 - colorPickerPanel.getX()), (int) (y1 - colorPickerPanel.getY())));
                     DrawingComponent.setColor(c);
                 } catch (IOException ex) {

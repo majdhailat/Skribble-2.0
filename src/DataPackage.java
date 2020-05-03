@@ -18,12 +18,16 @@ public class DataPackage implements Serializable {
     private String gameStatus;
     public static final String WAITINGTOSTART = "waiting", BETWEENROUND = "between round", ROUNDINPROGRESS = "in progress";
 
-    public DataPackage(String gameStatus, int timeRemaining, ArrayList<Player>players, Player myPlayer, DrawingComponent[] drawingComponents){
+    private int totalNumOfRounds, roundsLeft;
+
+    public DataPackage(String gameStatus, int timeRemaining, int totalNumOfRounds, int roundsLeft, ArrayList<Player>players, Player myPlayer, DrawingComponent[] drawingComponents){
         this.gameStatus = gameStatus;
         this.timeRemaining = timeRemaining;
         this.players = players;
         this.myPlayer = myPlayer;
         this.drawingComponents = drawingComponents;
+        this.totalNumOfRounds = totalNumOfRounds;
+        this.roundsLeft = roundsLeft;
     }
 
     public int getTimeRemaining(){return timeRemaining;}
@@ -36,5 +40,13 @@ public class DataPackage implements Serializable {
 
     public String getGameStatus() {
         return gameStatus;
+    }
+
+    public int getTotalNumOfRounds() {
+        return totalNumOfRounds;
+    }
+
+    public int getRoundsLeft() {
+        return roundsLeft;
     }
 }
