@@ -75,6 +75,7 @@ public class Server {
         newMessage("#FF0000~The game has ended", null);
         roundsLeft = totalNumOfRounds;
         gameStatus = DataPackage.WAITINGTOSTART;
+        System.out.println(gameStatus);
     }
 
     //cleans up variables from the last round and starts a new round
@@ -83,7 +84,9 @@ public class Server {
         gameTimer.stop();
         timeRemainingInRound = roundTimeLength;
         gameStatus = DataPackage.BETWEENROUND;
-        Player.getArtist().calculatePoints(charLengthOfMagicWord, roundTimeLength - timeRemainingInRound);
+        if (Player.getArtist() != null) {
+            Player.getArtist().calculatePoints(charLengthOfMagicWord, roundTimeLength - timeRemainingInRound);
+        }
         drawingComponents = null;
         Player.nullifyArtist();
         currentMagicWord = null;
@@ -118,9 +121,13 @@ public class Server {
         Player.decrementNumOfPlayers();
         players.remove(player);
         if (players.size() == 0){
-            roundsLeft = 0;
+            roundsLeft = 1;
             endRound();
         }
+        else if (player.isArtist()){
+            endRound();
+        }
+
 
         //setting the server message rather than adding it to "message only for me" because the disconnecting player has already left so the message is for everyone
         newMessage("#FF0000~" + player.getName() + " has left the game", player);

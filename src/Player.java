@@ -10,7 +10,6 @@ public class Player implements Serializable {
     private static ArrayList<Player> winners = new ArrayList<>();
     private static ArrayList<Player> previousArtists = new ArrayList<>();
 
-
     private String name = "";
     private int score = 0;
     private boolean isArtist = false;
@@ -34,7 +33,6 @@ public class Player implements Serializable {
             artist = null;
         }
     }
-
 
     public static Player chooseAndSetArtist(ArrayList<Player> players){
         while (true) {

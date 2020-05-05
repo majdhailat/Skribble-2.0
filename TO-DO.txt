@@ -1,36 +1,35 @@
+To-do:
+1. Add fill tool
+2. Display currently selected colour to artist
+3. Highlight selected thickness to artist
+4. Fix points system 
+5. Add mute/ unmute button
+6. Display the magic word to the artist in the status bar
+7. Display the letter place holders to the guessers in the status bar
+8. GUI kinda looks shit -> make it look better
+9. Use better music and background
+
 ==========================================================================================
-Features:
-1. Fix the timers look
-2. Create point system and point calculating algorithm
-3. Add some sort of pause between rounds instead of jumping to the next round instantly
-4. Tools: fill bucket
-5. Add a button to mute/ unmute the music
-    a. pick better music, upbeat simple stuff like kahoot
-------------------------------------------------------------------------------------------
-Possible Features:
+Possible To-do:
 1. Add host commands (I.e. kicking, restarting game etc)
-2. Add randomly selected transition messages that are funny, kinda like discord. For example, when choosing the next artist have it say consulting Jesus to determine artist
-3. Vote on how good a drawing is. Could have a small impact on points received by artist
-------------------------------------------------------------------------------------------
-Code:
-1. Clean up messaging system between classes and users 
+2. Either a) allow the artist to select between multiple words or 
+	b) allow the artist to skip words (either cap the # of skips or add a skip 			penalty like point deduction)
+3. Allow game to work over the internet
+
 ==========================================================================================
-Bugs:
-1. The first line outputted in the users chat log (wither it be from the user, server or another user) after the log is filled and needs to start scrolling up, disappears and never makes it to the users chat log (This may or may not be fixed) I can't re create it but I didn't intentionally fix it????
-Cause: Unknown 
-
-2. Inconsistant performance. Sometimes its buttery smooth other times it takes seconds to update on all clients. I think it may be related with drawing density but it might not be as its so inconsistant.
-
-3. Clearing works 90% of time time, but occasionally it doesn't clear OR it takes a lot of time to clear. And sometimes it clears and returns 
-
-3. The last person to guess correctly does not have the canvas cleared for them, and does not get a message declaring the identity of the next artist (I Think this is fixed, although clearing is till an issue)
-
-4. The more you draw, the larger drawingComponents gets which causes lag
+Bugs To-do:
+1. Fix drawing lag 
     a. periodically save an image of the canvas and clear drawingComponents
     b. draw the image before iterating through and drawing from drawingComponents
     c. every round, the image of the canvas starts blank white
 
-5. Center of drawing circle cant go outside canvas, but the radius can
-    a. gets worse as lag increases
+2. Fix being able to draw outside of canvas 
+    -Center of drawing circle cant go outside canvas, but the radius can
 
-6. the artist gets points even if no one answers correctly.
+3. Fix player disconnecting issues 
+    -i.e what happens if artist dips
+    -server must reset and stay idle if everyone dips
+
+4. Refactor client GUI -> it is currently a disaster of code
+
+5. Fix the end of round screen so that it doesn't clip player names/points after a few players

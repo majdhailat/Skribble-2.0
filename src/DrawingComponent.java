@@ -25,7 +25,6 @@ class DrawingComponent implements Serializable{
         }
     }
 
-
     public int getCx(){
         return cx;
     }
