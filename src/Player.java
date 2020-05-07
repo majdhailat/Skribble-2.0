@@ -10,6 +10,7 @@ public class Player implements Serializable {
     private static ArrayList<Player> winners = new ArrayList<>();
     private static ArrayList<Player> previousArtists = new ArrayList<>();
 
+    private boolean gotUserName = false;
     private String name = "";
     private int score = 0;
     private boolean isArtist = false;
@@ -57,9 +58,18 @@ public class Player implements Serializable {
 
     //===========================Non Static Methods===================================
 
-    public void setName(String name){this.name = name;}
+    public boolean gotUserName(){
+        return gotUserName;
+    }
 
-    public String getName() {return name;}
+    public void setName(String name){
+        gotUserName = true;
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
 
     public int getScore(){return score;}
 

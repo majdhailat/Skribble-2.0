@@ -75,7 +75,6 @@ public class Server {
         newMessage("#FF0000~The game has ended", null);
         roundsLeft = totalNumOfRounds;
         gameStatus = DataPackage.WAITINGTOSTART;
-        System.out.println(gameStatus);
     }
 
     //cleans up variables from the last round and starts a new round
@@ -134,26 +133,36 @@ public class Server {
     }
 
     public void newMessage(String msg, Player sender){
+        System.out.println(sender.getName()+"  "+msg);
         boolean endRound = false;
-        String message;
-        if (msg.contains("~")){
-            message = msg;
-        }else{
-            if (currentMagicWord != null && msg.toLowerCase().equals(currentMagicWord.toLowerCase())){
-                message = ("#FF0000~"+sender.getName() + " has guessed correctly!");
-                sender.addMessage("#FF0000~You have guessed correctly!");
-                sender.calculatePoints(charLengthOfMagicWord, roundTimeLength - timeRemainingInRound);
-                if(Player.getWinners().size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
-                    endRound = true;
-                }
-            }
-            else{
-                message = (sender.getName()) + ": " + msg;
-            }
+        String message = null;
+        System.out.println(sender.gotUserName());
+        if (!sender.gotUserName()){
+            System.out.println("setting name");
+            sender.setName(msg);//setting user name
+            playerConnected(sender);//alerting server of new player
         }
-        for (Player p : players){
-            if (p != sender){
-                p.addMessage(message);
+        else if(msg.equals("/START") && gameStatus.equals(DataPackage.WAITINGTOSTART) && players.get(0) == sender){
+            newGame();
+        }
+        else if (msg.contains("~")){
+            message = msg;
+        }else if (currentMagicWord != null && msg.toLowerCase().equals(currentMagicWord.toLowerCase())){
+            message = ("#FF0000~"+sender.getName() + " has guessed correctly!");
+            sender.addMessage("#FF0000~You have guessed correctly!");
+            sender.calculatePoints(charLengthOfMagicWord, roundTimeLength - timeRemainingInRound);
+            if(Player.getWinners().size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
+                endRound = true;
+            }
+        }else{
+            message = (sender.getName()) + ": " + msg;
+        }
+
+        if (message != null) {
+            for (Player p : players) {
+                if (p != sender) {
+                    p.addMessage(message);
+                }
             }
         }
         if (endRound){

@@ -9,12 +9,13 @@ sends output to client:
 all this class does is get a data package from the server containing all the info the client will need and then
 sends that package to the client
  */
-class OutputThread extends Thread{
+class ServerOutputThread extends Thread{
     private Server server;
     private Player player;
     private Socket socket;
-    private ObjectOutputStream objectOutputStream;//this stream is used to send the data package object
-    public OutputThread(Server server, Player player, Socket socket) throws IOException {
+    private ObjectOutputStream objectOutputStream;//stream used to send the data package
+
+    public ServerOutputThread(Server server, Player player, Socket socket) throws IOException {
         this.socket = socket;
         this.server = server;
         this.player = player;

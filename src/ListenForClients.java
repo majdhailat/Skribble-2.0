@@ -18,11 +18,11 @@ class ListenForClients extends Thread{
                 Socket socket = serverSocket.accept();//waiting for clients to connect
                 Player player = new Player();//creating the clients player object
                 //creating input and output threads used to communicate with the client
-                new OutputThread(server, player, socket).start();
+                new ServerOutputThread(server, player, socket).start();
                 try {
                     TimeUnit.MILLISECONDS.sleep(5000);
                 } catch (InterruptedException e) {e.printStackTrace();}
-                new InputThread(server, player, socket).start();
+                new ServerInputThread(server, player, socket).start();
             }
         } catch (IOException e) {
             System.err.println("Port error");

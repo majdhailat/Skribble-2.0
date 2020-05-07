@@ -2,9 +2,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
 
-public class ClientInputThread extends Thread {
-    private ObjectInputStream objectInputStream;//this stream is used to read the data package object
-    //the messages that have been read from the messages only for me list in the player
+class ClientInputThread extends Thread {
+    private ObjectInputStream objectInputStream;//stream used to read the data package object
     private Client client;
 
     public ClientInputThread(Socket socket, Client client) throws IOException {
@@ -16,7 +15,7 @@ public class ClientInputThread extends Thread {
         try {
             while (client.isRunning()) {
                 DataPackage dataPackage = (DataPackage) objectInputStream.readUnshared();
-                client.receivedDataPackage(dataPackage);
+                client.updateDataPackage(dataPackage);
             }
         }catch (IOException | ClassNotFoundException e) {e.printStackTrace();}
     }

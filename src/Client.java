@@ -66,7 +66,7 @@ public class Client extends JFrame {
 
     }
 
-    public void receivedDataPackage(DataPackage pack){
+    public void updateDataPackage(DataPackage pack){
         dataPackage = pack;
         if (!dataPackage.getMyPlayer().isArtist()) {//checking if i am not the artist
             if (dataPackage.getDrawingComponents() != null) {
@@ -89,6 +89,7 @@ public class Client extends JFrame {
     }
 
     public DataPackage getDataPackage(){
+
         return dataPackage;
     }
 
@@ -105,7 +106,6 @@ public class Client extends JFrame {
 
     public void updateUsersTextMessage(String message){
         usersTextMessage = message;
-        System.out.println("updating user text message to: "+message);
     }
 
     public ArrayList<String> getMessagesToRender(){
@@ -113,12 +113,13 @@ public class Client extends JFrame {
     }
 
     public String getUsersTextMessage(){
+        try {
+            TimeUnit.MILLISECONDS.sleep(100);
+        } catch (InterruptedException e) {e.printStackTrace();}
         String msg = usersTextMessage;
         usersTextMessage = null;
         if (msg != null) {
-            System.out.println("getusertextmessage: "+msg);
-            if (!gotUserName){
-                gotUserName = true;
+            if (!dataPackage.getMyPlayer().gotUserName()){
                 canReceiveMessages = true;
                 return msg;
             }
@@ -127,7 +128,6 @@ public class Client extends JFrame {
             }else{
                 messagesToRender.add("Me: " + msg);
                 promptedStartMessage = false;
-                System.out.println("getusertextmessagereturning: "+msg);
                 return msg;
             }
         }else{
