@@ -11,99 +11,51 @@ import java.util.ArrayList;
 public class Panel extends JPanel implements MouseListener, MouseMotionListener {
     public boolean ready = false;
 
+    private boolean loadedAssets;
+    private DataPackage dataPackage;
+    private ArrayList<DrawingComponent> drawingComponents;
+    private ArrayList<String> messagesToRender;
+    private int previousMessagesToRenderSize = 0;
+
     Font textFont;
     private ImageIcon avatar;
-    private Image bgImage, OGcanvasImage, canvasImage, colorPickerImage, pencilImage,
+    private Image bgImage, OGCanvasPanel, canvasImage, colorPickerImage, pencilImage,
             eraserImage, thickSelectImage1, thickSelectImage2, thickSelectImage3, thickSelectImage4, alarmImage;
-
+    BufferedImage bufferedColorPickerImage;
     private Rectangle canvasPanel, colorPickerPanel, pencilPanel, eraserPanel, thickSelectPanel1, thickSelectPanel2,
             thickSelectPanel3, thickSelectPanel4;
-
     private JTextArea timerText, roundProgressText;
-
-
     private JTextField textField;
-
     private JList messageList, playerList, pointsGainedNameList, pointsGainedPointsList;
     private JScrollPane messagePane, playerPane, pointsGainedNamePane, pointsGainedPointsPane;
     private JScrollBar messagePaneScrollBar;
 
-
-    private boolean loadedAssets = false;
-
-    private ArrayList<DrawingComponent> drawingComponents;
-    private DataPackage dataPackage;
-    private ArrayList<String> messagesToRender;
-    public void updateFromClient(){
-        drawingComponents = client.getDrawingComponentsArrayList();
-        dataPackage = client.getDataPackage();
-        messagesToRender = client.getMessagesToRender();
-    }
-
     private Client client;
-    public Panel(Client client) {
-        //sets running to false when windows is closed to close all threads
+    public Panel(Client client) throws IOException {
         this.client = client;
+        updateFromClient();
 
+        setLayout(null);//prevents any form of auto layout
+        addMouseListener(this);//used to detect mouse actions
+        addMouseMotionListener(this);//used to detect mouse dragging
+        startMidi("assets/bgmusic.mid");//starting music
 
-            updateFromClient();
-
-            loadAssets();
-            loadRects();
-            loadGuiComponents();
-            loadedAssets = true;
-
-
-            setLayout(null);//prevents any form of auto layout
-            addMouseListener(this);//used to detect mouse actions
-            addMouseMotionListener(this);//used to detect mouse dragging
-            startMidi("assets/bgmusic.mid");//starting music
-
-            timerText.setBounds(58, 12, 23, 22);
-            timerText.setFont(textFont.deriveFont(20f));
-            timerText.setEditable(false);
-            timerText.setVisible(false);
-            add(timerText);
-
-            roundProgressText.setBounds(100, 12, 200, 22);
-            roundProgressText.setFont(textFont.deriveFont(20f));
-            roundProgressText.setEditable(false);
-            roundProgressText.setVisible(false);
-            add(roundProgressText);
-
-            textField.setBounds(955, 578, 305, 22);
-            textField.addKeyListener((KeyListener) new MKeyListener());
-            add(textField);
-
-            playerList.setCellRenderer(PanelExtension.playerListRenderer(avatar, textFont, dataPackage.getMyPlayer()));
-            playerPane.setVerticalScrollBarPolicy(playerPane.VERTICAL_SCROLLBAR_NEVER);
-            playerPane.setHorizontalScrollBarPolicy(playerPane.HORIZONTAL_SCROLLBAR_NEVER);
-            add(playerPane);
-            playerList.setFixedCellHeight(75);
-
-            messageList.setCellRenderer(PanelExtension.messageListRenderer(textFont));
-            messagePane.setBounds(955, 50, 305, 525);
-            messagePane.setHorizontalScrollBarPolicy(messagePane.HORIZONTAL_SCROLLBAR_NEVER);
-            add(messagePane);
-
-            pointsGainedNameList.setCellRenderer(PanelExtension.pointsGainedNameListRenderer(textFont));
-            pointsGainedNamePane.setVerticalScrollBarPolicy(playerPane.VERTICAL_SCROLLBAR_NEVER);
-            pointsGainedNamePane.setHorizontalScrollBarPolicy(playerPane.HORIZONTAL_SCROLLBAR_NEVER);
-            pointsGainedNameList.setFixedCellHeight(75);
-            add(pointsGainedNamePane);
-
-            pointsGainedPointsList.setCellRenderer(PanelExtension.pointsGainedPointListRenderer(textFont));
-            pointsGainedPointsList.setFixedCellHeight(75);
-            add(pointsGainedPointsPane);
-
+        loadAssets();
+        loadRects();
+        loadGuiComponents();
+        loadedAssets = true;
     }
-
-
 
     public void addNotify() {
         super.addNotify();
         requestFocus();
         ready = true;
+    }
+
+    public void updateFromClient(){
+        drawingComponents = client.getDrawingComponentsArrayList();
+        dataPackage = client.getDataPackage();
+        messagesToRender = client.getMessagesToRender();
     }
 
     //takes music file path, loads music and plays it in loop
@@ -115,27 +67,17 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             midiPlayer.open();
             midiPlayer.setSequence(song);
             midiPlayer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
-            //midiPlayer.start();
-        } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {
-            e.printStackTrace();
-        }
+            midiPlayer.start();
+        } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {e.printStackTrace();}
     }
-
-    private int previousMessagesToRenderSize = 0;
 
 
     //renders the GUI and calls any methods relates to the GUI
     public void paintComponent(Graphics g) {
         if (g != null && loadedAssets) {
-            Graphics2D g2 = (Graphics2D) g;
-            //drawing the background and canvas
+            updateUI(g);
             g.drawImage(bgImage, 0,0, null);
             g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
-//                g.setColor(Color.white);
-//                g.fillRect((int) canvasPanel.getX(), (int) canvasPanel.getY(),//filling the canvas with white
-//                        (int) canvasPanel.getWidth(), (int) canvasPanel.getHeight());
-//                g2.drawRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
-            //drawing the tool images
             g.drawImage(colorPickerImage, (int) colorPickerPanel.getX(), (int) colorPickerPanel.getY(), null);
             g.drawImage(pencilImage, (int) pencilPanel.getX(), (int) pencilPanel.getY(), null);
             g.drawImage(eraserImage, (int) eraserPanel.getX(), (int) eraserPanel.getY(), null);
@@ -143,12 +85,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             g.drawImage(thickSelectImage2, (int) thickSelectPanel2.getX(), (int) thickSelectPanel2.getY(), null);
             g.drawImage(thickSelectImage3, (int) thickSelectPanel3.getX(), (int) thickSelectPanel3.getY(), null);
             g.drawImage(thickSelectImage4, (int) thickSelectPanel4.getX(), (int) thickSelectPanel4.getY(), null);
-
             g.setColor(Color.white);
             g.fillRect(10, 5, getWidth()-30, 40);
 
-            //iterating through the drawing components and drawing each component onto the screen
-            //basically drawing the image
             if (drawingComponents.size() > 0) {
                 for (DrawingComponent s : drawingComponents) {
                     g.setColor(s.getCol());
@@ -164,57 +103,53 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 //                        }
 //                    }
             }
-
-            if (dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS) || dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
-                roundProgressText.setVisible(true);
-                roundProgressText.setText("Round "+(dataPackage.getTotalNumOfRounds() - dataPackage.getRoundsLeft() + 1) +" of "+dataPackage.getTotalNumOfRounds());
-            }else{
-                roundProgressText.setVisible(false);
-            }
-
-            playerPane.setBounds(10, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
-            pointsGainedNamePane.setBorder(null);
-            pointsGainedNamePane.setBounds(400, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
-            pointsGainedPointsPane.setBorder(null);
-            pointsGainedPointsPane.setBounds(600, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
-
-            //TIMER
-            if (true){//dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)){
-                g.drawImage(alarmImage, 50, 5, null);
-                timerText.setVisible(true);
-                timerText.setText(""+dataPackage.getTimeRemaining());//updating the timer text using data package
-            }else{
-                timerText.setVisible(false);
-            }
-
-            //MESSAGE LIST
-            if (messagesToRender.size() > previousMessagesToRenderSize) {
-                messageList.setListData(messagesToRender.toArray());
-                previousMessagesToRenderSize = messagesToRender.size();
-                messagePaneScrollBar.setValue(messagePaneScrollBar.getMaximum());
-            }
-            messagePaneScrollBar.setValue(messagePaneScrollBar.getMaximum());//temp until fix
-
-            //PLAYER LIST
-            playerList.setListData(dataPackage.getPlayers().toArray());
-
-            //POINTS GAINED PANEL
-            if (dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
-                drawingComponents.clear();
-                canvasImage = OGcanvasImage;
-                g.setColor(new Color(235, 235, 235));
-                g.fillRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
-                pointsGainedPointsList.setListData(dataPackage.getPlayers().toArray());
-                pointsGainedPointsPane.setVisible(true);
-
-                pointsGainedNameList.setListData(dataPackage.getPlayers().toArray());
-                pointsGainedNamePane.setVisible(true);
-            }else{
-                pointsGainedPointsPane.setVisible(false);
-                pointsGainedNamePane.setVisible(false);
-            }
-
         }
+    }
+
+    public void updateUI(Graphics g){
+        playerList.setListData(dataPackage.getPlayers().toArray());
+        playerPane.setBounds(10, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+        pointsGainedNamePane.setBounds(400, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+        pointsGainedPointsPane.setBounds(600, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+        //TIMER
+        if (dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)){
+            g.drawImage(alarmImage, 50, 5, null);
+            timerText.setVisible(true);
+            timerText.setText(""+dataPackage.getTimeRemaining());//updating the timer text using data package
+        }else{
+            timerText.setVisible(false);
+        }
+
+        //POINTS GAINED PANEL
+        if (dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
+            drawingComponents.clear();
+            canvasImage = OGCanvasPanel;
+            g.setColor(new Color(235, 235, 235));
+            g.fillRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
+            pointsGainedPointsList.setListData(dataPackage.getPlayers().toArray());
+            pointsGainedPointsPane.setVisible(true);
+
+            pointsGainedNameList.setListData(dataPackage.getPlayers().toArray());
+            pointsGainedNamePane.setVisible(true);
+        }else{
+            pointsGainedPointsPane.setVisible(false);
+            pointsGainedNamePane.setVisible(false);
+        }
+
+        if (dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS) || dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
+            roundProgressText.setVisible(true);
+            roundProgressText.setText("Round "+(dataPackage.getTotalNumOfRounds() - dataPackage.getRoundsLeft() + 1) +" of "+dataPackage.getTotalNumOfRounds());
+        }else{
+            roundProgressText.setVisible(false);
+        }
+
+        //MESSAGE LIST
+        if (messagesToRender.size() > previousMessagesToRenderSize) {
+            messageList.setListData(messagesToRender.toArray());
+            previousMessagesToRenderSize = messagesToRender.size();
+            messagePaneScrollBar.setValue(messagePaneScrollBar.getMaximum());
+        }
+        messagePaneScrollBar.setValue(messagePaneScrollBar.getMaximum());//temp until fix
     }
 
     // ------------ MouseListener ------------------------------------------
@@ -222,30 +157,17 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     private int x1, y1, x2, y2;
     private int mouseDist, dx, dy;
 
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    public void mouseExited(MouseEvent e) {
-    }
-
-    public void mouseReleased(MouseEvent e) {
-    }
-
-    public void mouseClicked(MouseEvent e) {
-    }
+    public void mouseEntered(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) {}
+    public void mouseClicked(MouseEvent e) {}
 
     public void mousePressed(MouseEvent e) {
         x1 = e.getX();
         y1 = e.getY();
-        System.out.println(x1 + ", " + y1);
         if (colorPickerPanel.contains(x1, y1)) {
-            try {
-                BufferedImage image = ImageIO.read(new File("image assets/Color picker.png"));
-                Color c = new Color(image.getRGB((int) (x1 - colorPickerPanel.getX()), (int) (y1 - colorPickerPanel.getY())));
-                DrawingComponent.setColor(c);
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+            Color c = new Color(bufferedColorPickerImage.getRGB((int) (x1 - colorPickerPanel.getX()), (int) (y1 - colorPickerPanel.getY())));
+            DrawingComponent.setColor(c);
         } else if (pencilPanel.contains(x1, y1)) {
             DrawingComponent.setToolType("PENCIL");
         } else if (eraserPanel.contains(x1, y1)) {
@@ -314,11 +236,12 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         }
     }
 
-    public void loadAssets() {
+    public void loadAssets() throws IOException {
+        bufferedColorPickerImage = ImageIO.read(new File("image assets/Color picker.png"));
         avatar = new ImageIcon("image assets/icon.png");
         bgImage = new ImageIcon("image assets/bg4.jpg").getImage();
-        OGcanvasImage = new ImageIcon("image assets/canvas.png").getImage();
-        canvasImage = OGcanvasImage;
+        OGCanvasPanel = new ImageIcon("image assets/canvas.png").getImage();
+        canvasImage = OGCanvasPanel;
         colorPickerImage = new ImageIcon("image assets/Color picker.png").getImage();
         pencilImage = new ImageIcon("image assets/pencil.png").getImage();
         eraserImage = new ImageIcon("image assets/eraser.png").getImage();
@@ -333,7 +256,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     public void loadRects(){
-        canvasPanel = new Rectangle(225, 50, OGcanvasImage.getWidth(null), OGcanvasImage.getHeight(null));
+        canvasPanel = new Rectangle(225, 50, OGCanvasPanel.getWidth(null), OGCanvasPanel.getHeight(null));
         colorPickerPanel = new Rectangle(260, 610, colorPickerImage.getWidth(null), colorPickerImage.getHeight(null));
         pencilPanel = new Rectangle(610, 610, pencilImage.getWidth(null), pencilImage.getHeight(null));
         eraserPanel = new Rectangle(675, 610, eraserImage.getWidth(null), eraserImage.getHeight(null));
@@ -356,5 +279,44 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         pointsGainedNamePane = new JScrollPane(pointsGainedNameList);
         pointsGainedPointsList = new JList(dataPackage.getPlayers().toArray());
         pointsGainedPointsPane = new JScrollPane(pointsGainedPointsList);
+
+        textField.setBounds(955, 578, 305, 22);
+        textField.addKeyListener(new MKeyListener());
+        add(textField);
+
+        timerText.setBounds(58, 12, 23, 22);
+        timerText.setFont(textFont.deriveFont(20f));
+        timerText.setEditable(false);
+        timerText.setVisible(false);
+        add(timerText);
+
+        roundProgressText.setBounds(100, 12, 200, 22);
+        roundProgressText.setFont(textFont.deriveFont(20f));
+        roundProgressText.setEditable(false);
+        roundProgressText.setVisible(false);
+        add(roundProgressText);
+
+        playerList.setCellRenderer(PanelExtension.playerListRenderer(avatar, textFont, dataPackage.getMyPlayer()));
+        playerPane.setVerticalScrollBarPolicy(playerPane.VERTICAL_SCROLLBAR_NEVER);
+        playerPane.setHorizontalScrollBarPolicy(playerPane.HORIZONTAL_SCROLLBAR_NEVER);
+        add(playerPane);
+        playerList.setFixedCellHeight(75);
+
+        messageList.setCellRenderer(PanelExtension.messageListRenderer(textFont));
+        messagePane.setBounds(955, 50, 305, 525);
+        messagePane.setHorizontalScrollBarPolicy(messagePane.HORIZONTAL_SCROLLBAR_NEVER);
+        add(messagePane);
+
+        pointsGainedNameList.setCellRenderer(PanelExtension.pointsGainedNameListRenderer(textFont));
+        pointsGainedNamePane.setVerticalScrollBarPolicy(playerPane.VERTICAL_SCROLLBAR_NEVER);
+        pointsGainedNamePane.setHorizontalScrollBarPolicy(playerPane.HORIZONTAL_SCROLLBAR_NEVER);
+        pointsGainedNamePane.setBorder(null);
+        pointsGainedPointsPane.setBorder(null);
+        pointsGainedNameList.setFixedCellHeight(75);
+        add(pointsGainedNamePane);
+
+        pointsGainedPointsList.setCellRenderer(PanelExtension.pointsGainedPointListRenderer(textFont));
+        pointsGainedPointsList.setFixedCellHeight(75);
+        add(pointsGainedPointsPane);
     }
 }
