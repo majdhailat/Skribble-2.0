@@ -38,7 +38,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         setLayout(null);//prevents any form of auto layout
         addMouseListener(this);//used to detect mouse actions
         addMouseMotionListener(this);//used to detect mouse dragging
-        startMidi("assets/bgmusic.mid");//starting music
+//        startMidi("assets/bgmusic.mid");//starting music
 
         loadAssets();
         loadRects();
@@ -93,15 +93,15 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                     g.setColor(s.getCol());
                     g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
                 }
-//                    System.out.println(drawingComponents.size());
-//                    if(drawingComponents.size() > 2000){
-//                        try {
-//                            canvasImage = takeScreenShot(canvasPanel);
-//                            drawingComponents.clear();
-//                        } catch (AWTException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
+                    System.out.println(drawingComponents.size());
+                    if(drawingComponents.size() > 2000){
+                        try {
+                            canvasImage = takeScreenShot(canvasPanel);
+                            drawingComponents.clear();
+                        } catch (AWTException e) {
+                            e.printStackTrace();
+                        }
+                    }
             }
         }
     }
@@ -211,13 +211,19 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void mouseMoved(MouseEvent e) {}
 
     public BufferedImage takeScreenShot(Rectangle panel) throws AWTException {
+        //rectangle
+        Point offset = getLocationOnScreen();
+        System.out.println(offset);
         BufferedImage image = new Robot().createScreenCapture(panel);
 //        System.out.println("took picture");
 //        System.out.println(image.getWidth());
 //        System.out.println(image.getHeight());
 
+//                panel.paint(panel.getGraphics());
+        //panel
 ////            Rectangle newPanel = new Rectangle((int)panel.getX(), (int)panel.getY(), (int)panel.getWidth(), (int)panel.getHeight());
 //            Rectangle newPanel = new Rectangle(0, 0, (int)panel.getWidth(), (int)panel.getHeight());
+        //panel efficient
 //            BufferedImage img = new BufferedImage(newPanel.width, newPanel.height, BufferedImage.TYPE_INT_RGB);
 //            Graphics2D g2d = img.createGraphics();
 //            g2d.translate(-newPanel.x, -newPanel.y);
