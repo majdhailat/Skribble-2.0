@@ -33,8 +33,8 @@ public class Gui extends JFrame {
     class TickListener implements ActionListener {
         public void actionPerformed(ActionEvent evt) {
             if (panel != null && panel.ready) {
-                panel.repaint();
                 panel.updateFromClient();
+                panel.repaint();
             }
         }
     }

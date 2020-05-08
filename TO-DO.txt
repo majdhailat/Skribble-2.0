@@ -30,6 +30,4 @@ Bugs To-do:
     -i.e what happens if artist dips
     -server must reset and stay idle if everyone dips
 
-4. Refactor client GUI -> it is currently a disaster of code
-
 5. Fix the end of round screen so that it doesn't clip player names/points after a few players
