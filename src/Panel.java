@@ -75,127 +75,30 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             textField.addKeyListener((KeyListener) new MKeyListener());
             add(textField);
 
-            playerList.setCellRenderer(playerListRenderer());
+            playerList.setCellRenderer(PanelExtension.playerListRenderer(avatar, textFont, dataPackage.getMyPlayer()));
             playerPane.setVerticalScrollBarPolicy(playerPane.VERTICAL_SCROLLBAR_NEVER);
             playerPane.setHorizontalScrollBarPolicy(playerPane.HORIZONTAL_SCROLLBAR_NEVER);
             add(playerPane);
             playerList.setFixedCellHeight(75);
 
-            messageList.setCellRenderer(messageListRenderer());
+            messageList.setCellRenderer(PanelExtension.messageListRenderer(textFont));
             messagePane.setBounds(955, 50, 305, 525);
             messagePane.setHorizontalScrollBarPolicy(messagePane.HORIZONTAL_SCROLLBAR_NEVER);
             add(messagePane);
 
-            pointsGainedNameList.setCellRenderer(pointsGainedNameListRenderer());
+            pointsGainedNameList.setCellRenderer(PanelExtension.pointsGainedNameListRenderer(textFont));
             pointsGainedNamePane.setVerticalScrollBarPolicy(playerPane.VERTICAL_SCROLLBAR_NEVER);
             pointsGainedNamePane.setHorizontalScrollBarPolicy(playerPane.HORIZONTAL_SCROLLBAR_NEVER);
             pointsGainedNameList.setFixedCellHeight(75);
             add(pointsGainedNamePane);
 
-            pointsGainedPointsList.setCellRenderer(pointsGainedPointListRenderer());
+            pointsGainedPointsList.setCellRenderer(PanelExtension.pointsGainedPointListRenderer(textFont));
             pointsGainedPointsList.setFixedCellHeight(75);
             add(pointsGainedPointsPane);
 
     }
 
 
-
-    //I barely understand how this works so don't ask
-    private ListCellRenderer<? super String> messageListRenderer() {
-        return new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (c instanceof JLabel) {
-                    JLabel label = (JLabel) c;
-                    String message = messagesToRender.get(index);
-                    label.setFont(textFont);
-                    if (index % 2 != 0){
-                        label.setBackground(new Color(235, 235, 235));
-                    }
-                    if (message.contains("~")) {
-                        String[] messageParts = message.split("~");
-                        label.setForeground(Color.decode(messageParts[0]));
-                        label.setText(messageParts[1]);
-                    } else {
-                        label.setForeground(Color.black);
-                        label.setText(messagesToRender.get(index));
-                    }
-                }
-                return c;
-            }
-        };
-    }
-
-
-    private ListCellRenderer<? super Player> playerListRenderer(){
-        return new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (c instanceof JLabel) {
-                    JLabel label = (JLabel) c;
-                    label.setFont(textFont);
-                    label.setIcon(avatar);
-                    if (index % 2 != 0){
-                        label.setBackground(new Color(235, 235, 235));
-                    }
-                    if (dataPackage.getPlayers().get(index) == dataPackage.getMyPlayer()){
-                        label.setText("<html>"+dataPackage.getPlayers().get(index).getName()+" (You)"+"<br>"+"Points: "+dataPackage.getPlayers().get(index).getScore()+"</html>");
-                    }else {
-                        label.setText("<html>" + dataPackage.getPlayers().get(index).getName() + "<br>" +"Points: "+ dataPackage.getPlayers().get(index).getScore() + "</html>");
-                    }
-                    label.setFont(textFont);
-                    playerPane.setBounds(10, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
-                }
-                return c;
-            }
-        };
-    }
-
-    private ListCellRenderer<? super Player> pointsGainedNameListRenderer(){
-        return new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (c instanceof JLabel) {
-                    JLabel label = (JLabel) c;
-                    label.setBackground(new Color(235, 235, 235));
-                    label.setFont(textFont.deriveFont(35f));
-                    label.setText(dataPackage.getPlayers().get(index).getName());
-                    pointsGainedNamePane.setBorder(null);
-                    pointsGainedNamePane.setBounds(400, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
-                }
-                return c;
-            }
-        };
-    }
-
-    private ListCellRenderer<? super Player> pointsGainedPointListRenderer(){
-        return new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (c instanceof JLabel) {
-                    JLabel label = (JLabel) c;
-                    label.setFont(textFont.deriveFont(35f));
-                    label.setBackground(new Color(235, 235, 235));
-                    if (dataPackage.getPlayers().get(index).getPointsGainedLastRound() == 0){
-                        label.setText(""+dataPackage.getPlayers().get(index).getPointsGainedLastRound());
-                        label.setForeground(Color.red);
-                    }else{
-                        label.setText("+"+dataPackage.getPlayers().get(index).getPointsGainedLastRound());
-                        label.setForeground(new Color(40, 200, 40));
-                    }
-                    label.setHorizontalAlignment(SwingConstants.CENTER);
-
-                    pointsGainedPointsPane.setBorder(null);
-                    pointsGainedPointsPane.setBounds(600, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
-                }
-                return c;
-            }
-        };
-    }
 
     public void addNotify() {
         super.addNotify();
@@ -268,6 +171,12 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             }else{
                 roundProgressText.setVisible(false);
             }
+
+            playerPane.setBounds(10, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+            pointsGainedNamePane.setBorder(null);
+            pointsGainedNamePane.setBounds(400, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+            pointsGainedPointsPane.setBorder(null);
+            pointsGainedPointsPane.setBounds(600, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
 
             //TIMER
             if (true){//dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)){
