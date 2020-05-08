@@ -108,6 +108,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
     public void updateUI(Graphics g){
         playerList.setListData(dataPackage.getPlayers().toArray());
+        playerList.setCellRenderer(PanelExtension.playerListRenderer(avatar, textFont, dataPackage.getMyPlayer()));
         playerPane.setBounds(10, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
         pointsGainedNamePane.setBounds(400, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
         pointsGainedPointsPane.setBounds(600, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
@@ -121,6 +122,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         }
 
         //POINTS GAINED PANEL
+        if (dataPackage.getGameStatus().equals(DataPackage.WAITINGTOSTART)){
+            drawingComponents.clear();
+        }
         if (dataPackage.getGameStatus().equals(DataPackage.BETWEENROUND)){
             drawingComponents.clear();
             canvasImage = OGCanvasPanel;

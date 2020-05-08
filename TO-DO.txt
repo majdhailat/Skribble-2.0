@@ -30,4 +30,6 @@ Bugs To-do:
     -i.e what happens if artist dips
     -server must reset and stay idle if everyone dips
 
+4.Points system is very unbalanced and has a bug where sometimes it doesn't update somebodies score
+
 5. Fix the end of round screen so that it doesn't clip player names/points after a few players

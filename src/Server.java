@@ -14,7 +14,7 @@ public class Server {
     private int roundTimeLength = 90;
     private int timeRemainingInRound = roundTimeLength;//the time remaining in the round
 
-    private int totalNumOfRounds = 3;
+    private int totalNumOfRounds = 2;
     private int roundsLeft = totalNumOfRounds;
 
     private ArrayList<Player> players = new ArrayList<>();//the players playing
@@ -72,14 +72,13 @@ public class Server {
     }
 
     public void endGame(){
-        newMessage("#FF0000~The game has ended", null);
+        newMessage("#FF0000~The game has ended");
         roundsLeft = totalNumOfRounds;
         gameStatus = DataPackage.WAITINGTOSTART;
     }
 
     //cleans up variables from the last round and starts a new round
     public void endRound(){
-        roundsLeft --;
         gameTimer.stop();
         timeRemainingInRound = roundTimeLength;
         gameStatus = DataPackage.BETWEENROUND;
@@ -87,7 +86,6 @@ public class Server {
             Player.getArtist().calculatePoints(charLengthOfMagicWord, roundTimeLength - timeRemainingInRound);
         }
         drawingComponents = null;
-        Player.nullifyArtist();
         currentMagicWord = null;
         try {
             TimeUnit.MILLISECONDS.sleep(5000);
@@ -95,9 +93,11 @@ public class Server {
         for (Player p : players){
             p.updateScore();
         }
-        if (roundsLeft == 0){
+        Player.nullifyArtist();
+        if (roundsLeft == 1){
             endGame();
         }else {
+            roundsLeft --;
             newRound();
         }
     }
@@ -129,16 +129,13 @@ public class Server {
 
 
         //setting the server message rather than adding it to "message only for me" because the disconnecting player has already left so the message is for everyone
-        newMessage("#FF0000~" + player.getName() + " has left the game", player);
+        newMessage("#FF0000~" + player.getName() + " has left the game");
     }
 
     public void newMessage(String msg, Player sender){
-        System.out.println(sender.getName()+"  "+msg);
         boolean endRound = false;
         String message = null;
-        System.out.println(sender.gotUserName());
         if (!sender.gotUserName()){
-            System.out.println("setting name");
             sender.setName(msg);//setting user name
             playerConnected(sender);//alerting server of new player
         }
@@ -167,6 +164,14 @@ public class Server {
         }
         if (endRound){
             endRound();
+        }
+    }
+
+    public void newMessage(String message){
+        if (message != null){
+            for (Player p : players){
+                p.addMessage(message);
+            }
         }
     }
 

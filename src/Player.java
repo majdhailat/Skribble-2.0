@@ -82,6 +82,8 @@ public class Player implements Serializable {
     public int getPointsGainedLastRound(){return pointsGainedLastRound;}
 
     public void updateScore(){
+        System.out.println(this.name+": "+this.pointsGainedLastRound);
+        System.out.println("artists: "+artist.name);
         if (artist == this || winners.contains(this)) {
             this.score += pointsGainedLastRound;
         }

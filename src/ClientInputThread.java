@@ -1,3 +1,4 @@
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
@@ -17,6 +18,6 @@ class ClientInputThread extends Thread {
                 DataPackage dataPackage = (DataPackage) objectInputStream.readUnshared();
                 client.updateDataPackage(dataPackage);
             }
-        }catch (IOException | ClassNotFoundException e) {e.printStackTrace();}
+        }catch (IOException | ClassNotFoundException ignored) {}
     }
 }
