@@ -1,9 +1,9 @@
 To-do:
 1. Add fill tool
-2. Display currently selected colour to artist
-3. Highlight selected thickness to artist
-4. Fix points system 
-5. Add mute/ unmute button
+2. Display currently selected colour and tool to artist
+    3. Highlight selected thickness to artist
+4. Fix points system -> bugs
+5. Add mute/ un-mute button
 6. Display the magic word to the artist in the status bar
 7. Display the letter place holders to the guessers in the status bar
 8. GUI kinda looks shit -> make it look better
@@ -18,10 +18,16 @@ Possible To-do:
 
 ==========================================================================================
 Bugs To-do:
-1. Fix drawing lag 
-    a. periodically save an image of the canvas and clear drawingComponents
-    b. draw the image before iterating through and drawing from drawingComponents
-    c. every round, the image of the canvas starts blank white
+1. For saving an image of the canvas and clearing that array
+    a. When the array is cleared, part of the stroke is lost
+        - the faster the artist was drawing, the larger stroke volume lost.
+        - possible cause: the stroke is not drawn and thus is not included in the screen capture before the array is cleared
+            - weird because the image is taken after iterating through the whole array, and the artists update to the list should happen after
+            - possible solution: leave a buffer in the array. instead of clearing it, we could try leaving some components
+    b. sometimes the image isn't taken in the correct location (its not of the canvas, but rather offset by a bit)
+        - *usually* happens starting from the second image
+        - the first image is either fine, or causes all the players other than the artist to have their canvas cleared
+        - possible cause: unknown
 
 2. Fix being able to draw outside of canvas 
     -Center of drawing circle cant go outside canvas, but the radius can
@@ -31,5 +37,6 @@ Bugs To-do:
     -server must reset and stay idle if everyone dips
 
 4.Points system is very unbalanced and has a bug where sometimes it doesn't update somebodies score
+    a. shouldn't get points if no one guesses correctly, it could incentivise players to draw nothing at all
 
 5. Fix the end of round screen so that it doesn't clip player names/points after a few players
