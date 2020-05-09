@@ -94,10 +94,12 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                     g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
                 }
                     System.out.println(drawingComponents.size());
-                    if(drawingComponents.size() > 1000){
+                    if(drawingComponents.size() > 1500){
                         try {
                             canvasImage = takeScreenShot(canvasPanel);
                             drawingComponents.clear();
+//                            drawingComponents = drawingComponents.subList(1400, drawingComponents.size()-1);
+//                            drawingComponents = new ArrayList<DrawingComponent>(drawingComponents.subList(1400, drawingComponents.size()-1));
                         } catch (AWTException e) {
                             e.printStackTrace();
                         }
