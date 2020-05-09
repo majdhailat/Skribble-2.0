@@ -216,8 +216,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
     public BufferedImage takeScreenShot(Rectangle panel) throws AWTException {
         Point offset = getLocationOnScreen();
-        System.out.println(offset);
+//        System.out.println(offset);
         panel.setLocation(panel.x + offset.x, panel.y + offset.y);
+        System.out.println(panel.x);
+        System.out.println(panel.y);
+        System.out.println(panel.width);
+        System.out.println(panel.height);
+        System.out.println();
+
         BufferedImage image = new Robot().createScreenCapture(panel);
 //        System.out.println("took picture");
 
