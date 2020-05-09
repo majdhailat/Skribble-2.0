@@ -238,7 +238,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void loadAssets() throws IOException {
         bufferedColorPickerImage = ImageIO.read(new File("image assets/Color picker.png"));
         avatar = new ImageIcon("image assets/icon.png");
-        bgImage = new ImageIcon("image assets/bg.png").getImage();
+        bgImage = new ImageIcon("image assets/bg/bg"+Client.randint(1,10)+".jpg").getImage();
         OGCanvasPanel = new ImageIcon("image assets/canvas.png").getImage();
         canvasImage = OGCanvasPanel;
         colorPickerImage = new ImageIcon("image assets/Color picker.png").getImage();

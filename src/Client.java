@@ -135,4 +135,8 @@ public class Client extends JFrame {
         }
     }
 
+    public static int randint(int low, int high){
+        return (int)(Math.random()*(high-low+1)+low);
+    }
+
 }
