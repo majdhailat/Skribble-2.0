@@ -75,7 +75,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     //renders the GUI and calls any methods relates to the GUI
     public void paintComponent(Graphics g) {
         if (g != null && loadedAssets) {
-            updateUI(g);
             g.drawImage(bgImage, 0,0, null);
             g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
             g.drawImage(colorPickerImage, (int) colorPickerPanel.getX(), (int) colorPickerPanel.getY(), null);
@@ -86,8 +85,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             g.drawImage(thickSelectImage3, (int) thickSelectPanel3.getX(), (int) thickSelectPanel3.getY(), null);
             g.drawImage(thickSelectImage4, (int) thickSelectPanel4.getX(), (int) thickSelectPanel4.getY(), null);
             g.setColor(Color.white);
-            g.fillRect(10, 5, getWidth()-30, 40);
-
+            updateUI(g);
             if (drawingComponents.size() > 0) {
                 for (DrawingComponent s : drawingComponents) {
                     g.setColor(s.getCol());
@@ -116,7 +114,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         pointsGainedPointsPane.setBounds(600, 150, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
         //TIMER
         if (dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)){
-            g.drawImage(alarmImage, 50, 5, null);
+            g.drawImage(alarmImage, 14, 5, null);
             timerText.setVisible(true);
             timerText.setText(""+dataPackage.getTimeRemaining());//updating the timer text using data package
         }else{
@@ -240,7 +238,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void loadAssets() throws IOException {
         bufferedColorPickerImage = ImageIO.read(new File("image assets/Color picker.png"));
         avatar = new ImageIcon("image assets/icon.png");
-        bgImage = new ImageIcon("image assets/bg4.jpg").getImage();
+        bgImage = new ImageIcon("image assets/bg.png").getImage();
         OGCanvasPanel = new ImageIcon("image assets/canvas.png").getImage();
         canvasImage = OGCanvasPanel;
         colorPickerImage = new ImageIcon("image assets/Color picker.png").getImage();
@@ -285,14 +283,16 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         textField.addKeyListener(new MKeyListener());
         add(textField);
 
-        timerText.setBounds(58, 12, 23, 22);
+        timerText.setBounds(22, 12, 23, 22);
         timerText.setFont(textFont.deriveFont(20f));
+        timerText.setOpaque(false);
         timerText.setEditable(false);
         timerText.setVisible(false);
         add(timerText);
 
-        roundProgressText.setBounds(100, 12, 200, 22);
+        roundProgressText.setBounds(67, 12, 200, 22);
         roundProgressText.setFont(textFont.deriveFont(20f));
+        roundProgressText.setOpaque(false);
         roundProgressText.setEditable(false);
         roundProgressText.setVisible(false);
         add(roundProgressText);
