@@ -94,7 +94,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                     g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
                 }
                     System.out.println(drawingComponents.size());
-                    if(drawingComponents.size() > 2000){
+                    if(drawingComponents.size() > 1000){
                         try {
                             canvasImage = takeScreenShot(canvasPanel);
                             drawingComponents.clear();
@@ -198,7 +198,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)) {
                 mouseDist = (int)(Math.hypot(x2-x1, y2-y1)+.5);
                 mouseDist = Math.max(mouseDist, 1);
-                for(int i = 0; i < mouseDist; i++){
+                for(int i = 0; i < mouseDist; i += 2){
                     dx = (int)(i*(x2-x1)/mouseDist+.5);
                     dy = (int)(i*(y2-y1)/mouseDist+.5);
                     if(!(x1+dx < canvasPanel.getX()) && !(x1+dx > canvasPanel.getX()+canvasPanel.getWidth()) &&
@@ -216,17 +216,10 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
     public BufferedImage takeScreenShot(Rectangle panel) throws AWTException {
         Point offset = getLocationOnScreen();
-//        System.out.println(offset);
-        panel.setLocation(panel.x + offset.x, panel.y + offset.y);
-        System.out.println(panel.x);
-        System.out.println(panel.y);
-        System.out.println(panel.width);
-        System.out.println(panel.height);
-        System.out.println();
-
-        BufferedImage image = new Robot().createScreenCapture(panel);
+        Rectangle imageRect = new Rectangle(panel.x + offset.x, panel.y + offset.y, panel.width, panel.height);
+        System.out.println(imageRect);
+        BufferedImage image = new Robot().createScreenCapture(imageRect);
 //        System.out.println("took picture");
-
         return image;
     }
 
