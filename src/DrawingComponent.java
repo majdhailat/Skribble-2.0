@@ -49,6 +49,10 @@ class DrawingComponent implements Serializable{
         currentStrokeSize = stroke;
     }
 
+    public static int getCurrentStrokeSize(){
+        return currentStrokeSize;
+    }
+
     public static void setColor(Color col){
         currentColor = col;
         //System.out.println(col);
