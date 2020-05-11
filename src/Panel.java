@@ -20,7 +20,8 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     Font textFont;
     private ImageIcon avatar;
     private Image bgImage, OGCanvasPanel, canvasImage, colorPickerImage, pencilImage,
-            eraserImage, thickSelectImage1, thickSelectImage2, thickSelectImage3, thickSelectImage4, alarmImage;
+            eraserImage, thickSelectImage1, thickSelectImage2, thickSelectImage3, thickSelectImage4, alarmImage,
+            letterPlaceHolderImage;
     BufferedImage bufferedColorPickerImage;
     private Rectangle canvasPanel, colorPickerPanel, pencilPanel, eraserPanel, thickSelectPanel1, thickSelectPanel2,
             thickSelectPanel3, thickSelectPanel4;
@@ -117,6 +118,15 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             g.drawImage(alarmImage, 14, 5, null);
             timerText.setVisible(true);
             timerText.setText(""+dataPackage.getTimeRemaining());//updating the timer text using data package
+
+            if (!dataPackage.getMyPlayer().isArtist()){
+                int wordLen = dataPackage.getMagicWord().length();
+                for (int i = 0; i < wordLen; i++) {
+                    if (dataPackage.getMagicWord().charAt(i) != ' ') {
+                        g.drawImage(letterPlaceHolderImage, (640 - ((wordLen * 40 + ((wordLen - 1) * 20)) / 2)) + ((i - 1) * 60), 30, null);
+                    }
+                }
+            }
         }else{
             timerText.setVisible(false);
         }
@@ -249,6 +259,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         thickSelectImage3 = new ImageIcon("image assets/thick3.png").getImage();
         thickSelectImage4 = new ImageIcon("image assets/thick4.png").getImage();
         alarmImage = new ImageIcon("image assets/alarm.png").getImage();
+        letterPlaceHolderImage = new ImageIcon("image assets/letter place holder.png").getImage();
         try {
             textFont = Font.createFont(Font.TRUETYPE_FONT, new File("assets/tipper.otf")).deriveFont(15.5f);
         } catch (FontFormatException | IOException e) {e.printStackTrace();}

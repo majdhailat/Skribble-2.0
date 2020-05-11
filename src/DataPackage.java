@@ -13,6 +13,7 @@ public class DataPackage implements Serializable {
     private ArrayList<Player> players;
     private Player myPlayer;//the player that is receiving the package
 
+    private String magicWord;
     private DrawingComponent[] drawingComponents;
 
     private String gameStatus;
@@ -20,7 +21,7 @@ public class DataPackage implements Serializable {
 
     private int totalNumOfRounds, roundsLeft;
 
-    public DataPackage(String gameStatus, int timeRemaining, int totalNumOfRounds, int roundsLeft, ArrayList<Player>players, Player myPlayer, DrawingComponent[] drawingComponents){
+    public DataPackage(String gameStatus, int timeRemaining, int totalNumOfRounds, int roundsLeft, ArrayList<Player>players, Player myPlayer, DrawingComponent[] drawingComponents, String magicWord){
         this.gameStatus = gameStatus;
         this.timeRemaining = timeRemaining;
         this.players = players;
@@ -28,6 +29,7 @@ public class DataPackage implements Serializable {
         this.drawingComponents = drawingComponents;
         this.totalNumOfRounds = totalNumOfRounds;
         this.roundsLeft = roundsLeft;
+        this.magicWord = magicWord;
     }
 
     public int getTimeRemaining(){return timeRemaining;}
@@ -48,5 +50,9 @@ public class DataPackage implements Serializable {
 
     public int getRoundsLeft() {
         return roundsLeft;
+    }
+
+    public String getMagicWord(){
+        return magicWord;
     }
 }

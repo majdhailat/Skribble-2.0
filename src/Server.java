@@ -180,7 +180,7 @@ public class Server {
         try {
             TimeUnit.MILLISECONDS.sleep(1);
         } catch (InterruptedException e) {e.printStackTrace();}
-        return new DataPackage(gameStatus, timeRemainingInRound, totalNumOfRounds, roundsLeft, players, player, drawingComponents);
+        return new DataPackage(gameStatus, timeRemainingInRound, totalNumOfRounds, roundsLeft, players, player, drawingComponents, currentMagicWord);
     }
 
     //loads magic words from txt file and stores them in magic words array
