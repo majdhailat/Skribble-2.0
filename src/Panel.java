@@ -24,7 +24,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             letterPlaceHolderImage, thick1SelectedImage, thick2SelectedImage, thick3SelectedImage, thick4SelectedImage;
     BufferedImage bufferedColorPickerImage;
     private Rectangle canvasPanel, colorPickerPanel, pencilPanel, eraserPanel, thickSelectPanel1, thickSelectPanel2,
-            thickSelectPanel3, thickSelectPanel4;
+            thickSelectPanel3, thickSelectPanel4, selectedColorPanel;
     private JTextArea timerText, roundProgressText;
     private JTextField textField;
     private JList messageList, playerList, pointsGainedNameList, pointsGainedPointsList;
@@ -74,6 +74,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
 
     //renders the GUI and calls any methods relates to the GUI
+    
     public void paintComponent(Graphics g) {
         if (g != null && loadedAssets) {
             g.drawImage(bgImage, 0,0, null);
@@ -108,6 +109,10 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                 }else{
                     g.drawImage(thick4SelectedImage, (int) thickSelectPanel4.getX(), (int) thickSelectPanel4.getY(), null);
                 }
+                Graphics2D g2 = (Graphics2D)g;
+                g2.setColor(DrawingComponent.getCurrentColor());
+                g2.setStroke(new BasicStroke(3));
+                g2.drawRect((int)colorPickerPanel.getX() - 2, (int)colorPickerPanel.getY() - 2, colorPickerImage.getWidth(null) + 4, colorPickerImage.getHeight(null) + 4);
             }
             g.setColor(Color.white);
             updateUI(g);
@@ -297,13 +302,13 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
     public void loadRects(){
         canvasPanel = new Rectangle(225, 50, OGCanvasPanel.getWidth(null), OGCanvasPanel.getHeight(null));
-        colorPickerPanel = new Rectangle(260, 610, colorPickerImage.getWidth(null), colorPickerImage.getHeight(null));
-        pencilPanel = new Rectangle(610, 610, pencilImage.getWidth(null), pencilImage.getHeight(null));
-        eraserPanel = new Rectangle(675, 610, eraserImage.getWidth(null), eraserImage.getHeight(null));
-        thickSelectPanel1 = new Rectangle(740, 610, thick1Image.getWidth(null), thick1Image.getHeight(null));
-        thickSelectPanel2 = new Rectangle(805, 610, thick2Image.getWidth(null), thick2Image.getHeight(null));
-        thickSelectPanel3 = new Rectangle(870, 610, thick3Image.getWidth(null), thick3Image.getHeight(null));
-        thickSelectPanel4 = new Rectangle(935, 610, thick4Image.getWidth(null), thick4Image.getHeight(null));
+        colorPickerPanel = new Rectangle(225, 610, colorPickerImage.getWidth(null), colorPickerImage.getHeight(null));
+        pencilPanel = new Rectangle(575, 610, pencilImage.getWidth(null), pencilImage.getHeight(null));
+        eraserPanel = new Rectangle(630, 610, eraserImage.getWidth(null), eraserImage.getHeight(null));
+        thickSelectPanel1 = new Rectangle(705, 610, thick1Image.getWidth(null), thick1Image.getHeight(null));
+        thickSelectPanel2 = new Rectangle(770, 610, thick2Image.getWidth(null), thick2Image.getHeight(null));
+        thickSelectPanel3 = new Rectangle(835, 610, thick3Image.getWidth(null), thick3Image.getHeight(null));
+        thickSelectPanel4 = new Rectangle(900, 610, thick4Image.getWidth(null), thick4Image.getHeight(null));
     }
 
     private void loadGuiComponents(){

@@ -58,6 +58,10 @@ class DrawingComponent implements Serializable{
         //System.out.println(col);
     }
 
+    public static Color getCurrentColor(){
+        return currentColor;
+    }
+
     public static void setToolType(String tool){
         if (tool.equals("PENCIL") || tool.equals("ERASER") || tool.equals("FILL")){
             toolType = tool;
