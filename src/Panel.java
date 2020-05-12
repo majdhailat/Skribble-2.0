@@ -92,7 +92,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                     g.drawImage(eraserImage, (int) eraserPanel.getX(), (int) eraserPanel.getY(), null);
                 }
 
-
                 g.drawImage(thick1Image, (int) thickSelectPanel1.getX(), (int) thickSelectPanel1.getY(), null);
                 g.drawImage(thick2Image, (int) thickSelectPanel2.getX(), (int) thickSelectPanel2.getY(), null);
                 g.drawImage(thick3Image, (int) thickSelectPanel3.getX(), (int) thickSelectPanel3.getY(), null);
@@ -121,17 +120,17 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                     g.setColor(s.getCol());
                     g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
                 }
-                System.out.println(drawingComponents.size());
-                    if(drawingComponents.size() > 1500){
-                        try {
-                            canvasImage = takeScreenShot(canvasPanel);
-                            drawingComponents.clear();
-//                            drawingComponents = drawingComponents.subList(1400, drawingComponents.size()-1);
-//                            drawingComponents = new ArrayList<DrawingComponent>(drawingComponents.subList(1400, drawingComponents.size()-1));
-                        } catch (AWTException e) {
-                            e.printStackTrace();
-                        }
-                    }
+//                System.out.println(drawingComponents.size());
+//                    if(drawingComponents.size() > 1500){
+//                        try {
+//                            canvasImage = takeScreenShot(canvasPanel);
+//                            drawingComponents.clear();
+////                            drawingComponents = drawingComponents.subList(1400, drawingComponents.size()-1);
+////                            drawingComponents = new ArrayList<DrawingComponent>(drawingComponents.subList(1400, drawingComponents.size()-1));
+//                        } catch (AWTException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
             }
         }
     }
