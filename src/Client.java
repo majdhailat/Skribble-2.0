@@ -53,7 +53,6 @@ public class Client extends JFrame {
             System.err.println("Port error");
             System.exit(1);
         }
-
     }
 
     public boolean isRunning(){
@@ -63,7 +62,6 @@ public class Client extends JFrame {
     private boolean gotUserName = false;//if the player has input their user name
     public void additionalSetup(){
         messagesToRender.add("#008000~Enter a user name");//prompting user for their name
-
     }
 
     public void updateDataPackage(DataPackage pack){
@@ -89,7 +87,6 @@ public class Client extends JFrame {
     }
 
     public DataPackage getDataPackage(){
-
         return dataPackage;
     }
 
