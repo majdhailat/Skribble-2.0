@@ -24,10 +24,8 @@ Bugs To-do:
         - possible cause: the stroke is not drawn and thus is not included in the screen capture before the array is cleared
             - weird because the image is taken after iterating through the whole array, and the artists update to the list should happen after
             - possible solution: leave a buffer in the array. instead of clearing it, we could try leaving some components
-    b. sometimes the image isn't taken in the correct location (its not of the canvas, but rather offset by a bit)
-        - *usually* happens starting from the second image
-        - the first image is either fine, or causes all the players other than the artist to have their canvas cleared
-        - possible cause: unknown
+    b. canvas gets cleared instead of drawing an updated image
+        -artist sends updated array before players can take picture
 
 2. Fix being able to draw outside of canvas 
     -Center of drawing circle cant go outside canvas, but the radius can
