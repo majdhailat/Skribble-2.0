@@ -29,7 +29,7 @@ class ClientOutputThread extends Thread {
                 else{
                     while(client.getDataPackage().getMyPlayer().isArtist() && client.getDataPackage().getGameStatus().equals(DataPackage.ROUNDINPROGRESS)){//starting artist loop
                         try {
-                            TimeUnit.MILLISECONDS.sleep(200);
+                            TimeUnit.MILLISECONDS.sleep(100);
                         } catch (InterruptedException e) {e.printStackTrace();}
                         try {
                             out.writeObject(client.getDrawingComponents());//sending drawing components array
