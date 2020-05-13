@@ -1,14 +1,8 @@
 To-do:
-1. Add fill tool
-2. Display currently selected colour and tool to artist
-    3. Highlight selected thickness to artist
 4. Fix points system -> bugs
-5. Add mute/ un-mute button
+5. Add a screen that displays how many points each player got (screen goes between rounds)
 6. Display the magic word to the artist in the status bar
-7. Display the letter place holders to the guessers in the status bar
-8. GUI kinda looks shit -> make it look better
-9. Use better music and background
-
+9. Use better music
 ==========================================================================================
 Possible To-do:
 1. Add host commands (I.e. kicking, restarting game etc)
@@ -38,3 +32,6 @@ Bugs To-do:
     a. shouldn't get points if no one guesses correctly, it could incentivise players to draw nothing at all
 
 5. Fix the end of round screen so that it doesn't clip player names/points after a few players
+
+6. If a word has to many letters the letter space holders interfere with other UI elements or go off the screen
+ - Limit to MAX 12 letters
