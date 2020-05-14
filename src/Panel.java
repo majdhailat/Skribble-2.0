@@ -23,6 +23,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             eraserImage, eraserSelectedImage, thick1Image, thick2Image, thick3Image, thick4Image, alarmImage,
             letterPlaceHolderImage, thick1SelectedImage, thick2SelectedImage, thick3SelectedImage, thick4SelectedImage,
             speakerImage, speakerMuteImage;
+    private boolean bgDrawn = false;
     BufferedImage bufferedColorPickerImage;
     private Rectangle canvasPanel, colorPickerPanel, pencilPanel, eraserPanel, thickSelectPanel1, thickSelectPanel2,
             thickSelectPanel3, thickSelectPanel4, playPausePanel;
@@ -92,8 +93,11 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     
     public void paintComponent(Graphics g) {
         if (g != null && loadedAssets) {
-            g.drawImage(bgImage, 0,0, null);
-            g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
+            if(!bgDrawn){
+                g.drawImage(bgImage, 0,0, null);
+                g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
+                bgDrawn = !bgDrawn;
+            }
             drawUI(g);
             drawDrawingComponents(g);
             if (dataPackage.getMyPlayer().isArtist()) {
