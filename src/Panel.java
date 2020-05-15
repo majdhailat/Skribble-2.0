@@ -19,11 +19,11 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
     Font textFont;
     private ImageIcon avatar;
-    private Image bgImage, OGCanvasPanel, canvasImage, colorPickerImage, pencilImage, pencilSelectedImage,
+    private Image bgImage, OGCanvasImage, canvasImage, colorPickerImage, pencilImage, pencilSelectedImage,
             eraserImage, eraserSelectedImage, thick1Image, thick2Image, thick3Image, thick4Image, alarmImage,
             letterPlaceHolderImage, thick1SelectedImage, thick2SelectedImage, thick3SelectedImage, thick4SelectedImage,
             speakerImage, speakerMuteImage;
-    private boolean bgDrawn = false;
+    private boolean canvasCleared = false;
     BufferedImage bufferedColorPickerImage;
     private Rectangle canvasPanel, colorPickerPanel, pencilPanel, eraserPanel, thickSelectPanel1, thickSelectPanel2,
             thickSelectPanel3, thickSelectPanel4, playPausePanel;
@@ -93,11 +93,11 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     
     public void paintComponent(Graphics g) {
         if (g != null && loadedAssets) {
-            if(!bgDrawn){
-                g.drawImage(bgImage, 0,0, null);
+            if(!canvasCleared){
                 g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
-                bgDrawn = !bgDrawn;
+                canvasCleared = !canvasCleared;
             }
+            g.drawImage(bgImage, 0,0, null);
             drawUI(g);
             drawDrawingComponents(g);
             if (dataPackage.getMyPlayer().isArtist()) {
@@ -194,9 +194,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
         else if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.WAITINGTOSTART)){
             drawingComponents.clear();
-            canvasImage = OGCanvasPanel;
-            g.setColor(new Color(235, 235, 235));
-            g.fillRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
+            canvasImage = OGCanvasImage;
+//            g.setColor(new Color(235, 235, 235));
+//            g.fillRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
         }
 
         if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.ROUNDINPROGRESS)){
@@ -292,9 +292,10 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void loadAssets() throws IOException {
         bufferedColorPickerImage = ImageIO.read(new File("image assets/Color picker.png"));
         avatar = new ImageIcon("image assets/icon.png");
-        bgImage = new ImageIcon("image assets/bg/bg"+Client.randint(1,10)+".jpg").getImage();
-        OGCanvasPanel = new ImageIcon("image assets/canvas.png").getImage();
-        canvasImage = OGCanvasPanel;
+//        bgImage = new ImageIcon("image assets/bg/bg"+Client.randint(1,10)+".jpg").getImage();
+        bgImage = new ImageIcon("image assets/bg/bgTest.jpg").getImage();
+        OGCanvasImage = new ImageIcon("image assets/canvas.png").getImage();
+        canvasImage = OGCanvasImage;
         colorPickerImage = new ImageIcon("image assets/Color picker.png").getImage();
         pencilImage = new ImageIcon("image assets/pencil.png").getImage();
         eraserImage = new ImageIcon("image assets/eraser.png").getImage();
@@ -319,7 +320,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     public void loadRects(){
-        canvasPanel = new Rectangle(225, 50, OGCanvasPanel.getWidth(null), OGCanvasPanel.getHeight(null));
+        canvasPanel = new Rectangle(225, 50, OGCanvasImage.getWidth(null), OGCanvasImage.getHeight(null));
         colorPickerPanel = new Rectangle(225, 610, colorPickerImage.getWidth(null), colorPickerImage.getHeight(null));
         pencilPanel = new Rectangle(575, 610, pencilImage.getWidth(null), pencilImage.getHeight(null));
         eraserPanel = new Rectangle(630, 610, eraserImage.getWidth(null), eraserImage.getHeight(null));
