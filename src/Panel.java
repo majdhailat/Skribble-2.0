@@ -6,14 +6,18 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.*;
 
 public class Panel extends JPanel implements MouseListener, MouseMotionListener {
     public boolean ready = false;
 
     private boolean loadedAssets;
     private DataPackage dataPackage;
-    private ArrayList<DrawingComponent> drawingComponents;
+    private ArrayList<DrawingComponent> drawingComponents; //this arrayList contains all DrawingComponents from the round
+//    private ArrayList<DrawingComponent> undrawnComponents;
+    private java.util.List<DrawingComponent> undrawnComponents; //this List only contains the DrawingComponents that havent already been drawn on the canvas
+
+    private int DCdrawn = 0; //how many DrawingComponents have been drawn, determines which components from drawingComponents need to be drawn
     private ArrayList<String> messagesToRender;
     private int previousMessagesToRenderSize = 0;
 
@@ -40,7 +44,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         setLayout(null);//prevents any form of auto layout
         addMouseListener(this);//used to detect mouse actions
         addMouseMotionListener(this);//used to detect mouse dragging
-        startMidi("assets/bgmusic.mid");//starting music
+//        startMidi("assets/bgmusic.mid");//starting music
 
         loadAssets();
         loadRects();
@@ -69,8 +73,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     //takes music file path, loads music and plays it in loop
-    Sequencer midiPlayer;
-    {
+    Sequencer midiPlayer;{
         try {
             midiPlayer = MidiSystem.getSequencer();
         } catch (MidiUnavailableException e) {
@@ -93,6 +96,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void paintComponent(Graphics g) {
         if (g != null && loadedAssets) {
             if(!canvasCleared){
+//                System.out.println("canvasCleared");
                 g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
                 canvasCleared = !canvasCleared;
             }
@@ -102,6 +106,31 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             if (dataPackage.getMyPlayer().isArtist()) {
                 drawArtistToolsPane(g);
             }
+        }
+    }
+
+    public void drawDrawingComponents(Graphics g){
+        undrawnComponents = drawingComponents.subList(DCdrawn, drawingComponents.size());
+//        System.out.println("active: " + undrawnComponents.size());
+//        System.out.println("total: "+ drawingComponents.size());
+        DCdrawn += undrawnComponents.size();
+        if (undrawnComponents.size() > 0) {
+            for (DrawingComponent s : undrawnComponents) {
+//                DCdrawn += 1;
+                g.setColor(s.getCol());
+                g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
+            }
+//                System.out.println(drawingComponents.size());
+//                    if(drawingComponents.size() > 1500){
+//                        try {
+//                            canvasImage = takeScreenShot(canvasPanel);
+//                            drawingComponents.clear();
+////                            drawingComponents = drawingComponents.subList(1400, drawingComponents.size()-1);
+////                            drawingComponents = new ArrayList<DrawingComponent>(drawingComponents.subList(1400, drawingComponents.size()-1));
+//                        } catch (AWTException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
         }
     }
 
@@ -140,25 +169,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         g2.drawRect((int)colorPickerPanel.getX() - 2, (int)colorPickerPanel.getY() - 2, colorPickerImage.getWidth(null) + 4, colorPickerImage.getHeight(null) + 4);
     }
 
-    public void drawDrawingComponents(Graphics g){
-        if (drawingComponents.size() > 0) {
-            for (DrawingComponent s : drawingComponents) {
-                g.setColor(s.getCol());
-                g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
-            }
-//                System.out.println(drawingComponents.size());
-//                    if(drawingComponents.size() > 1500){
-//                        try {
-//                            canvasImage = takeScreenShot(canvasPanel);
-//                            drawingComponents.clear();
-////                            drawingComponents = drawingComponents.subList(1400, drawingComponents.size()-1);
-////                            drawingComponents = new ArrayList<DrawingComponent>(drawingComponents.subList(1400, drawingComponents.size()-1));
-//                        } catch (AWTException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-        }
-    }
 
     public void drawUI(Graphics g){
         g.setColor(Color.black);
@@ -292,7 +302,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         bufferedColorPickerImage = ImageIO.read(new File("image assets/Color picker.png"));
         avatar = new ImageIcon("image assets/icon.png");
 //        bgImage = new ImageIcon("image assets/bg/bg"+Client.randint(1,10)+".jpg").getImage();
-        bgImage = new ImageIcon("image assets/bg/bgTest.jpg").getImage();
+        bgImage = new ImageIcon("image assets/bg/bgTest.png").getImage();
         OGCanvasImage = new ImageIcon("image assets/canvas.png").getImage();
         canvasImage = OGCanvasImage;
         colorPickerImage = new ImageIcon("image assets/Color picker.png").getImage();
