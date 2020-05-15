@@ -13,6 +13,7 @@ public class Client extends JFrame {
     private volatile ArrayList<DrawingComponent> drawingComponents = new ArrayList<>();//the list of all individual
     //pieces that make up the drawing. It is iterated through in the GUI and each component in the
     //array is drawn onto the canvas.
+//    private int componentsDrawn;
 
     private String usersTextMessage = null;//the most recent message that the user typed and pressed enter on
     private ArrayList<String> messagesToRender = new ArrayList<>();
