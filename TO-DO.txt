@@ -12,14 +12,9 @@ Possible To-do:
 
 ==========================================================================================
 Bugs To-do:
-1. For saving an image of the canvas and clearing that array
-    a. When the array is cleared, part of the stroke is lost
-        - the faster the artist was drawing, the larger stroke volume lost.
-        - possible cause: the stroke is not drawn and thus is not included in the screen capture before the array is cleared
-            - weird because the image is taken after iterating through the whole array, and the artists update to the list should happen after
-            - possible solution: leave a buffer in the array. instead of clearing it, we could try leaving some components
-    b. canvas gets cleared instead of drawing an updated image
-        -artist sends updated array before players can take picture
+1. the canvas (which isnt being redrawn until the end of the round) sometimes turns grey.
+    a. causes: rapidly moving the window back and forth, and moving the window off the desktop screen
+    b. this also sometimes causes minor duplication of panels, lasts for about a second
 
 2. Fix being able to draw outside of canvas 
     -Center of drawing circle cant go outside canvas, but the radius can
