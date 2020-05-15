@@ -23,7 +23,10 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             eraserImage, eraserSelectedImage, thick1Image, thick2Image, thick3Image, thick4Image, alarmImage,
             letterPlaceHolderImage, thick1SelectedImage, thick2SelectedImage, thick3SelectedImage, thick4SelectedImage,
             speakerImage, speakerMuteImage;
+<<<<<<< HEAD
     private boolean canvasCleared = false;
+=======
+>>>>>>> 67a83d1fc1e3b0e641cfb8cb849f166626700254
     BufferedImage bufferedColorPickerImage;
     private Rectangle canvasPanel, colorPickerPanel, pencilPanel, eraserPanel, thickSelectPanel1, thickSelectPanel2,
             thickSelectPanel3, thickSelectPanel4, playPausePanel;
@@ -90,10 +93,15 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     //renders the GUI and calls any methods relates to the GUI
-    
+    private boolean bgDrawn = false;
     public void paintComponent(Graphics g) {
         if (g != null && loadedAssets) {
+<<<<<<< HEAD
             if(!canvasCleared){
+=======
+            g.drawImage(bgImage, 0,0, null);
+            if(!bgDrawn){
+>>>>>>> 67a83d1fc1e3b0e641cfb8cb849f166626700254
                 g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
                 canvasCleared = !canvasCleared;
             }
@@ -194,9 +202,15 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
         else if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.WAITINGTOSTART)){
             drawingComponents.clear();
+<<<<<<< HEAD
             canvasImage = OGCanvasImage;
 //            g.setColor(new Color(235, 235, 235));
 //            g.fillRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
+=======
+            canvasImage = OGCanvasPanel;
+            g.setColor(new Color(235, 235, 235));
+            //g.fillRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
+>>>>>>> 67a83d1fc1e3b0e641cfb8cb849f166626700254
         }
 
         if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.ROUNDINPROGRESS)){
