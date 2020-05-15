@@ -14,9 +14,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     private boolean loadedAssets;
     private DataPackage dataPackage;
     private ArrayList<DrawingComponent> drawingComponents; //this arrayList contains all DrawingComponents from the round
-//    private ArrayList<DrawingComponent> undrawnComponents;
     private java.util.List<DrawingComponent> undrawnComponents; //this List only contains the DrawingComponents that havent already been drawn on the canvas
-
     private int DCdrawn = 0; //how many DrawingComponents have been drawn, determines which components from drawingComponents need to be drawn
     private ArrayList<String> messagesToRender;
     private int previousMessagesToRenderSize = 0;
@@ -96,7 +94,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void paintComponent(Graphics g) {
         if (g != null && loadedAssets) {
             if(!canvasCleared){
-//                System.out.println("canvasCleared");
                 g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
                 canvasCleared = !canvasCleared;
             }
@@ -111,26 +108,12 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
     public void drawDrawingComponents(Graphics g){
         undrawnComponents = drawingComponents.subList(DCdrawn, drawingComponents.size());
-//        System.out.println("active: " + undrawnComponents.size());
-//        System.out.println("total: "+ drawingComponents.size());
         DCdrawn += undrawnComponents.size();
         if (undrawnComponents.size() > 0) {
             for (DrawingComponent s : undrawnComponents) {
-//                DCdrawn += 1;
                 g.setColor(s.getCol());
                 g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
             }
-//                System.out.println(drawingComponents.size());
-//                    if(drawingComponents.size() > 1500){
-//                        try {
-//                            canvasImage = takeScreenShot(canvasPanel);
-//                            drawingComponents.clear();
-////                            drawingComponents = drawingComponents.subList(1400, drawingComponents.size()-1);
-////                            drawingComponents = new ArrayList<DrawingComponent>(drawingComponents.subList(1400, drawingComponents.size()-1));
-//                        } catch (AWTException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
         }
     }
 
@@ -256,7 +239,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         x2 = e.getX();
         y2 = e.getY();
 
-//            if (canvasPanel.contains(x1, y1) && canvasPanel.contains(x2, y2) && dataPackage.getMyPlayer().isArtist()) {
         if (canvasPanel.contains(x1, y1) && dataPackage.getMyPlayer().isArtist()) {
             if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)) {
                 mouseDist = (int)(Math.hypot(x2-x1, y2-y1)+.5);
