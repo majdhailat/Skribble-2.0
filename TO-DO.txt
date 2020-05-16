@@ -13,7 +13,7 @@ Possible To-do:
 ==========================================================================================
 Bugs To-do:
 1. the canvas (which isnt being redrawn until the end of the round) sometimes turns grey.
-    a. causes: rapidly moving the window back and forth, and moving the window off the desktop screen
+    a. causes: rapidly moving the window back and forth, and moving the window off the desktop screen (so alt-tabbing also causes this)
     b. this also sometimes causes minor duplication of panels, lasts for about a second
 
 2. Fix being able to draw outside of canvas 
