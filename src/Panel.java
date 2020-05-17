@@ -53,6 +53,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void addNotify() {
         super.addNotify();
         requestFocus();
+        System.out.println("focus requested");
         ready = true;
     }
 
@@ -93,10 +94,11 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     //renders the GUI and calls any methods relates to the GUI
     public void paintComponent(Graphics g) {
         if (g != null && loadedAssets) {
-            if(!canvasCleared){
+            //if(!canvasCleared){
+                //System.out.println("clearedddd");
                 g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
-                canvasCleared = !canvasCleared;
-            }
+                //canvasCleared = !canvasCleared;
+            //}
             g.drawImage(bgImage, 0,0, null);
             drawUI(g);
             drawDrawingComponents(g);
@@ -107,6 +109,10 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     public void drawDrawingComponents(Graphics g){
+        /*
+        if (drawingComponents.size() < DCdrawn){
+            DCdrawn = 0;
+        }
         undrawnComponents = drawingComponents.subList(DCdrawn, drawingComponents.size());
         DCdrawn += undrawnComponents.size();
         if (undrawnComponents.size() > 0) {
@@ -114,6 +120,12 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                 g.setColor(s.getCol());
                 g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
             }
+        }
+
+         */
+        for (DrawingComponent s : drawingComponents){
+            g.setColor(s.getCol());
+            g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
         }
     }
 
@@ -186,7 +198,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
         else if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.WAITINGTOSTART)){
             drawingComponents.clear();
-            canvasImage = OGCanvasImage;
+            //canvasImage = OGCanvasImage;
 //            g.setColor(new Color(235, 235, 235));
 //            g.fillRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
         }

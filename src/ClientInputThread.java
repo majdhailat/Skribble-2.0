@@ -2,6 +2,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.util.concurrent.TimeUnit;
 
 class ClientInputThread extends Thread {
     private ObjectInputStream objectInputStream;//stream used to read the data package object
