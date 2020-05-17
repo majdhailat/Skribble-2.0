@@ -9,7 +9,7 @@ import java.io.IOException;
 
 public class Gui extends JFrame {
     private Panel panel;
-    public Gui(Client client) throws IOException {
+    public Gui(Client client) throws IOException{
         super("Skribble");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(new Dimension(1280, 720));

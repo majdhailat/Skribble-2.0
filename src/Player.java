@@ -93,7 +93,7 @@ public class Player implements Serializable {
         winners.clear();
     }
 
-    public void calculatePoints(int wordLen, int secondsPassed){
+    public void calculatePoints(int wordLen, int secondsPassed) {
         secondsTakenToGuessWordLastRound = secondsPassed;
         winners.add(this);
         placeLastRound = winners.size();
@@ -102,16 +102,18 @@ public class Player implements Serializable {
             points -= (1.3 * secondsTakenToGuessWordLastRound);
             points *= Math.pow(numOfPlayers - placeLastRound, 1 + ((double) numOfPlayers / 10));
             pointsGainedLastRound = (Math.max((int) points, 0));
-        }else{
-            if (winners.size() == 0){
+        } else {
+            if (winners.size() == 0) {
                 pointsGainedLastRound = 0;
-            }else{
-                double points = 50 * Math.pow(wordLen, 1/1.5);
-                for (Player p : winners){
-                    points -= Math.pow((1.3 * p.secondsTakenToGuessWordLastRound), 1/(double)p.placeLastRound);
+            } else {
+                double points = 50 * Math.pow(wordLen, 1 / 1.5);
+                for (Player p : winners) {
+                    points -= Math.pow((1.3 * p.secondsTakenToGuessWordLastRound), 1 / (double) p.placeLastRound);
                 }
                 pointsGainedLastRound = (Math.max((int) points, 0));
             }
         }
     }
+
+
 }

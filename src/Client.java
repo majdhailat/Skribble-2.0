@@ -128,7 +128,7 @@ public class Client extends JFrame {
                 promptedStartMessage = false;
                 return msg;
             }
-        }else{
+        }else {
             return null;
         }
     }
