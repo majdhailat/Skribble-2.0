@@ -53,7 +53,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void addNotify() {
         super.addNotify();
         requestFocus();
-        System.out.println("focus requested");
         ready = true;
     }
 
@@ -123,10 +122,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         }
 
          */
+        long start = System.currentTimeMillis();
+
         for (DrawingComponent s : drawingComponents){
             g.setColor(s.getCol());
             g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
         }
+        long end = System.currentTimeMillis();
+        System.out.println("time taken: "+(end-start));
     }
 
     public void drawArtistToolsPane(Graphics g){
@@ -255,12 +258,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)) {
                 mouseDist = (int)(Math.hypot(x2-x1, y2-y1)+.5);
                 mouseDist = Math.max(mouseDist, 1);
-                for(int i = 0; i < mouseDist; i += 2){
-                    dx = (int)(i*(x2-x1)/mouseDist+.5);
-                    dy = (int)(i*(y2-y1)/mouseDist+.5);
-                    if(!(x1+dx < canvasPanel.getX()) && !(x1+dx > canvasPanel.getX()+canvasPanel.getWidth()) &&
-                            !(y1+dy < canvasPanel.getY()) && !(y1+dy > canvasPanel.getY()+canvasPanel.getHeight())){
-                        drawingComponents.add(new DrawingComponent(x1+dx, y1+dy));
+                if (mouseDist > 1) {
+                    for (int i = 0; i < mouseDist; i += 2) {
+                        dx = (int) (i * (x2 - x1) / mouseDist + .5);
+                        dy = (int) (i * (y2 - y1) / mouseDist + .5);
+                        if (!(x1 + dx < canvasPanel.getX()) && !(x1 + dx > canvasPanel.getX() + canvasPanel.getWidth()) &&
+                                !(y1 + dy < canvasPanel.getY()) && !(y1 + dy > canvasPanel.getY() + canvasPanel.getHeight())) {
+                            drawingComponents.add(new DrawingComponent(x1 + dx, y1 + dy));
+                        }
                     }
                 }
             }
@@ -274,10 +279,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public BufferedImage takeScreenShot(Rectangle panel) throws AWTException {
         Point offset = getLocationOnScreen();
         Rectangle imageRect = new Rectangle(panel.x + offset.x, panel.y + offset.y, panel.width, panel.height);
-        System.out.println(panel + ", " + panel.width + ", " + panel.height);
-        System.out.println(imageRect + ", " + imageRect.width + ", " + imageRect.height);
         BufferedImage image = new Robot().createScreenCapture(imageRect);
-        System.out.println("took picture");
         return image;
     }
 
