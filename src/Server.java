@@ -40,7 +40,10 @@ public class Server {
     public List<Player> getPlayers() {return players;}
 
     //sets the servers drawing components
-    public synchronized void setDrawingComponents(DrawingComponent[] components){this.drawingComponents = components;}
+    public synchronized void setDrawingComponents(DrawingComponent[] components){
+        System.out.println("server comp size: "+components.length);
+        this.drawingComponents = components;
+    }
 
     //sets up for a brand new game of x rounds (not determined yet)
     public void newGame(){

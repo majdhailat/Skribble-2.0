@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 
 public class Panel extends JPanel implements MouseListener, MouseMotionListener {
     public boolean ready = false;
@@ -14,10 +15,10 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     private boolean loadedAssets;
     private DataPackage dataPackage;
     private ArrayList<DrawingComponent> drawingComponents; //this arrayList contains all DrawingComponents from the round
-    private java.util.List<DrawingComponent> undrawnComponents; //this List only contains the DrawingComponents that havent already been drawn on the canvas
-    private int DCdrawn = 0; //how many DrawingComponents have been drawn, determines which components from drawingComponents need to be drawn
     private ArrayList<String> messagesToRender;
     private int previousMessagesToRenderSize = 0;
+
+    private List<DrawingComponent> drawingComponentsToDraw;
 
     Font textFont;
     private ImageIcon avatar;
@@ -25,7 +26,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             eraserImage, eraserSelectedImage, thick1Image, thick2Image, thick3Image, thick4Image, alarmImage,
             letterPlaceHolderImage, thick1SelectedImage, thick2SelectedImage, thick3SelectedImage, thick4SelectedImage,
             speakerImage, speakerMuteImage;
-    private boolean canvasCleared = false;
     BufferedImage bufferedColorPickerImage;
     private Rectangle canvasPanel, colorPickerPanel, pencilPanel, eraserPanel, thickSelectPanel1, thickSelectPanel2,
             thickSelectPanel3, thickSelectPanel4, playPausePanel;
@@ -33,6 +33,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     private JList messageList, playerList;
     private JScrollPane messagePane, playerPane;
     private JScrollBar messagePaneScrollBar;
+    Image screenshot = null;
 
     private Client client;
     public Panel(Client client) throws IOException{
@@ -56,11 +57,24 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         ready = true;
     }
 
+    private int chunks = 0;
     public void updateFromClient(){
+
         drawingComponents = client.getDrawingComponentsArrayList();
+        drawingComponentsToDraw = drawingComponents.subList(chunks * 300, drawingComponents.size());
+        System.out.println("CHUCK SIZE    :" + drawingComponents.subList(chunks * 300, drawingComponents.size()).size());
         dataPackage = client.getDataPackage();
         messagesToRender = client.getMessagesToRender();
         if (loadedAssets) {
+            if (drawingComponentsToDraw.size() > 300){
+                drawingComponentsToDraw.clear();
+                chunks += 1;
+                screenshot = null;
+                screenshot = ScreenImage.createImage(this, new Rectangle((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight()));
+
+            }
+
+
             if (messagesToRender.size() > previousMessagesToRenderSize) {
                 messageList.setListData(messagesToRender.toArray());
                 previousMessagesToRenderSize = messagesToRender.size();
@@ -92,15 +106,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
     //renders the GUI and calls any methods relates to the GUI
     public void paintComponent(Graphics g) {
+
         if (g != null && loadedAssets) {
-            //if(!canvasCleared){
-                //System.out.println("clearedddd");
-                g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
-                //canvasCleared = !canvasCleared;
-            //}
+            g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
             g.drawImage(bgImage, 0,0, null);
             drawUI(g);
+            g.drawImage(screenshot, (int)canvasPanel.getX(), (int) canvasPanel.getY(), null);
             drawDrawingComponents(g);
+
             if (dataPackage.getMyPlayer().isArtist()) {
                 drawArtistToolsPane(g);
             }
@@ -108,28 +121,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     public void drawDrawingComponents(Graphics g){
-        /*
-        if (drawingComponents.size() < DCdrawn){
-            DCdrawn = 0;
-        }
-        undrawnComponents = drawingComponents.subList(DCdrawn, drawingComponents.size());
-        DCdrawn += undrawnComponents.size();
-        if (undrawnComponents.size() > 0) {
-            for (DrawingComponent s : undrawnComponents) {
-                g.setColor(s.getCol());
-                g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
-            }
-        }
-
-         */
+        updateFromClient();
         long start = System.currentTimeMillis();
 
-        for (DrawingComponent s : drawingComponents){
+        for (DrawingComponent s : drawingComponentsToDraw){
             g.setColor(s.getCol());
             g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
         }
         long end = System.currentTimeMillis();
-        System.out.println("time taken: "+(end-start));
     }
 
     public void drawArtistToolsPane(Graphics g){
@@ -167,7 +166,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         g2.drawRect((int)colorPickerPanel.getX() - 2, (int)colorPickerPanel.getY() - 2, colorPickerImage.getWidth(null) + 4, colorPickerImage.getHeight(null) + 4);
     }
 
-
     public void drawUI(Graphics g){
         g.setColor(Color.black);
         g.setFont(textFont.deriveFont(20f));
@@ -201,9 +199,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
         else if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.WAITINGTOSTART)){
             drawingComponents.clear();
-            //canvasImage = OGCanvasImage;
-//            g.setColor(new Color(235, 235, 235));
-//            g.fillRect((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight());
         }
 
         if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.ROUNDINPROGRESS)){
@@ -258,16 +253,15 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)) {
                 mouseDist = (int)(Math.hypot(x2-x1, y2-y1)+.5);
                 mouseDist = Math.max(mouseDist, 1);
-                if (mouseDist > 1) {
-                    for (int i = 0; i < mouseDist; i += 2) {
-                        dx = (int) (i * (x2 - x1) / mouseDist + .5);
-                        dy = (int) (i * (y2 - y1) / mouseDist + .5);
-                        if (!(x1 + dx < canvasPanel.getX()) && !(x1 + dx > canvasPanel.getX() + canvasPanel.getWidth()) &&
-                                !(y1 + dy < canvasPanel.getY()) && !(y1 + dy > canvasPanel.getY() + canvasPanel.getHeight())) {
-                            drawingComponents.add(new DrawingComponent(x1 + dx, y1 + dy));
-                        }
+                for (int i = 0; i < mouseDist; i += 2) {
+                    dx = (int) (i * (x2 - x1) / mouseDist + .5);
+                    dy = (int) (i * (y2 - y1) / mouseDist + .5);
+                    if (!(x1 + dx < canvasPanel.getX()) && !(x1 + dx > canvasPanel.getX() + canvasPanel.getWidth()) &&
+                            !(y1 + dy < canvasPanel.getY()) && !(y1 + dy > canvasPanel.getY() + canvasPanel.getHeight())) {
+                        drawingComponents.add(new DrawingComponent(x1 + dx, y1 + dy));
                     }
                 }
+
             }
         }
         x1 = x2;
@@ -275,13 +269,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     public void mouseMoved(MouseEvent e) {}
-
-    public BufferedImage takeScreenShot(Rectangle panel) throws AWTException {
-        Point offset = getLocationOnScreen();
-        Rectangle imageRect = new Rectangle(panel.x + offset.x, panel.y + offset.y, panel.width, panel.height);
-        BufferedImage image = new Robot().createScreenCapture(imageRect);
-        return image;
-    }
 
     class MKeyListener extends KeyAdapter {
         public void keyPressed(KeyEvent event) {
@@ -297,7 +284,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void loadAssets() throws IOException {
         bufferedColorPickerImage = ImageIO.read(new File("image assets/Color picker.png"));
         avatar = new ImageIcon("image assets/icon.png");
-//        bgImage = new ImageIcon("image assets/bg/bg"+Client.randint(1,10)+".jpg").getImage();
+//      bgImage = new ImageIcon("image assets/bg/bg"+Client.randint(1,10)+".jpg").getImage();
         bgImage = new ImageIcon("image assets/bg/bgTest.png").getImage();
         OGCanvasImage = new ImageIcon("image assets/canvas.png").getImage();
         canvasImage = OGCanvasImage;

@@ -11,22 +11,16 @@ public class Client extends JFrame {
     private DataPackage dataPackage;//the object that stores all game info that the client will ever need
 
     private volatile ArrayList<DrawingComponent> drawingComponents = new ArrayList<>();//the list of all individual
-    //pieces that make up the drawing. It is iterated through in the GUI and each component in the
-    //array is drawn onto the canvas.
-//    private int componentsDrawn;
 
     private String usersTextMessage = null;//the most recent message that the user typed and pressed enter on
     private ArrayList<String> messagesToRender = new ArrayList<>();
     private boolean canReceiveMessages = false;//if the client can display other user's messages
-    //private ArrayList<String>messages = new ArrayList<>();//the list of messages for user
     private int previousMessagesSize = 0;//keeps track of which messages were already rendered to the screen by index
-    //of the messages arrayList
     private boolean promptedStartMessage = false;
 
     public static void main(String[] args) {
 
         Client client = new Client();
-
         String hostName = "localhost";//local host means you the server is on the same machine. If the server is on a
         //different machine but on the same network you must replace this with the host name followed by .local
         //on windows the host name can be found by going to the cmd line and typing hostname
@@ -34,7 +28,7 @@ public class Client extends JFrame {
         try (Socket socket = new Socket(hostName, portNumber)) {//connecting to server
             new ClientInputThread(socket, client).start();
             try {
-                TimeUnit.MILLISECONDS.sleep(5000);
+                TimeUnit.MILLISECONDS.sleep(1000);//5000
             } catch (InterruptedException e) {e.printStackTrace();}
             new ClientOutputThread(socket, client).start();
             new Gui(client);
@@ -60,7 +54,6 @@ public class Client extends JFrame {
         return running;
     }
 
-    private boolean gotUserName = false;//if the player has input their user name
     public void additionalSetup(){
         messagesToRender.add("#008000~Enter a user name");//prompting user for their name
     }
@@ -90,7 +83,6 @@ public class Client extends JFrame {
     public DataPackage getDataPackage(){
         return dataPackage;
     }
-
 
     public DrawingComponent[] getDrawingComponents(){
         DrawingComponent[] drawingComponentsArray = new DrawingComponent[drawingComponents.size()];
@@ -136,5 +128,4 @@ public class Client extends JFrame {
     public static int randint(int low, int high){
         return (int)(Math.random()*(high-low+1)+low);
     }
-
 }
