@@ -59,24 +59,36 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     private int chunks = 0;
+    private boolean screenshotPending = false;
+    private Image previousScreenShot = null;
     public void handleDrawingComponents(Graphics g) {
         drawingComponents = client.getDrawingComponentsArrayList();
-        System.out.println("DC SIZE: " + drawingComponents.size());
-        System.out.println("start index: " + chunks * 300);
-        System.out.println("end index: " + (drawingComponents.size() - 1));
         if (drawingComponents.size() > 0) {
+            if (screenshotPending) {
+                if ((screenshot != null && (previousScreenShot != null)) && !screenshot.equals(previousScreenShot)) {
+                    screenshotPending = false;
+                    previousScreenShot = screenshot;
+                }
+            } else {
+                g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
+                g.drawImage(screenshot, 0, 0, null);
+                if (drawingComponentsToDraw != null) {
+                    for (DrawingComponent s : drawingComponentsToDraw) {
+                        g.setColor(s.getCol());
+                        g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
+                    }
+                }
+            }
             drawingComponentsToDraw = drawingComponents.subList((chunks * 300), drawingComponents.size() - 1);
-
             if (dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)) {
                 if (drawingComponentsToDraw.size() >= 300) {
+                    screenshotPending = true;
                     chunks += 1;
-                    System.out.println("chunk: "+chunks);
-                    screenshot = null;
                     screenshot = ScreenImage.createImage(this, new Rectangle((int) canvasPanel.getX(), (int) canvasPanel.getY(), (int) canvasPanel.getWidth(), (int) canvasPanel.getHeight()));
+
                 }
             }
         }
-        drawDrawingComponents(g);
     }
 
     public void updateFromClient(){
@@ -118,10 +130,11 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         updateFromClient();
 
         if (g != null && loadedAssets) {
-            g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
+
             g.drawImage(bgImage, 0,0, null);
             drawUI(g);
-            g.drawImage(screenshot, 0, 0, null);
+
+
             handleDrawingComponents(g);
 
             if (dataPackage.getMyPlayer().isArtist()) {
@@ -133,14 +146,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void drawDrawingComponents(Graphics g){
 
 
-        if (drawingComponentsToDraw != null) {
-
-
-            for (DrawingComponent s : drawingComponentsToDraw) {
-                g.setColor(s.getCol());
-                g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
-            }
-        }
     }
 
     public void drawArtistToolsPane(Graphics g){
