@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class Panel extends JPanel implements MouseListener, MouseMotionListener {
     public boolean ready = false;
@@ -58,23 +59,31 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     private int chunks = 0;
-    public void updateFromClient(){
-
+    public void handleDrawingComponents(Graphics g) {
         drawingComponents = client.getDrawingComponentsArrayList();
-        drawingComponentsToDraw = drawingComponents.subList(chunks * 300, drawingComponents.size());
-        System.out.println("CHUCK SIZE    :" + drawingComponents.subList(chunks * 300, drawingComponents.size()).size());
+        System.out.println("DC SIZE: " + drawingComponents.size());
+        System.out.println("start index: " + chunks * 300);
+        System.out.println("end index: " + (drawingComponents.size() - 1));
+        if (drawingComponents.size() > 0) {
+            drawingComponentsToDraw = drawingComponents.subList((chunks * 300), drawingComponents.size() - 1);
+
+            if (dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)) {
+                if (drawingComponentsToDraw.size() >= 300) {
+                    chunks += 1;
+                    System.out.println("chunk: "+chunks);
+                    screenshot = null;
+                    screenshot = ScreenImage.createImage(this, new Rectangle((int) canvasPanel.getX(), (int) canvasPanel.getY(), (int) canvasPanel.getWidth(), (int) canvasPanel.getHeight()));
+                }
+            }
+        }
+        drawDrawingComponents(g);
+    }
+
+    public void updateFromClient(){
         dataPackage = client.getDataPackage();
         messagesToRender = client.getMessagesToRender();
+
         if (loadedAssets) {
-            if (drawingComponentsToDraw.size() > 300){
-                drawingComponentsToDraw.clear();
-                chunks += 1;
-                screenshot = null;
-                screenshot = ScreenImage.createImage(this, new Rectangle((int)canvasPanel.getX(), (int)canvasPanel.getY(), (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight()));
-
-            }
-
-
             if (messagesToRender.size() > previousMessagesToRenderSize) {
                 messageList.setListData(messagesToRender.toArray());
                 previousMessagesToRenderSize = messagesToRender.size();
@@ -106,13 +115,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
     //renders the GUI and calls any methods relates to the GUI
     public void paintComponent(Graphics g) {
+        updateFromClient();
 
         if (g != null && loadedAssets) {
             g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
             g.drawImage(bgImage, 0,0, null);
             drawUI(g);
-            g.drawImage(screenshot, (int)canvasPanel.getX(), (int) canvasPanel.getY(), null);
-            drawDrawingComponents(g);
+            g.drawImage(screenshot, 0, 0, null);
+            handleDrawingComponents(g);
 
             if (dataPackage.getMyPlayer().isArtist()) {
                 drawArtistToolsPane(g);
@@ -121,14 +131,16 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     public void drawDrawingComponents(Graphics g){
-        updateFromClient();
-        long start = System.currentTimeMillis();
 
-        for (DrawingComponent s : drawingComponentsToDraw){
-            g.setColor(s.getCol());
-            g.fillOval(s.getCx()-s.getStroke(), s.getCy()-s.getStroke(), s.getStroke()*2, s.getStroke()*2);
+
+        if (drawingComponentsToDraw != null) {
+
+
+            for (DrawingComponent s : drawingComponentsToDraw) {
+                g.setColor(s.getCol());
+                g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
+            }
         }
-        long end = System.currentTimeMillis();
     }
 
     public void drawArtistToolsPane(Graphics g){
@@ -197,9 +209,8 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             }
         }
 
-        else if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.WAITINGTOSTART)){
-            drawingComponents.clear();
-        }
+
+
 
         if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.ROUNDINPROGRESS)){
             g.drawString("Round "+(dataPackage.getTotalNumOfRounds() - dataPackage.getRoundsLeft() + 1) +" of "+dataPackage.getTotalNumOfRounds(), 65, 32);
