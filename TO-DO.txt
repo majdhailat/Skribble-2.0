@@ -1,7 +1,6 @@
 To-do:
-1. Fill bucket tool, I'll do this once the current issue is dealt with
 4. Fix points system -> bugs
-5. Add a screen that displays how many points each player got (screen goes between rounds) --> isnt this already implemented?
+5. Add a screen that displays how many points each player got (screen goes between rounds) --> isnt this already implemented? No I removed it cuz it was shit
 6. Display the magic word to the artist in the status bar
 9. Use better music
 ==========================================================================================
@@ -13,18 +12,12 @@ Possible To-do:
 
 ==========================================================================================
 Bugs To-do:
-1. the canvas (which isnt being redrawn until the end of the round) sometimes turns grey.
-    a. causes: rapidly moving the window back and forth, and moving the window off the desktop screen (alt-tabbing also causes this)
-    b. this also sometimes causes minor duplication of panels, lasts for about a second
-    Solution: If we can figure out when this happens, we can redraw the canvasImage and all the components
-        - we can check the x,y location of the window to see if its on screen (cause 2)
-        - we can check if the window has focus to see if we've alt-tabbed (cause 3)
-        - Not sure how to determine if the issue was caused by rapid window movement
-            - NOTE: I think this is a windows issue, because rapidly moving a window is like a shortcut to change focus of other windows
-        We might have to try and stop if from making the screen grey in the first place, but since idk why thats happening, the previous solution is all ive got rn
-    c. To-Do: reset DCdrawn and canvasCleared variables at the end of each round
-
-
+1. Canvas now works with screenshots but the following bugs have been created:
+	- If you move the panel the ss is where the panel USED TO BE
+		- Need a way to update panel pos
+	- SOMETIMES: it clears on the non artists before SS is taken
+		- IK how to fix this -> its ez
+	
 3. Fix player disconnecting issues 
     -i.e what happens if artist dips
     -server must reset and stay idle if everyone dips
