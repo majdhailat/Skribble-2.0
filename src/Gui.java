@@ -28,13 +28,15 @@ public class Gui extends JFrame {
                 //running = false;
             }
         });
+
     }
 
     //triggered every 100 ms by myTimer
+    private boolean didRun = false;
     class TickListener implements ActionListener {
         public void actionPerformed(ActionEvent evt) {
             if (panel != null && panel.ready) {
-
+                panel.updateFromClient();
                 panel.repaint();
             }
         }

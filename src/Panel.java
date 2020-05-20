@@ -7,36 +7,31 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class Panel extends JPanel implements MouseListener, MouseMotionListener {
     public boolean ready = false;
-
     private boolean loadedAssets;
+
+    private Client client;
     private DataPackage dataPackage;
     private ArrayList<DrawingComponent> drawingComponents; //this arrayList contains all DrawingComponents from the round
     private ArrayList<String> messagesToRender;
     private int previousMessagesToRenderSize = 0;
 
-    private List<DrawingComponent> drawingComponentsToDraw;
-
-    Font textFont;
+    private Font textFont;
     private ImageIcon avatar;
     private Image bgImage, OGCanvasImage, canvasImage, colorPickerImage, pencilImage, pencilSelectedImage,
             eraserImage, eraserSelectedImage, thick1Image, thick2Image, thick3Image, thick4Image, alarmImage,
             letterPlaceHolderImage, thick1SelectedImage, thick2SelectedImage, thick3SelectedImage, thick4SelectedImage,
-            speakerImage, speakerMuteImage;
-    BufferedImage bufferedColorPickerImage;
+            speakerImage, speakerMuteImage, screenshot = null;
+    private BufferedImage bufferedColorPickerImage;
     private Rectangle canvasPanel, colorPickerPanel, pencilPanel, eraserPanel, thickSelectPanel1, thickSelectPanel2,
             thickSelectPanel3, thickSelectPanel4, playPausePanel;
     private JTextField textField;
     private JList messageList, playerList;
     private JScrollPane messagePane, playerPane;
     private JScrollBar messagePaneScrollBar;
-    Image screenshot = null;
 
-    private Client client;
     public Panel(Client client) throws IOException{
         this.client = client;
         updateFromClient();
@@ -52,51 +47,12 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         loadedAssets = true;
     }
 
-    public void addNotify() {
-        super.addNotify();
-        requestFocus();
-        ready = true;
-    }
-
-    private int chunks = 0;
-    private boolean screenshotPending = false;
-    private Image previousScreenShot = null;
-    public void handleDrawingComponents(Graphics g) {
-        drawingComponents = client.getDrawingComponentsArrayList();
-        if (drawingComponents.size() > 0) {
-            if (screenshotPending) {
-                if ((screenshot != null && (previousScreenShot != null)) && !screenshot.equals(previousScreenShot)) {
-                    screenshotPending = false;
-                    previousScreenShot = screenshot;
-                }
-            } else {
-                g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
-                g.drawImage(screenshot, 0, 0, null);
-                if (drawingComponentsToDraw != null) {
-                    for (DrawingComponent s : drawingComponentsToDraw) {
-                        g.setColor(s.getCol());
-                        g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
-                    }
-                }
-            }
-            drawingComponentsToDraw = drawingComponents.subList((chunks * 300), drawingComponents.size() - 1);
-            if (dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)) {
-                if (drawingComponentsToDraw.size() >= 300) {
-                    screenshotPending = true;
-                    chunks += 1;
-                    screenshot = ScreenImage.createImage(this, new Rectangle((int) canvasPanel.getX(), (int) canvasPanel.getY(), (int) canvasPanel.getWidth(), (int) canvasPanel.getHeight()));
-
-                }
-            }
-        }
-    }
-
     public void updateFromClient(){
         dataPackage = client.getDataPackage();
         messagesToRender = client.getMessagesToRender();
-
         if (loadedAssets) {
             if (messagesToRender.size() > previousMessagesToRenderSize) {
+                System.out.println(messagesToRender);
                 messageList.setListData(messagesToRender.toArray());
                 previousMessagesToRenderSize = messagesToRender.size();
                 messagePaneScrollBar.setValue(messagePaneScrollBar.getMaximum());
@@ -105,47 +61,73 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         }
     }
 
-    //takes music file path, loads music and plays it in loop
-    Sequencer midiPlayer;{
-        try {
-            midiPlayer = MidiSystem.getSequencer();
-        } catch (MidiUnavailableException e) {
-            e.printStackTrace();
+    public void paintComponent(Graphics g) {
+        if (g != null && loadedAssets) {
+            drawUI(g);
+            handleDrawingComponents(g);
         }
     }
 
-    public void startMidi(String midFilename) {
-        try {
-            File midiFile = new File(midFilename);
-            Sequence song = MidiSystem.getSequence(midiFile);
-            midiPlayer.open();
-            midiPlayer.setSequence(song);
-            midiPlayer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
-            midiPlayer.start();
-        } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {e.printStackTrace();}
-    }
+    public void drawUI(Graphics g){
+        g.drawImage(bgImage, 0,0, null);
+        if (dataPackage.getMyPlayer().isArtist()) {
+            drawArtistToolsPane(g);
+        }
+        g.setColor(Color.black);
+        g.setFont(textFont.deriveFont(20f));
+        String status = dataPackage.getGameStatus();
+        if (midiPlayer.isRunning()){
+            g.drawImage(speakerImage, (int)playPausePanel.getX(), (int)playPausePanel.getY(), null);
+        }else{
+            g.drawImage(speakerMuteImage, (int)playPausePanel.getX(), (int)playPausePanel.getY(), null);
+        }
 
-    //renders the GUI and calls any methods relates to the GUI
-    public void paintComponent(Graphics g) {
-        updateFromClient();
+        playerList.setListData(dataPackage.getPlayers().toArray());
+        playerList.setCellRenderer(PanelExtension.playerListRenderer(avatar, textFont, dataPackage.getMyPlayer()));
+        playerPane.setBounds(10, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
 
-        if (g != null && loadedAssets) {
+        if (status.equals(DataPackage.ROUNDINPROGRESS)) {
+            g.drawImage(alarmImage, 14, 5, null);
+            g.drawString("" + dataPackage.getTimeRemaining(), 22, 32);
 
-            g.drawImage(bgImage, 0,0, null);
-            drawUI(g);
-
-
-            handleDrawingComponents(g);
-
-            if (dataPackage.getMyPlayer().isArtist()) {
-                drawArtistToolsPane(g);
+            if (!dataPackage.getMyPlayer().isArtist()) {
+                int wordLen = dataPackage.getMagicWord().length();
+                for (int i = 0; i < wordLen; i++) {
+                    if (dataPackage.getMagicWord().charAt(i) != ' ') {
+                        g.drawImage(letterPlaceHolderImage, (640 - ((wordLen * 40 + ((wordLen - 1) * 20)) / 2)) + ((i - 1) * 60), 30, null);
+                    }
+                }
             }
         }
+
+        if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.ROUNDINPROGRESS)){
+            g.drawString("Round "+(dataPackage.getTotalNumOfRounds() - dataPackage.getRoundsLeft() + 1) +" of "+dataPackage.getTotalNumOfRounds(), 65, 32);
+        }
     }
 
-    public void drawDrawingComponents(Graphics g){
+    private boolean finishedIterating = true;
+    public void handleDrawingComponents(Graphics g) {
+        if (finishedIterating){
+            finishedIterating = false;
 
-
+            drawingComponents = client.getDrawingComponentsArrayList();
+            if (drawingComponents.size() > 0) {
+                g.drawImage(screenshot, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
+                for (DrawingComponent s : drawingComponents) {
+                    g.setColor(s.getCol());
+                    g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
+                }
+                if (drawingComponents.size() >= 5000){
+                    try {
+                        screenshot = ScreenImage.createImage(new Rectangle((int)canvasPanel.getX() + 8, (int)canvasPanel.getY() + 31, (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight()));
+                    } catch (AWTException e) {
+                        e.printStackTrace();
+                    }
+                    drawingComponents.clear();
+                }
+            }
+            finishedIterating = true;
+        }
     }
 
     public void drawArtistToolsPane(Graphics g){
@@ -183,49 +165,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         g2.drawRect((int)colorPickerPanel.getX() - 2, (int)colorPickerPanel.getY() - 2, colorPickerImage.getWidth(null) + 4, colorPickerImage.getHeight(null) + 4);
     }
 
-    public void drawUI(Graphics g){
-        g.setColor(Color.black);
-        g.setFont(textFont.deriveFont(20f));
-        String status = dataPackage.getGameStatus();
-        if (midiPlayer.isRunning()){
-            g.drawImage(speakerImage, (int)playPausePanel.getX(), (int)playPausePanel.getY(), null);
-        }else{
-            g.drawImage(speakerMuteImage, (int)playPausePanel.getX(), (int)playPausePanel.getY(), null);
-        }
-
-        playerList.setListData(dataPackage.getPlayers().toArray());
-        playerList.setCellRenderer(PanelExtension.playerListRenderer(avatar, textFont, dataPackage.getMyPlayer()));
-        playerPane.setBounds(10, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
-
-        if (status.equals(DataPackage.ROUNDINPROGRESS)){
-            g.drawImage(alarmImage, 14, 5, null);
-            g.drawString(""+dataPackage.getTimeRemaining(), 22, 32);
-
-            if (!dataPackage.getMyPlayer().isArtist()){
-                int wordLen = dataPackage.getMagicWord().length();
-                for (int i = 0; i < wordLen; i++) {
-                    if (dataPackage.getMagicWord().charAt(i) != ' ') {
-                        g.drawImage(letterPlaceHolderImage, (640 - ((wordLen * 40 + ((wordLen - 1) * 20)) / 2)) + ((i - 1) * 60), 30, null);
-                    }
-                }
-            }
-            else if (dataPackage.getMyPlayer().isArtist()){
-
-            }
-        }
-
-
-
-
-        if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.ROUNDINPROGRESS)){
-            g.drawString("Round "+(dataPackage.getTotalNumOfRounds() - dataPackage.getRoundsLeft() + 1) +" of "+dataPackage.getTotalNumOfRounds(), 65, 32);
-        }
-    }
-
     // ------------ MouseListener ------------------------------------------
-    //I WILL ADD COMMENTS LATER BECAUSE THERE IS A LOT MORE CODE TO ADD HERE
-    private int x1, y1, x2, y2;
-    private int mouseDist, dx, dy;
+
+    private int x1, y1;
 
     public void mouseEntered(MouseEvent e) {}
     public void mouseExited(MouseEvent e) {}
@@ -235,6 +177,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void mousePressed(MouseEvent e) {
         x1 = e.getX();
         y1 = e.getY();
+        System.out.println(x1+"   "+y1);
         if (colorPickerPanel.contains(x1, y1)) {
             Color c = new Color(bufferedColorPickerImage.getRGB((int) (x1 - colorPickerPanel.getX()), (int) (y1 - colorPickerPanel.getY())));
             DrawingComponent.setColor(c);
@@ -262,16 +205,16 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     synchronized public void mouseDragged(MouseEvent e) {
-        x2 = e.getX();
-        y2 = e.getY();
+        int x2 = e.getX();
+        int y2 = e.getY();
 
         if (canvasPanel.contains(x1, y1) && dataPackage.getMyPlayer().isArtist()) {
             if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)) {
-                mouseDist = (int)(Math.hypot(x2-x1, y2-y1)+.5);
+                int mouseDist = (int) (Math.hypot(x2 - x1, y2 - y1) + .5);
                 mouseDist = Math.max(mouseDist, 1);
                 for (int i = 0; i < mouseDist; i += 2) {
-                    dx = (int) (i * (x2 - x1) / mouseDist + .5);
-                    dy = (int) (i * (y2 - y1) / mouseDist + .5);
+                    int dx = (int) (i * (x2 - x1) / mouseDist + .5);
+                    int dy = (int) (i * (y2 - y1) / mouseDist + .5);
                     if (!(x1 + dx < canvasPanel.getX()) && !(x1 + dx > canvasPanel.getX() + canvasPanel.getWidth()) &&
                             !(y1 + dy < canvasPanel.getY()) && !(y1 + dy > canvasPanel.getY() + canvasPanel.getHeight())) {
                         drawingComponents.add(new DrawingComponent(x1 + dx, y1 + dy));
@@ -296,6 +239,8 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             }
         }
     }
+
+    // ------------ SETUP ------------------------------------------
 
     public void loadAssets() throws IOException {
         bufferedColorPickerImage = ImageIO.read(new File("image assets/Color picker.png"));
@@ -361,5 +306,30 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         messagePane.setBounds(955, 50, 305, 525);
         messagePane.setHorizontalScrollBarPolicy(messagePane.HORIZONTAL_SCROLLBAR_NEVER);
         add(messagePane);
+    }
+
+    public void addNotify() {
+        super.addNotify();
+        requestFocus();
+        ready = true;
+    }
+
+    Sequencer midiPlayer;{
+        try {
+            midiPlayer = MidiSystem.getSequencer();
+        } catch (MidiUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void startMidi(String midFilename) {
+        try {
+            File midiFile = new File(midFilename);
+            Sequence song = MidiSystem.getSequence(midiFile);
+            midiPlayer.open();
+            midiPlayer.setSequence(song);
+            midiPlayer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
+            midiPlayer.start();
+        } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {e.printStackTrace();}
     }
 }
