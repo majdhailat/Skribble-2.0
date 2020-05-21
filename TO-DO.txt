@@ -19,6 +19,8 @@ Bugs To-do:
     -image is taken of the screen, not the window - if the windows overlap, or something covers the game window, its included in the screenshot
     -canvas is not cleared at the end of the round
     -reintroduced the issue of drawing outside the canvas (i think solving the other issues might fix this as well)
+    -if you move the canvas of players, sometimes it duplicates all the components a couple pixels next to the originals
+    -same grey canvas issue as before, if you shake the window, or move it offscreen it clears
 
 3. Fix player disconnecting issues 
     -i.e what happens if artist dips
