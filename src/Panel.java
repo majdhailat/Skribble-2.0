@@ -121,7 +121,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         if (finishedIterating){
             finishedIterating = false;
             drawingComponents = client.getDrawingComponentsArrayList();
-            System.out.println(drawingComponents.size());
+//            System.out.println(drawingComponents.size());
 //            g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
             if (drawingComponents.size() > 0) {
                 g.drawImage(screenshot, (int)canvasPanel.getX(), (int)canvasPanel.getY(), null);
@@ -129,16 +129,16 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                     g.setColor(s.getCol());
                     g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
                 }
-//                if ((drawingComponents.size() >= 2000 && !isMouseClicked) || drawingComponents.size() < previousComponentSize){
+                if ((drawingComponents.size() >= 2000 && !isMouseClicked) || drawingComponents.size() < previousComponentSize){
 //                if ((drawingComponents.size() >= 2000 && !isMouseClicked)){
-                if ((drawingComponents.size() >= 2000 && !isMouseClicked) || (drawingComponents.size() < previousComponentSize && !isMouseClicked)){
+//                if ((drawingComponents.size() >= 2000 && !isMouseClicked) || (drawingComponents.size() < previousComponentSize && !isMouseClicked)){
                     Point currentLocation = this.getLocationOnScreen();
                     horizontalDisplacement = currentLocation.x - initialScreenPosX;
                     verticalDisplacement = currentLocation.y - initialScreenPosY;
 
                     try {
                         screenshot = ScreenImage.createImage(new Rectangle((int)canvasPanel.getX() + 8 + horizontalDisplacement,  (int)canvasPanel.getY() + 31 +  verticalDisplacement, (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight()));
-                        System.out.println("screenshot taken");
+//                        System.out.println("screenshot taken");
                     } catch (AWTException e) {
                         e.printStackTrace();
                     }
