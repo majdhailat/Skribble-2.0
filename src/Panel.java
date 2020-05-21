@@ -108,7 +108,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 //        canvasPanel = new Rectangle(225, 50, OGCanvasImage.getWidth(null), OGCanvasImage.getHeight(null));
     private boolean finishedIterating = true;
     boolean gotInitialPos = false;
-
+    private int previousComponentSize;
     public void handleDrawingComponents(Graphics g) {
         if (!gotInitialPos){
             Point location = this.getLocationOnScreen();
@@ -126,7 +126,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                     g.setColor(s.getCol());
                     g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
                 }
-                if (drawingComponents.size() >= 3000){
+                if (drawingComponents.size() >= 3000 || drawingComponents.size() < previousComponentSize){
                     Point currentLocation = this.getLocationOnScreen();
                     horizontalDisplacement = currentLocation.x - initialScreenPosX;
                     verticalDisplacement = currentLocation.y - initialScreenPosY;
@@ -139,6 +139,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                     drawingComponents.clear();
                 }
             }
+            previousComponentSize = drawingComponents.size();
             finishedIterating = true;
         }
     }
