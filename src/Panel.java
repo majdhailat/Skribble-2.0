@@ -32,7 +32,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     private JScrollPane messagePane, playerPane;
     private JScrollBar messagePaneScrollBar;
     private int initialScreenPosX, initialScreenPosY;
-    private boolean isMouseClciked = false;
+    private boolean isMouseClicked = false;
 
     public Panel(Client client) throws IOException{
         this.client = client;
@@ -41,7 +41,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         setLayout(null);//prevents any form of auto layout
         addMouseListener(this);//used to detect mouse actions
         addMouseMotionListener(this);//used to detect mouse dragging
-        startMidi("assets/bgmusic.mid");//starting music
+//        startMidi("assets/bgmusic.mid");//starting music
 
         loadAssets();
         loadRects();
@@ -121,19 +121,24 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         if (finishedIterating){
             finishedIterating = false;
             drawingComponents = client.getDrawingComponentsArrayList();
+            System.out.println(drawingComponents.size());
+//            g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
             if (drawingComponents.size() > 0) {
                 g.drawImage(screenshot, (int)canvasPanel.getX(), (int)canvasPanel.getY(), null);
                 for (DrawingComponent s : drawingComponents) {
                     g.setColor(s.getCol());
                     g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
                 }
-                if ((drawingComponents.size() >= 2000 && !isMouseClciked) || drawingComponents.size() < previousComponentSize){
+//                if ((drawingComponents.size() >= 2000 && !isMouseClicked) || drawingComponents.size() < previousComponentSize){
+//                if ((drawingComponents.size() >= 2000 && !isMouseClicked)){
+                if ((drawingComponents.size() >= 2000 && !isMouseClicked) || (drawingComponents.size() < previousComponentSize && !isMouseClicked)){
                     Point currentLocation = this.getLocationOnScreen();
                     horizontalDisplacement = currentLocation.x - initialScreenPosX;
                     verticalDisplacement = currentLocation.y - initialScreenPosY;
 
                     try {
                         screenshot = ScreenImage.createImage(new Rectangle((int)canvasPanel.getX() + 8 + horizontalDisplacement,  (int)canvasPanel.getY() + 31 +  verticalDisplacement, (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight()));
+                        System.out.println("screenshot taken");
                     } catch (AWTException e) {
                         e.printStackTrace();
                     }
@@ -187,14 +192,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void mouseEntered(MouseEvent e) {}
     public void mouseExited(MouseEvent e) {}
     public void mouseReleased(MouseEvent e) {
-        isMouseClciked = false;
-        isMouseClciked = false;
+        isMouseClicked = false;
+        isMouseClicked = false;
     }
     public void mouseClicked(MouseEvent e) {}
 
 
     public void mousePressed(MouseEvent e) {
-        isMouseClciked = true;
+        isMouseClicked = true;
         x1 = e.getX();
         y1 = e.getY();
         if (colorPickerPanel.contains(x1, y1)) {
@@ -264,7 +269,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void loadAssets() throws IOException {
         bufferedColorPickerImage = ImageIO.read(new File("image assets/Color picker.png"));
         avatar = new ImageIcon("image assets/icon.png");
-//      bgImage = new ImageIcon("image assets/bg/bg"+Client.randint(1,10)+".jpg").getImage();
+//        bgImage = new ImageIcon("image assets/bg/bg"+Client.randint(1,10)+".jpg").getImage();
         bgImage = new ImageIcon("image assets/bg/bgTest.png").getImage();
         OGCanvasImage = new ImageIcon("image assets/canvas.png").getImage();
         canvasImage = OGCanvasImage;
