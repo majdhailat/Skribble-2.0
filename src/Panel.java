@@ -31,6 +31,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     private JList messageList, playerList;
     private JScrollPane messagePane, playerPane;
     private JScrollBar messagePaneScrollBar;
+    private int initialScreenPosX, initialScreenPosY;
 
     public Panel(Client client) throws IOException{
         this.client = client;
@@ -52,7 +53,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         messagesToRender = client.getMessagesToRender();
         if (loadedAssets) {
             if (messagesToRender.size() > previousMessagesToRenderSize) {
-                System.out.println(messagesToRender);
                 messageList.setListData(messagesToRender.toArray());
                 previousMessagesToRenderSize = messagesToRender.size();
                 messagePaneScrollBar.setValue(messagePaneScrollBar.getMaximum());
@@ -105,21 +105,34 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         }
     }
 
+//        canvasPanel = new Rectangle(225, 50, OGCanvasImage.getWidth(null), OGCanvasImage.getHeight(null));
     private boolean finishedIterating = true;
+    boolean gotInitialPos = false;
+
     public void handleDrawingComponents(Graphics g) {
+        if (!gotInitialPos){
+            Point location = this.getLocationOnScreen();
+            initialScreenPosX = location.x;
+            initialScreenPosY = location.y;
+            gotInitialPos = true;
+        }
+        int horizontalDisplacement, verticalDisplacement;
         if (finishedIterating){
             finishedIterating = false;
-
             drawingComponents = client.getDrawingComponentsArrayList();
             if (drawingComponents.size() > 0) {
-                g.drawImage(screenshot, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
+                g.drawImage(screenshot, (int)canvasPanel.getX(), (int)canvasPanel.getY(), null);
                 for (DrawingComponent s : drawingComponents) {
                     g.setColor(s.getCol());
                     g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
                 }
-                if (drawingComponents.size() >= 5000){
+                if (drawingComponents.size() >= 3000){
+                    Point currentLocation = this.getLocationOnScreen();
+                    horizontalDisplacement = currentLocation.x - initialScreenPosX;
+                    verticalDisplacement = currentLocation.y - initialScreenPosY;
+
                     try {
-                        screenshot = ScreenImage.createImage(new Rectangle((int)canvasPanel.getX() + 8, (int)canvasPanel.getY() + 31, (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight()));
+                        screenshot = ScreenImage.createImage(new Rectangle((int)canvasPanel.getX() + 8 + horizontalDisplacement,  (int)canvasPanel.getY() + 31 +  verticalDisplacement, (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight()));
                     } catch (AWTException e) {
                         e.printStackTrace();
                     }
@@ -177,7 +190,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void mousePressed(MouseEvent e) {
         x1 = e.getX();
         y1 = e.getY();
-        System.out.println(x1+"   "+y1);
         if (colorPickerPanel.contains(x1, y1)) {
             Color c = new Color(bufferedColorPickerImage.getRGB((int) (x1 - colorPickerPanel.getX()), (int) (y1 - colorPickerPanel.getY())));
             DrawingComponent.setColor(c);
