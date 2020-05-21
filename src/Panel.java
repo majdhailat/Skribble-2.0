@@ -32,6 +32,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     private JScrollPane messagePane, playerPane;
     private JScrollBar messagePaneScrollBar;
     private int initialScreenPosX, initialScreenPosY;
+    private boolean isMouseClciked = false;
 
     public Panel(Client client) throws IOException{
         this.client = client;
@@ -126,7 +127,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                     g.setColor(s.getCol());
                     g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
                 }
-                if (drawingComponents.size() >= 3000 || drawingComponents.size() < previousComponentSize){
+                if ((drawingComponents.size() >= 2000 && !isMouseClciked) || drawingComponents.size() < previousComponentSize){
                     Point currentLocation = this.getLocationOnScreen();
                     horizontalDisplacement = currentLocation.x - initialScreenPosX;
                     verticalDisplacement = currentLocation.y - initialScreenPosY;
@@ -185,10 +186,15 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
     public void mouseEntered(MouseEvent e) {}
     public void mouseExited(MouseEvent e) {}
-    public void mouseReleased(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) {
+        isMouseClciked = false;
+        isMouseClciked = false;
+    }
     public void mouseClicked(MouseEvent e) {}
 
+
     public void mousePressed(MouseEvent e) {
+        isMouseClciked = true;
         x1 = e.getX();
         y1 = e.getY();
         if (colorPickerPanel.contains(x1, y1)) {
