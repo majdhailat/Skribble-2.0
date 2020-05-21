@@ -13,10 +13,12 @@ Possible To-do:
 ==========================================================================================
 Bugs To-do:
 1. Canvas now works with screenshots but the following bugs have been created:
-	- If you move the panel the ss is where the panel USED TO BE
-		- Need a way to update panel pos
-	- SOMETIMES: it clears on the non artists before SS is taken
-		- IK how to fix this -> its ez
+	-canvas is grey instead of white - this is probably because we're using a transparent bg - shouldnt be necessary anymore right?
+    -subtle duplication - the chat panel duplicates itself like 2 pixels to the left - same issue we were getting when we werent refreshing bg
+    -when drawing, there is sometimes loss of some drawing components (part of the stroke is lost) - likely happens when taking image
+    -image is taken of the screen, not the window - if the windows overlap, or something covers the game window, its included in the screenshot
+    -canvas is not cleared at the end of the round
+    -reintroduced the issue of drawing outside the canvas (i think solving the other issues might fix this as well)
 	
 3. Fix player disconnecting issues 
     -i.e what happens if artist dips
