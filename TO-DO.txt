@@ -14,6 +14,9 @@ Possible To-do:
 Bugs To-do:
 1. Canvas now works with screenshots but the following bugs have been created:
 	-canvas is grey instead of white - this is probably because we're using a transparent bg - shouldnt be necessary anymore right?
+	    -i tried using the non-transparent version of the background, and drawing the blank canvas before the screenshot and components
+	        -however, it takes an image of he cleared screen for some reason. I'm not entirely sure why this occurs since the SC and DC are drawn before the image is taken
+	        -i also tried using the transparent bg, and selectively drawing the canvas, but it doesnt solve the other grey screen issues listed below
     -subtle duplication - the chat panel duplicates itself like 2 pixels to the left - same issue we were getting when we werent refreshing bg
     -when drawing, there is sometimes loss of some drawing components (part of the stroke is lost) - likely happens when taking image
     -image is taken of the screen, not the window - if the windows overlap, or something covers the game window, its included in the screenshot
