@@ -9,6 +9,7 @@ Possible To-do:
 2. Either a) allow the artist to select between multiple words or 
 	b) allow the artist to skip words (either cap the # of skips or add a skip 			penalty like point deduction)
 3. Allow game to work over the internet
+4. fill bucket tool
 
 ==========================================================================================
 Bugs To-do:
@@ -16,14 +17,13 @@ Bugs To-do:
 	- If anything is above the canvas, its included in the SS (no fix)
 	- The canvas gets cleared but reappears if u click after u minimize the window
 	- A tiny part of the previous stroke gets lost when the SS is taken 
-	- There is a double stroke (ONLY FOR AHMAD)	
-	
-3. Fix player disconnecting issues 
+	- There is a double stroke (ONLY FOR AHMAD)	¯\_(ツ)_/¯
+
+2. the "type start to..." message appears 2 times. it shows up when you type and enter start
+
+3. Fix player disconnecting issues
     -i.e what happens if artist dips
     -server must reset and stay idle if everyone dips
-
-4.Points system is very unbalanced and has a bug where sometimes it doesn't update somebodies score
-    a. shouldn't get points if no one guesses correctly, it could incentivise players to draw nothing at all
 
 5. Fix the end of round screen so that it doesn't clip player names/points after a few players
 
