@@ -41,7 +41,6 @@ public class Server {
 
     //sets the servers drawing components
     public synchronized void setDrawingComponents(DrawingComponent[] components){
-        System.out.println("server comp size: "+components.length);
         this.drawingComponents = components;
     }
 
@@ -96,6 +95,7 @@ public class Server {
         for (Player p : players){
             p.updateScore();
         }
+        Player.clearWinners();
         Player.nullifyArtist();
         if (roundsLeft == 1){
             endGame();

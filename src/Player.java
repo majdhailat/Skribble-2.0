@@ -82,14 +82,17 @@ public class Player implements Serializable {
     public int getPointsGainedLastRound(){return pointsGainedLastRound;}
 
     public void updateScore(){
-        System.out.println(this.name+": "+this.pointsGainedLastRound);
-        System.out.println("artists: "+artist.name);
-        if (artist == this || winners.contains(this)) {
+        System.out.println(this.getName()+"   tryint to updates score");
+        if (this.isArtist || winners.contains(this)) {
+            System.out.println(this.getName()+"   updates score");
             this.score += pointsGainedLastRound;
         }
         pointsGainedLastRound = 0;
         secondsTakenToGuessWordLastRound = 0;
         placeLastRound = 0;
+    }
+
+    public static void clearWinners(){
         winners.clear();
     }
 

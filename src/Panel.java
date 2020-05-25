@@ -1,6 +1,7 @@
 import javax.imageio.ImageIO;
 import javax.sound.midi.*;
 import javax.swing.*;
+import javax.xml.crypto.Data;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class Panel extends JPanel implements MouseListener, MouseMotionListener {
+    public boolean legacyDCModeEnabled = true;
     public boolean ready = false;
     private boolean loadedAssets;
 
@@ -98,12 +100,25 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                         g.drawImage(letterPlaceHolderImage, (640 - ((wordLen * 40 + ((wordLen - 1) * 20)) / 2)) + ((i - 1) * 60), 30, null);
                     }
                 }
+            }else{
+
+                g.drawString(""+dataPackage.getMagicWord(), 640 - ((dataPackage.getMagicWord().length() / 2) * 30), 30);
             }
         }
 
         if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.ROUNDINPROGRESS)){
             g.drawString("Round "+(dataPackage.getTotalNumOfRounds() - dataPackage.getRoundsLeft() + 1) +" of "+dataPackage.getTotalNumOfRounds(), 65, 32);
         }
+
+        if (status.equals(DataPackage.BETWEENROUND)){
+            g.drawImage(canvasImage, (int)canvasPanel.getX(), (int)canvasPanel.getY(), null);
+            for (int i = 0; i < dataPackage.getPlayers().size(); i ++){
+                Player p = dataPackage.getPlayers().get(i);
+                g.drawString(""+p.getName(),325, 100 + (i * 60));
+                g.drawString(""+p.getPointsGainedLastRound(), 425, 100 + (i * 60));
+            }
+        }
+
     }
 
     //        canvasPanel = new Rectangle(225, 50, OGCanvasImage.getWidth(null), OGCanvasImage.getHeight(null));
@@ -111,37 +126,53 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     boolean gotInitialPos = false;
     private int previousComponentSize;
     public void handleDrawingComponents(Graphics g) {
-        if (!gotInitialPos){
-            Point location = this.getLocationOnScreen();
-            initialScreenPosX = location.x;
-            initialScreenPosY = location.y;
-            gotInitialPos = true;
-        }
-        int horizontalDisplacement, verticalDisplacement;
-        if (finishedIterating){
-            finishedIterating = false;
-            drawingComponents = client.getDrawingComponentsArrayList();
-            if (drawingComponents.size() > 0) {
-                g.drawImage(screenshot, (int)canvasPanel.getX(), (int)canvasPanel.getY(), null);
+        drawingComponents = client.getDrawingComponentsArrayList();
+        if (dataPackage.getGameStatus().equals(DataPackage.ROUNDINPROGRESS)) {
+            g.drawImage(canvasImage, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
+            if (!legacyDCModeEnabled) {
+                if (!gotInitialPos) {
+                    Point location = this.getLocationOnScreen();
+                    initialScreenPosX = location.x;
+                    initialScreenPosY = location.y;
+                    gotInitialPos = true;
+                }
+                int horizontalDisplacement, verticalDisplacement;
+                if (finishedIterating) {
+                    finishedIterating = false;
+                    if (drawingComponents.size() > 0) {
+                        g.drawImage(screenshot, (int) canvasPanel.getX(), (int) canvasPanel.getY(), null);
+                        for (DrawingComponent s : drawingComponents) {
+                            g.setColor(s.getCol());
+                            g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
+                        }
+                        if ((drawingComponents.size() >= 2000 && !isMouseClciked) || drawingComponents.size() < previousComponentSize) {
+                            Point currentLocation = this.getLocationOnScreen();
+                            horizontalDisplacement = currentLocation.x - initialScreenPosX;
+                            verticalDisplacement = currentLocation.y - initialScreenPosY;
+
+                            try {
+                                screenshot = ScreenImage.createImage(new Rectangle((int) canvasPanel.getX() + 8 + horizontalDisplacement, (int) canvasPanel.getY() + 31 + verticalDisplacement, (int) canvasPanel.getWidth(), (int) canvasPanel.getHeight()));
+                            } catch (AWTException e) {
+                                e.printStackTrace();
+                            }
+                            drawingComponents.clear();
+                        }
+                    }
+                    previousComponentSize = drawingComponents.size();
+                    finishedIterating = true;
+                }
+            } else {
+
                 for (DrawingComponent s : drawingComponents) {
                     g.setColor(s.getCol());
                     g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
                 }
-                if ((drawingComponents.size() >= 2000 && !isMouseClciked) || drawingComponents.size() < previousComponentSize){
-                    Point currentLocation = this.getLocationOnScreen();
-                    horizontalDisplacement = currentLocation.x - initialScreenPosX;
-                    verticalDisplacement = currentLocation.y - initialScreenPosY;
-
-                    try {
-                        screenshot = ScreenImage.createImage(new Rectangle((int)canvasPanel.getX() + 8 + horizontalDisplacement,  (int)canvasPanel.getY() + 31 +  verticalDisplacement, (int)canvasPanel.getWidth(), (int)canvasPanel.getHeight()));
-                    } catch (AWTException e) {
-                        e.printStackTrace();
-                    }
-                    drawingComponents.clear();
-                }
             }
-            previousComponentSize = drawingComponents.size();
-            finishedIterating = true;
+        }
+        else{
+            if (drawingComponents.size() > 0) {
+                drawingComponents.clear();
+            }
         }
     }
 

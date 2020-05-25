@@ -114,10 +114,10 @@ public class Client extends JFrame {
                 return msg;
             }
             else if (dataPackage.getGameStatus().equals(DataPackage.WAITINGTOSTART) && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && msg.equals("start")){
+                promptedStartMessage = false;
                 return "/START";
             }else{
                 messagesToRender.add("Me: " + msg);
-                promptedStartMessage = false;
                 return msg;
             }
         }else {

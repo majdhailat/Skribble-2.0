@@ -12,11 +12,11 @@ Possible To-do:
 
 ==========================================================================================
 Bugs To-do:
-1. Canvas now works with screenshots but the following bugs have been created:
-	- If you move the panel the ss is where the panel USED TO BE
-		- Need a way to update panel pos
-	- SOMETIMES: it clears on the non artists before SS is taken
-		- IK how to fix this -> its ez
+1. Canvas Bugs
+	- If anything is above the canvas, its included in the SS (no fix)
+	- The canvas gets cleared but reappears if u click after u minimize the window
+	- A tiny part of the previous stroke gets lost when the SS is taken 
+	- There is a double stroke (ONLY FOR AHMAD)	
 	
 3. Fix player disconnecting issues 
     -i.e what happens if artist dips
