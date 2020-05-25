@@ -85,7 +85,7 @@ public class Server {
         timeRemainingInRound = roundTimeLength;
         gameStatus = DataPackage.BETWEENROUND;
         if (Player.getArtist() != null) {
-            Player.getArtist().calculatePoints(charLengthOfMagicWord, roundTimeLength - timeRemainingInRound);
+            Player.getArtist().calculatePoints(charLengthOfMagicWord, timeRemainingInRound);
         }
         drawingComponents = null;
         currentMagicWord = null;
@@ -150,7 +150,7 @@ public class Server {
         }else if (currentMagicWord != null && msg.toLowerCase().equals(currentMagicWord.toLowerCase())){
             message = ("#FF0000~"+sender.getName() + " has guessed correctly!");
             sender.addMessage("#FF0000~You have guessed correctly!");
-            sender.calculatePoints(charLengthOfMagicWord, roundTimeLength - timeRemainingInRound);
+            sender.calculatePoints(charLengthOfMagicWord, timeRemainingInRound);
             if(Player.getWinners().size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
                 endRound = true;
             }
