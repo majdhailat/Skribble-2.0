@@ -82,9 +82,9 @@ public class Player implements Serializable {
     public int getPointsGainedLastRound(){return pointsGainedLastRound;}
 
     public void updateScore(){
-        System.out.println(this.getName()+"   tryint to updates score");
+//        System.out.println(this.getName()+"   tryint to updates score");
         if (this.isArtist || winners.contains(this)) {
-            System.out.println(this.getName()+"   updates score");
+//            System.out.println(this.getName()+"   updates score");
             this.score += pointsGainedLastRound;
         }
         pointsGainedLastRound = 0;
@@ -96,27 +96,26 @@ public class Player implements Serializable {
         winners.clear();
     }
 
-    public void calculatePoints(int wordLen, int secondsPassed) {
-        secondsTakenToGuessWordLastRound = secondsPassed;
+    public void calculatePoints(int wordLen, int secondsLeft) {
+        //time it took to guess
+        //the order you guessed in
+        //length of the word only matters if <5 letters
         winners.add(this);
         placeLastRound = winners.size();
+        double points;
+        double exponent;
         if (this != artist) {
-            double points = 50 * Math.pow(wordLen, 1 / 1.5);
-            points -= (1.3 * secondsTakenToGuessWordLastRound);
-            points *= Math.pow(numOfPlayers - placeLastRound, 1 + ((double) numOfPlayers / 10));
-            pointsGainedLastRound = (Math.max((int) points, 0));
+            exponent = Math.max(1, 1.3 - (placeLastRound * 0.1));
+            points = Math.ceil(Math.pow(secondsLeft, exponent));
+            pointsGainedLastRound = (int) points;
         } else {
-            if (winners.size() == 0) {
+            if (winners.size() == 1) { //the artist is added to the list of winners at the beginning of the round
                 pointsGainedLastRound = 0;
             } else {
-                double points = 50 * Math.pow(wordLen, 1 / 1.5);
-                for (Player p : winners) {
-                    points -= Math.pow((1.3 * p.secondsTakenToGuessWordLastRound), 1 / (double) p.placeLastRound);
-                }
-                pointsGainedLastRound = (Math.max((int) points, 0));
+                exponent = 1 + wordLen/15.0;
+                points = Math.ceil(Math.pow(secondsLeft/2.0, exponent));
+                pointsGainedLastRound = (int) points;
             }
         }
     }
-
-
 }
