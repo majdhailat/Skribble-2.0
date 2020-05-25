@@ -106,7 +106,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         }
     }
 
-//        canvasPanel = new Rectangle(225, 50, OGCanvasImage.getWidth(null), OGCanvasImage.getHeight(null));
+    //        canvasPanel = new Rectangle(225, 50, OGCanvasImage.getWidth(null), OGCanvasImage.getHeight(null));
     private boolean finishedIterating = true;
     boolean gotInitialPos = false;
     private int previousComponentSize;
