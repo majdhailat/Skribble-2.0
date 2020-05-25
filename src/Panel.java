@@ -43,7 +43,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         setLayout(null);//prevents any form of auto layout
         addMouseListener(this);//used to detect mouse actions
         addMouseMotionListener(this);//used to detect mouse dragging
-        startMidi("assets/bgmusic.mid");//starting music
+//        startMidi("assets/bgmusic.mid");//starting music
 
         loadAssets();
         loadRects();
