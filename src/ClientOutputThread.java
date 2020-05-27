@@ -15,6 +15,13 @@ class ClientOutputThread extends Thread {
     public void run() {
         while (client.isRunning()){
             if (client.getDataPackage() != null) {
+                try {
+                    out.writeObject(0);//"band aid" fix
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                client.updateUsersTextMessage(null);
+
                 //NON ARTIST MODE
                 String usersTextMessage = client.getUsersTextMessage();
                 if (!client.getDataPackage().getMyPlayer().isArtist()) {
@@ -37,10 +44,9 @@ class ClientOutputThread extends Thread {
                             out.reset();
                         } catch (IOException e) {e.printStackTrace();}
                     }
-                    try {
-                        out.writeObject(0);//"band aid" fix
-                        client.updateUsersTextMessage(null);
-                    } catch (IOException e) {e.printStackTrace();}
+
+
+
                 }
             }
         }
