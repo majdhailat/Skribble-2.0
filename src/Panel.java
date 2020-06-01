@@ -61,9 +61,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
      */
     public void updateFromClient(){
         dataPackage = client.getDataPackage();//getting data package
-        playerList.setListData(dataPackage.getPlayers().toArray());
         messagesToRender = client.getMessagesToRender();//getting messages
         if (loadedAssets && messagesToRender.size() > previousMessagesToRenderSize) {//checking for any new messages
+            playerList.setListData(dataPackage.getPlayers().toArray());
             messageList.setListData(messagesToRender.toArray());//setting the data for the messages list to the updated array
             previousMessagesToRenderSize = messagesToRender.size();//resetting size
             messagePaneScrollBar.setValue(messagePaneScrollBar.getMaximum());//temp until fix
