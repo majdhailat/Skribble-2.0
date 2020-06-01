@@ -1,3 +1,4 @@
+//imports
 import javax.imageio.ImageIO;
 import javax.sound.midi.*;
 import javax.swing.*;
@@ -8,17 +9,19 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+//DIDN'T COMMENT HANDLE DRAWING COMPONENTS OR ARTIST TOOL BAR OR INIT METHODS
 public class Panel extends JPanel implements MouseListener, MouseMotionListener {
-    public boolean legacyDCModeEnabled = true;
     public boolean ready = false;
-    private boolean loadedAssets;
+    public boolean legacyDCModeEnabled = true;//toggles between drawing component handling systems
 
     private Client client;
-    private DataPackage dataPackage;
+    private DataPackage dataPackage;//all the info needed by the panel from the client
     private ArrayList<DrawingComponent> drawingComponents; //this arrayList contains all DrawingComponents from the round
-    private ArrayList<String> messagesToRender;
+    private ArrayList<String> messagesToRender;//list of messages that have not been rendered yet
     private int previousMessagesToRenderSize = 0;
 
+    //all assets
+    private boolean loadedAssets;//if all assets were loaded
     private Font textFont;
     private ImageIcon avatar;
     private Image bgImage, OGCanvasImage, canvasImage, colorPickerImage, pencilImage, pencilSelectedImage,
@@ -28,12 +31,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     private BufferedImage bufferedColorPickerImage;
     private Rectangle canvasPanel, colorPickerPanel, pencilPanel, eraserPanel, thickSelectPanel1, thickSelectPanel2,
             thickSelectPanel3, thickSelectPanel4, playPausePanel;
-    private JTextField textField;
-    private JList messageList, playerList;
-    private JScrollPane messagePane, playerPane;
-    private JScrollBar messagePaneScrollBar;
-    private int initialScreenPosX, initialScreenPosY;
-    private boolean isMouseClciked = false;
+
+    private JTextField textField;//the text field where the user can type
+    private JList messageList, playerList;//the left and right list panes
+    private JScrollPane messagePane, playerPane;//the scroll panes on which the lists are contained
+    private JScrollBar messagePaneScrollBar;//scroll bar for message scroll pane
+
+    private int initialScreenPosX, initialScreenPosY;//the pos of the panel on screen when the game is first loaded
+    private boolean isMouseClicked = false;//if the mouse is being clicked
 
     public Panel(Client client) throws IOException{
         this.client = client;
@@ -42,7 +47,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         setLayout(null);//prevents any form of auto layout
         addMouseListener(this);//used to detect mouse actions
         addMouseMotionListener(this);//used to detect mouse dragging
-//        startMidi("assets/bgmusic.mid");//starting music
+        startMidi("assets/bgmusic.mid");//starting music
 
         loadAssets();
         loadRects();
@@ -50,19 +55,24 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         loadedAssets = true;
     }
 
+    /*
+    Fetches the data package and messages from the client
+    Gets any info from the data package that is needed
+     */
     public void updateFromClient(){
-        dataPackage = client.getDataPackage();
-        messagesToRender = client.getMessagesToRender();
-        if (loadedAssets) {
-            if (messagesToRender.size() > previousMessagesToRenderSize) {
-                messageList.setListData(messagesToRender.toArray());
-                previousMessagesToRenderSize = messagesToRender.size();
-                messagePaneScrollBar.setValue(messagePaneScrollBar.getMaximum());
-            }
+        dataPackage = client.getDataPackage();//getting data package
+        playerList.setListData(dataPackage.getPlayers().toArray());
+        messagesToRender = client.getMessagesToRender();//getting messages
+        if (loadedAssets && messagesToRender.size() > previousMessagesToRenderSize) {//checking for any new messages
+            messageList.setListData(messagesToRender.toArray());//setting the data for the messages list to the updated array
+            previousMessagesToRenderSize = messagesToRender.size();//resetting size
             messagePaneScrollBar.setValue(messagePaneScrollBar.getMaximum());//temp until fix
         }
     }
 
+    /*
+    Calls the draw ui method and the drawing component handler which renders the drawing
+     */
     public void paintComponent(Graphics g) {
         if (g != null && loadedAssets) {
             drawUI(g);
@@ -70,46 +80,56 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         }
     }
 
+    /*
+    Draws all UI elements
+     */
     public void drawUI(Graphics g){
-        g.drawImage(bgImage, 0,0, null);
-        if (dataPackage.getMyPlayer().isArtist()) {
-            drawArtistToolsPane(g);
+        playerPane.setBounds(10, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+
+        //BACKGROUND ~~~
+        g.drawImage(bgImage, 0,0, null);//drawing background
+
+        //ARTIST TOOL BAR ~~~
+        if (dataPackage.getMyPlayer().isArtist()){//checking if artist
+            drawArtistToolsPane(g);//drawing tools pane
         }
-        g.setColor(Color.black);
-        g.setFont(textFont.deriveFont(20f));
-        String status = dataPackage.getGameStatus();
-        if (midiPlayer.isRunning()){
+
+        //MUSIC SPEAKER ICON ~~~
+        if (midiPlayer.isRunning()){//checking if music is playing and drawing icon accordingly
             g.drawImage(speakerImage, (int)playPausePanel.getX(), (int)playPausePanel.getY(), null);
         }else{
             g.drawImage(speakerMuteImage, (int)playPausePanel.getX(), (int)playPausePanel.getY(), null);
         }
 
-        playerList.setListData(dataPackage.getPlayers().toArray());
-        playerList.setCellRenderer(PanelExtension.playerListRenderer(avatar, textFont, dataPackage.getMyPlayer()));
-        playerPane.setBounds(10, 50, 205, playerList.getFixedCellHeight()*dataPackage.getPlayers().size());
+        g.setColor(Color.black);
+        g.setFont(textFont.deriveFont(20f));
+        String status = dataPackage.getGameStatus();//getting game status
 
         if (status.equals(DataPackage.ROUNDINPROGRESS)) {
-            g.drawImage(alarmImage, 14, 5, null);
-            g.drawString("" + dataPackage.getTimeRemaining(), 22, 32);
+            //TIMER ~~~
+            g.drawImage(alarmImage, 14, 5, null);//drawing alarm image
+            g.drawString("" + dataPackage.getTimeRemaining(), 22, 32);//drawing time remaining text
 
-            if (!dataPackage.getMyPlayer().isArtist()) {
+            //WORD/ LETTER PLACEHOLDERS ~~~
+            if (!dataPackage.getMyPlayer().isArtist()) {//not artist
                 int wordLen = dataPackage.getMagicWord().length();
                 for (int i = 0; i < wordLen; i++) {
-                    if (dataPackage.getMagicWord().charAt(i) != ' ') {
+                    if (dataPackage.getMagicWord().charAt(i) != ' ') {//skipping spaces
                         g.drawImage(letterPlaceHolderImage, (640 - ((wordLen * 40 + ((wordLen - 1) * 20)) / 2)) + ((i - 1) * 60), 30, null);
                     }
                 }
-            }else{
-
+            }else{//artist
                 g.drawString(""+dataPackage.getMagicWord(), 640 - ((dataPackage.getMagicWord().length() / 2) * 30), 30);
             }
         }
 
         if (status.equals(DataPackage.BETWEENROUND) || status.equals(DataPackage.ROUNDINPROGRESS)){
+            //ROUND TEXT ~~~
             g.drawString("Round "+(dataPackage.getTotalNumOfRounds() - dataPackage.getRoundsLeft() + 1) +" of "+dataPackage.getTotalNumOfRounds(), 65, 32);
         }
 
         if (status.equals(DataPackage.BETWEENROUND)){
+            //POINTS SUMMARY ~~~
             g.drawImage(canvasImage, (int)canvasPanel.getX(), (int)canvasPanel.getY(), null);
             for (int i = 0; i < dataPackage.getPlayers().size(); i ++){
                 Player p = dataPackage.getPlayers().get(i);
@@ -117,10 +137,11 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                 g.drawString(""+p.getPointsGainedLastRound(), 425, 100 + (i * 60));
             }
         }
-
     }
 
-    //        canvasPanel = new Rectangle(225, 50, OGCanvasImage.getWidth(null), OGCanvasImage.getHeight(null));
+    /*
+    Draws the image on canvas
+     */
     private boolean finishedIterating = true;
     boolean gotInitialPos = false;
     private int previousComponentSize;
@@ -144,7 +165,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                             g.setColor(s.getCol());
                             g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
                         }
-                        if ((drawingComponents.size() >= 2000 && !isMouseClciked) || drawingComponents.size() < previousComponentSize) {
+                        if ((drawingComponents.size() >= 2000 && !isMouseClicked) || drawingComponents.size() < previousComponentSize) {
                             Point currentLocation = this.getLocationOnScreen();
                             horizontalDisplacement = currentLocation.x - initialScreenPosX;
                             verticalDisplacement = currentLocation.y - initialScreenPosY;
@@ -161,7 +182,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                     finishedIterating = true;
                 }
             } else {
-
                 for (DrawingComponent s : drawingComponents) {
                     g.setColor(s.getCol());
                     g.fillOval(s.getCx() - s.getStroke(), s.getCy() - s.getStroke(), s.getStroke() * 2, s.getStroke() * 2);
@@ -175,6 +195,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         }
     }
 
+    /*
+    Draws the artists tool bar
+     */
     public void drawArtistToolsPane(Graphics g){
         g.drawImage(colorPickerImage, (int) colorPickerPanel.getX(), (int) colorPickerPanel.getY(), null);
         if (DrawingComponent.getSelectedToolType().equals(DrawingComponent.PENCIL)){
@@ -217,14 +240,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void mouseEntered(MouseEvent e) {}
     public void mouseExited(MouseEvent e) {}
     public void mouseReleased(MouseEvent e) {
-        isMouseClciked = false;
-        isMouseClciked = false;
+        isMouseClicked = false;
+        isMouseClicked = false;
     }
     public void mouseClicked(MouseEvent e) {}
 
 
     public void mousePressed(MouseEvent e) {
-        isMouseClciked = true;
+        isMouseClicked = true;
         x1 = e.getX();
         y1 = e.getY();
         if (colorPickerPanel.contains(x1, y1)) {
@@ -291,10 +314,12 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
     // ------------ SETUP ------------------------------------------
 
+    /*
+    Loads all assets
+     */
     public void loadAssets() throws IOException {
         bufferedColorPickerImage = ImageIO.read(new File("image assets/Color picker.png"));
         avatar = new ImageIcon("image assets/icon.png");
-//      bgImage = new ImageIcon("image assets/bg/bg"+Client.randint(1,10)+".jpg").getImage();
         bgImage = new ImageIcon("image assets/bg/bgTest.png").getImage();
         OGCanvasImage = new ImageIcon("image assets/canvas.png").getImage();
         canvasImage = OGCanvasImage;
@@ -315,12 +340,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         eraserSelectedImage = new ImageIcon("image assets/eraser selected.png").getImage();
         speakerImage = new ImageIcon("image assets/speaker.png").getImage();
         speakerMuteImage = new ImageIcon("image assets/speaker mute.png").getImage();
-
         try {
             textFont = Font.createFont(Font.TRUETYPE_FONT, new File("assets/tipper.otf")).deriveFont(15.5f);
         } catch (FontFormatException | IOException e) {e.printStackTrace();}
     }
 
+    /*
+    Loads all rectangles
+     */
     public void loadRects(){
         canvasPanel = new Rectangle(225, 50, OGCanvasImage.getWidth(null), OGCanvasImage.getHeight(null));
         colorPickerPanel = new Rectangle(225, 610, colorPickerImage.getWidth(null), colorPickerImage.getHeight(null));
@@ -333,6 +360,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         playPausePanel = new Rectangle(1200, -3, speakerImage.getWidth(null), speakerImage.getHeight(null));
     }
 
+    /*
+    Loads all UI components
+     */
     private void loadGuiComponents(){
         textField = new JTextField();//the box in which the user can type their message
         messageList = new JList(messagesToRender.toArray());
@@ -371,6 +401,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         }
     }
 
+    /*
+    Starts music player
+     */
     public void startMidi(String midFilename) {
         try {
             File midiFile = new File(midFilename);

@@ -34,11 +34,6 @@ public class Server {
 
     public boolean isRunning(){return running;}
 
-    public String getGameStatus(){return gameStatus;}
-
-    //returns players
-    public List<Player> getPlayers() {return players;}
-
     //sets the servers drawing components
     public synchronized void setDrawingComponents(DrawingComponent[] components){
         this.drawingComponents = components;
@@ -107,7 +102,6 @@ public class Server {
 
     //called after the user enters their username
     public synchronized void playerConnected(Player player) {
-        Player.incrementNumOfPlayer();
         players.add(player);
         player.addMessage("#008000~Welcome to Skribble " + player.getName());//greeting new player
         //alerting the rest of the players of the new player
@@ -120,7 +114,6 @@ public class Server {
 
     //called when a player leaves
     public synchronized void playerDisconnected(Player player){
-        Player.decrementNumOfPlayers();
         players.remove(player);
         if (players.size() == 0){
             roundsLeft = 1;

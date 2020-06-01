@@ -1,16 +1,9 @@
 To-do:
-4. Fix points system -> bugs
-5. Add a screen that displays how many points each player got (screen goes between rounds) --> isnt this already implemented? No I removed it cuz it was shit
-6. Display the magic word to the artist in the status bar
-9. Use better music
-==========================================================================================
-Possible To-do:
-1. Add host commands (I.e. kicking, restarting game etc)
-2. Either a) allow the artist to select between multiple words or 
-	b) allow the artist to skip words (either cap the # of skips or add a skip 			penalty like point deduction)
-3. Allow game to work over the internet
-4. fill bucket tool
-
+1. Add comments to the remainder of panel and player, server, server input and output threads
+2. Fix points (you messed up mon negro with the time remaining variable)
+3. Make the points between rounds screen look better
+4. Add better music 
+5. Add an indication next to the artist so its obvious who the artist is (maybe a pencil)
 ==========================================================================================
 Bugs To-do:
 1. Canvas Bugs
@@ -19,13 +12,6 @@ Bugs To-do:
 	- A tiny part of the previous stroke gets lost when the SS is taken 
 	- There is a double stroke (ONLY FOR AHMAD)	¯\_(ツ)_/¯
 
-2. the "type start to..." message appears 2 times. it shows up when you type and enter start
 
-3. Fix player disconnecting issues
-    -i.e what happens if artist dips
-    -server must reset and stay idle if everyone dips
-
-5. Fix the end of round screen so that it doesn't clip player names/points after a few players
-
-6. If a word has to many letters the letter space holders interfere with other UI elements or go off the screen
+2. If a word has to many letters the letter space holders interfere with other UI elements or go off the screen
  - Limit to MAX 12 letters
