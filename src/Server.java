@@ -77,11 +77,11 @@ public class Server {
     //cleans up variables from the last round and starts a new round
     public void endRound(){
         gameTimer.stop();
-        timeRemainingInRound = roundTimeLength;
-        gameStatus = DataPackage.BETWEENROUND;
         if (Player.getArtist() != null) {
             Player.getArtist().calculatePoints(charLengthOfMagicWord, timeRemainingInRound);
         }
+        timeRemainingInRound = roundTimeLength;
+        gameStatus = DataPackage.BETWEENROUND;
         drawingComponents = null;
         currentMagicWord = null;
         try {
