@@ -1,7 +1,6 @@
 import javax.imageio.ImageIO;
 import javax.sound.midi.*;
 import javax.swing.*;
-import javax.xml.crypto.Data;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -178,12 +177,12 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
     public void drawArtistToolsPane(Graphics g){
         g.drawImage(colorPickerImage, (int) colorPickerPanel.getX(), (int) colorPickerPanel.getY(), null);
-        if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL)){
+        if (DrawingComponent.getSelectedToolType().equals(DrawingComponent.PENCIL)){
             g.drawImage(pencilSelectedImage, (int) pencilPanel.getX(), (int) pencilPanel.getY(), null);
         }else {
             g.drawImage(pencilImage, (int) pencilPanel.getX(), (int) pencilPanel.getY(), null);
         }
-        if (DrawingComponent.getToolType().equals(DrawingComponent.ERASER)){
+        if (DrawingComponent.getSelectedToolType().equals(DrawingComponent.ERASER)){
             g.drawImage(eraserSelectedImage, (int) eraserPanel.getX(), (int) eraserPanel.getY(), null);
         }else {
             g.drawImage(eraserImage, (int) eraserPanel.getX(), (int) eraserPanel.getY(), null);
@@ -193,7 +192,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         g.drawImage(thick2Image, (int) thickSelectPanel2.getX(), (int) thickSelectPanel2.getY(), null);
         g.drawImage(thick3Image, (int) thickSelectPanel3.getX(), (int) thickSelectPanel3.getY(), null);
         g.drawImage(thick4Image, (int) thickSelectPanel4.getX(), (int) thickSelectPanel4.getY(), null);
-        int strokeSize = DrawingComponent.getCurrentStrokeSize();
+        int strokeSize = DrawingComponent.getSelectedStrokeSize();
         if (strokeSize == DrawingComponent.STROKE1){
             g.drawImage(thick1SelectedImage, (int) thickSelectPanel1.getX(), (int) thickSelectPanel1.getY(), null);
         }
@@ -206,7 +205,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             g.drawImage(thick4SelectedImage, (int) thickSelectPanel4.getX(), (int) thickSelectPanel4.getY(), null);
         }
         Graphics2D g2 = (Graphics2D)g;
-        g2.setColor(DrawingComponent.getCurrentColor());
+        g2.setColor(DrawingComponent.getSelectedColour());
         g2.setStroke(new BasicStroke(3));
         g2.drawRect((int)colorPickerPanel.getX() - 2, (int)colorPickerPanel.getY() - 2, colorPickerImage.getWidth(null) + 4, colorPickerImage.getHeight(null) + 4);
     }
@@ -230,19 +229,19 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         y1 = e.getY();
         if (colorPickerPanel.contains(x1, y1)) {
             Color c = new Color(bufferedColorPickerImage.getRGB((int) (x1 - colorPickerPanel.getX()), (int) (y1 - colorPickerPanel.getY())));
-            DrawingComponent.setColor(c);
+            DrawingComponent.setSelectedColour(c);
         } else if (pencilPanel.contains(x1, y1)) {
-            DrawingComponent.setToolType("PENCIL");
+            DrawingComponent.setSelectedToolType("PENCIL");
         } else if (eraserPanel.contains(x1, y1)) {
-            DrawingComponent.setToolType("ERASER");
+            DrawingComponent.setSelectedToolType("ERASER");
         } else if (thickSelectPanel1.contains(x1, y1)) {
-            DrawingComponent.setStroke(DrawingComponent.STROKE1);
+            DrawingComponent.setSelectedStrokeSize(DrawingComponent.STROKE1);
         } else if (thickSelectPanel2.contains(x1, y1)) {
-            DrawingComponent.setStroke(DrawingComponent.STROKE2);
+            DrawingComponent.setSelectedStrokeSize(DrawingComponent.STROKE2);
         } else if (thickSelectPanel3.contains(x1, y1)) {
-            DrawingComponent.setStroke(DrawingComponent.STROKE3);
+            DrawingComponent.setSelectedStrokeSize(DrawingComponent.STROKE3);
         } else if (thickSelectPanel4.contains(x1, y1)) {
-            DrawingComponent.setStroke(DrawingComponent.STROKE4);
+            DrawingComponent.setSelectedStrokeSize(DrawingComponent.STROKE4);
         } else if (canvasPanel.contains(x1, y1) && dataPackage.getMyPlayer().isArtist()) {
             drawingComponents.add(new DrawingComponent(x1, y1));
         }else if (playPausePanel.contains(x1, y1)){
@@ -259,7 +258,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         int y2 = e.getY();
 
         if (canvasPanel.contains(x1, y1) && dataPackage.getMyPlayer().isArtist()) {
-            if (DrawingComponent.getToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getToolType().equals(DrawingComponent.ERASER)) {
+            if (DrawingComponent.getSelectedToolType().equals(DrawingComponent.PENCIL) || DrawingComponent.getSelectedToolType().equals(DrawingComponent.ERASER)) {
                 int mouseDist = (int) (Math.hypot(x2 - x1, y2 - y1) + .5);
                 mouseDist = Math.max(mouseDist, 1);
                 for (int i = 0; i < mouseDist; i += 2) {

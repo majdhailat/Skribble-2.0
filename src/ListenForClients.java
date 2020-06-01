@@ -1,9 +1,12 @@
+//imports
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.TimeUnit;
 
-//Listens for new clients and creates the I/O threads when a client joins
+/*
+Listens for new clients and starts the server I/O threads when a client joins
+ */
 class ListenForClients extends Thread{
     private Server server;
     public ListenForClients(Server server) {
@@ -11,7 +14,7 @@ class ListenForClients extends Thread{
     }
 
     public void run( ){
-        int portNumber = 4445;
+        int portNumber = 4445;//PORT
         boolean listening = true;
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
             while (listening) {

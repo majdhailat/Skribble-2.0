@@ -1,4 +1,4 @@
-import javax.sound.midi.MidiUnavailableException;
+//imports
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -7,34 +7,34 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 
+/*
+Creates the frame of the window
+Prepares and starts the panel
+Handles window closing (pressed X button)
+Updates panel with new data from client and repaints client every 100ms
+ */
 public class Gui extends JFrame {
     private Panel panel;
     public Gui(Client client) throws IOException{
-        super("Skribble");
+        super("~~~ Scribble ~~~");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(new Dimension(1280, 720));
+        setSize(new Dimension(1280, 720));//setting frame size
         Timer myTimer = new Timer(100, new TickListener());// trigger every 100 ms. used to refresh graphics
-        myTimer.start();
-        panel = new Panel(client);
-
+        myTimer.start();//starting timer
+        panel = new Panel(client);//starting panel
         add(panel);
         setResizable(false);
         setVisible(true);
-        //this line of code executes anything inside the curly brackets when the user closes the window
-        //we are setting running to false to close all threads properly
         addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent e) {
-                //running = false;
+            public void windowClosing(WindowEvent e) {//executed when window is closed -> used to terminate client threads
+                client.end();
             }
         });
-
     }
 
-    //triggered every 100 ms by myTimer
-    private boolean didRun = false;
     class TickListener implements ActionListener {
-        public void actionPerformed(ActionEvent evt) {
+        public void actionPerformed(ActionEvent evt) {//triggered every 100 ms by myTimer
             if (panel != null && panel.ready) {
                 panel.updateFromClient();
                 panel.repaint();

@@ -1,21 +1,29 @@
 //Imports
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
+/*
+Starts all necessary client threads (I/O threads for server communication and GUI thread)
+Manges data package and drawing components
+Handles client prompts like enter name and type start
+Handles user text messages and processes any commands coming from the user (name, start etc)
+ */
 public class Client extends JFrame {
     private volatile boolean isRunning = true;//If the client is running or not
-    private DataPackage dataPackage;//the object that stores all game info that the client will need
+    private volatile DataPackage dataPackage;//the object that stores all game info that the client will need
     private volatile ArrayList<DrawingComponent> drawingComponents = new ArrayList<>();//the list of all pieces that make up the drawing
 
-    private String usersTextMessage = null;//the most recent message that the user typed and pressed enter on
-    private ArrayList<String> messagesToRender = new ArrayList<>();//queue of messages not on screen yet
-    private boolean canReceiveMessages = false;//if the client can display other user's messages
-    private int previousMessagesSize = 0;//keeps track of which messages were already rendered to the screen by index
-    private boolean promptedStartMessage = false;//if the "type start" message was shown
+    private volatile String userTextMessage = null;//the most recent message that the user typed and pressed enter on
+    private volatile ArrayList<String> messagesToRender = new ArrayList<>();//queue of messages not on screen yet
+    private volatile boolean canReceiveMessages = false;//if the client can display other user's messages
+    private volatile int previousMessagesSize = 0;//keeps track of which messages were already rendered to the screen by index
+    private volatile boolean promptedStartMessage = false;//if the "type start" message was shown
 
     /*
     Connects to the server
@@ -27,20 +35,26 @@ public class Client extends JFrame {
         String hostName = "localhost";//HOST NAME
         int portNumber = 4445;//PORT NUMBER
         try (Socket socket = new Socket(hostName, portNumber)) {//connecting to server
-            new ClientInputThread(socket, client).start();//starting client thread
+            new ClientInputThread(socket, client).start();//starting input thread
             try {
                 TimeUnit.MILLISECONDS.sleep(5000);//5000 default
-            } catch (InterruptedException e) {e.printStackTrace();}
-            new ClientOutputThread(socket, client).start();
-            new Gui(client);
-            client.additionalSetup();
-            while (client.isRunning) {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(100);//5000
-                } catch (InterruptedException e) {e.printStackTrace();}
-                client.whileRunning();
+                //delay between I/O threads prevents lag
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-
+            new ClientOutputThread(socket, client).start();//starting output thread
+            new Gui(client);//starting gui
+            client.additionalSetup();
+            Timer timer = new Timer(1000, new ActionListener() {//calling while running every 1000 ms
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    try {
+                        client.whileRunning();
+                    } catch (Exception e1) {e1.printStackTrace();}
+                }
+            });
+            timer.start();//starting timer
+            while (client.isRunning){}//keeps thread from dying (band-aid fix)
         } catch (UnknownHostException e) {
             System.err.println("Unknown Host");
             System.exit(1);
@@ -56,6 +70,11 @@ public class Client extends JFrame {
     public synchronized boolean isRunning(){
         return isRunning;
     }
+
+    /*
+    ends the client and all associated threads
+     */
+    public synchronized void end(){isRunning = false;}
 
     /*
     any additional setup after the client boots up
@@ -130,7 +149,7 @@ public class Client extends JFrame {
     (keyboard -> gui -> client (here) -> client output thread -> server input thread -> server -> all other clients)
      */
     public void updateUsersTextMessage(String message){
-        usersTextMessage = message;
+        userTextMessage = message;
     }
 
     /*
@@ -144,12 +163,12 @@ public class Client extends JFrame {
     returns the users text message to the client output thread to send to server
     handles any commands
      */
-    public String getUsersTextMessage(){
+    public String getUserTextMessage(){
         try {
             TimeUnit.MILLISECONDS.sleep(100);
         } catch (InterruptedException e) {e.printStackTrace();}
-        String msg = usersTextMessage;
-        usersTextMessage = null;
+        String msg = userTextMessage;
+        userTextMessage = null;
         if (msg != null) {
             if (!dataPackage.getMyPlayer().gotUserName()){
                 canReceiveMessages = true;

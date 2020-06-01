@@ -1,9 +1,10 @@
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
-import java.util.concurrent.TimeUnit;
 
+/*
+Fetches and decodes data package from the server
+ */
 class ClientInputThread extends Thread {
     private ObjectInputStream objectInputStream;//stream used to read the data package object
     private Client client;
@@ -16,8 +17,8 @@ class ClientInputThread extends Thread {
     public void run() {
         try {
             while (client.isRunning()) {
-                DataPackage dataPackage = (DataPackage) objectInputStream.readUnshared();
-                client.updateDataPackage(dataPackage);
+                DataPackage dataPackage = (DataPackage) objectInputStream.readUnshared();//reading data package
+                client.updateDataPackage(dataPackage);//updating package to client
             }
         }catch (IOException | ClassNotFoundException ignored) {}
     }
