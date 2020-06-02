@@ -1,6 +1,7 @@
 //imports
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 
 /*
 Stores the cell renderers - message cells and the player cells on the left - used by the client
@@ -43,27 +44,43 @@ class PanelExtension {
     /*
     Cell renderer for the player cells in the left
      */
-    static ListCellRenderer<? super Player> playerListRenderer(Icon avatar, Font textFont, Player myPlayer){
+    static ListCellRenderer<? super Player> playerListRenderer(Font textFont, Player myPlayer){
         return new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (c instanceof JLabel) {
                     JLabel label = (JLabel) c;//player name label
+                    Player p = (Player) value;
                     label.setFont(textFont);
-                    label.setIcon(avatar);//setting player icon
+
+
                     if (index % 2 != 0){//alternating cells
                         label.setBackground(new Color(235, 235, 235));//changing every other cell color for contrast
                     }
-                    Player p = (Player) value;
-                    if (p == myPlayer){//checking for my player
+                    label.setIcon(PanelExtension.getIcon(p.getIconImageNumber()));//setting player icon
+
+                    if (p.getUniqueID() == myPlayer.getUniqueID()){//checking for my player
                         label.setText("<html>"+p.getName()+" (You)"+"<br>"+"Points: "+p.getScore()+"</html>");//setting name and (you)
                     }else {
-                        label.setText("<html>" + p.getName() + "<br>" +"Points: "+ p.getScore() + "</html>");//setting na,e
+                        if (p.isArtist()){
+                            label.setText("<html>" + p.getName() + " (Artist)"+"<br>" +"Points: "+ p.getScore() + "</html>");//setting name and artist indicator
+                        }else{
+                            label.setText("<html>" + p.getName() +"<br>" +"Points: "+ p.getScore() + "</html>");//setting name
+                        }
+
                     }
                 }
                 return c;
             }
         };
     }
+    private static ImageIcon[] icons = new ImageIcon[]{null, null, null, null, null, null};
+    private static ImageIcon getIcon(int iconNumber){
+        if(icons[iconNumber - 1] == null){
+            icons[iconNumber] = new ImageIcon("image assets/icons/icon"+iconNumber+".jpg");
+        }
+        return icons[iconNumber];
+    }
+
 }

@@ -73,7 +73,17 @@ public class Server {
         newMessage(red+"~The game has ended");
         roundsLeft = totalNumOfRounds;
         gameStatus = DataPackage.WAITINGTOSTART;
+        Player winner = players.get(0);
         for (Player p : players){
+            if (p.getScore() > winner.getScore()){
+                winner = p;
+            }
+        }
+        winner.addMessage(green+"~You Win!");
+        for (Player p : players){
+            if (p != winner){
+                p.addMessage(green+"~"+winner.getName()+" has won!");
+            }
             p.resetScore();
         }
     }

@@ -23,7 +23,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     //all assets
     private boolean loadedAssets;//if all assets were loaded
     private Font textFont;
-    private ImageIcon avatar;
     private Image bgImage, OGCanvasImage, canvasImage, colorPickerImage, pencilImage, pencilSelectedImage,
             eraserImage, eraserSelectedImage, thick1Image, thick2Image, thick3Image, thick4Image, alarmImage,
             letterPlaceHolderImage, thick1SelectedImage, thick2SelectedImage, thick3SelectedImage, thick4SelectedImage,
@@ -324,7 +323,6 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
      */
     public void loadAssets() throws IOException {
         bufferedColorPickerImage = ImageIO.read(new File("image assets/Color picker.png"));
-        avatar = new ImageIcon("image assets/icons/icon"+Client.randint(1, 6)+".png");
         bgImage = new ImageIcon("image assets/bg/bg"+Client.randint(1, 10)+".jpg").getImage();
         OGCanvasImage = new ImageIcon("image assets/canvas.png").getImage();
         canvasImage = OGCanvasImage;
@@ -380,7 +378,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         textField.addKeyListener(new MKeyListener());
         add(textField);
 
-        playerList.setCellRenderer(PanelExtension.playerListRenderer(avatar, textFont, dataPackage.getMyPlayer()));
+        playerList.setCellRenderer(PanelExtension.playerListRenderer(textFont, dataPackage.getMyPlayer()));
         playerPane.setVerticalScrollBarPolicy(playerPane.VERTICAL_SCROLLBAR_NEVER);
         playerPane.setHorizontalScrollBarPolicy(playerPane.HORIZONTAL_SCROLLBAR_NEVER);
         add(playerPane);
