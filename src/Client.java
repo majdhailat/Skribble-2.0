@@ -15,6 +15,8 @@ Handles client prompts like enter name and type start
 Handles user text messages and processes any commands coming from the user (name, start etc)
  */
 public class Client extends JFrame {
+    public final String orange = "#d35400", blue = "#2980b9", green = "#27ae60", red = "#c0392b";
+
     private volatile boolean isRunning = true;//If the client is running or not
     private volatile DataPackage dataPackage;//the object that stores all game info that the client will need
     private volatile ArrayList<DrawingComponent> drawingComponents = new ArrayList<>();//the list of all pieces that make up the drawing
@@ -80,7 +82,7 @@ public class Client extends JFrame {
     any additional setup after the client boots up
      */
     public void additionalSetup() {
-        messagesToRender.add("#008000~Enter a user name");//prompting user for their name
+        messagesToRender.add(orange+"~Enter a user name");//prompting user for their name
     }
 
     /*
@@ -89,7 +91,7 @@ public class Client extends JFrame {
     public void whileRunning(){
         if (!promptedStartMessage && dataPackage.getGameStatus().equals(DataPackage.WAITINGTOSTART) && dataPackage.getPlayers().size() >= 2 && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer()) {
             //prompting user to type start when they want to start the game
-            messagesToRender.add("#008000~Type start to start the game");
+            messagesToRender.add(orange+"~Type start to start the game");
             promptedStartMessage = true;
         }
     }
@@ -174,9 +176,13 @@ public class Client extends JFrame {
                 canReceiveMessages = true;
                 return msg;
             }
-            else if (dataPackage.getGameStatus().equals(DataPackage.WAITINGTOSTART) && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && msg.equals("start")){
+            else if (dataPackage.getGameStatus().equals(DataPackage.WAITINGTOSTART) && dataPackage.getPlayers().get(0) == dataPackage.getMyPlayer() && msg.equals("start")) {
                 promptedStartMessage = false;
                 return "/START";
+
+            }else if (msg.contains("~")){
+                messagesToRender.add(msg);
+                return msg;
             }else{
                 messagesToRender.add("Me: " + msg);
                 return msg;

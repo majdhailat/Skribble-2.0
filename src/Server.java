@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 //Stores all the global information about the game and starts the listening thread
 public class Server {
+    public final String orange = "#d35400", blue = "#2980b9", green = "#27ae60", red = "#c0392b";
     private boolean running = true;//if the server is running
     private String gameStatus = DataPackage.WAITINGTOSTART;
 
@@ -58,20 +59,23 @@ public class Server {
         //alerting the rest of the players of who the new artist is
         for (Player p : players){
             if (p != artist){
-                p.addMessage("#FF0000~"+artist.getName()+" Is the artist");
+                p.addMessage(blue+"~"+artist.getName()+" Is the artist");
             }else {
                 //alerting artist that he is the artist and what his word is
-                p.addMessage("#FF0000~You are the artist");
-                p.addMessage("#FF0000~you must draw: " + currentMagicWord);
+                p.addMessage(blue+"~You are the artist");
+                p.addMessage(blue+"~you must draw: " + currentMagicWord);
             }
         }
         gameTimer.start();
     }
 
     public void endGame(){
-        newMessage("#FF0000~The game has ended");
+        newMessage(red+"~The game has ended");
         roundsLeft = totalNumOfRounds;
         gameStatus = DataPackage.WAITINGTOSTART;
+        for (Player p : players){
+            p.resetScore();
+        }
     }
 
     //cleans up variables from the last round and starts a new round
@@ -103,11 +107,11 @@ public class Server {
     //called after the user enters their username
     public synchronized void playerConnected(Player player) {
         players.add(player);
-        player.addMessage("#008000~Welcome to Skribble " + player.getName());//greeting new player
+        player.addMessage(orange+"~Welcome to Skribble " + player.getName());//greeting new player
         //alerting the rest of the players of the new player
         for (Player p : players){
             if (p != player){
-                p.addMessage("#FF0000~" + player.getName() + " has joined the game");
+                p.addMessage(red+"~" + player.getName() + " has joined the game");
             }
         }
     }
@@ -115,17 +119,15 @@ public class Server {
     //called when a player leaves
     public synchronized void playerDisconnected(Player player){
         players.remove(player);
-        if (players.size() == 0){
+        if (players.size() <= 1){
             roundsLeft = 1;
             endRound();
         }
         else if (player.isArtist()){
             endRound();
         }
-
-
         //setting the server message rather than adding it to "message only for me" because the disconnecting player has already left so the message is for everyone
-        newMessage("#FF0000~" + player.getName() + " has left the game");
+        newMessage(red+"~" + player.getName() + " has left the game");
     }
 
     public void newMessage(String msg, Player sender){
@@ -141,8 +143,8 @@ public class Server {
         else if (msg.contains("~")){
             message = msg;
         }else if (currentMagicWord != null && msg.toLowerCase().equals(currentMagicWord.toLowerCase())){
-            message = ("#FF0000~"+sender.getName() + " has guessed correctly!");
-            sender.addMessage("#FF0000~You have guessed correctly!");
+            message = (green+"~"+sender.getName() + " has guessed correctly!");
+            sender.addMessage(green+"~You have guessed correctly!");
             sender.calculatePoints(charLengthOfMagicWord, timeRemainingInRound);
             if(Player.getWinners().size() == players.size() - 1){//checking if all the players have guessed the correct word (-1 because the artist doesn't count)
                 endRound = true;

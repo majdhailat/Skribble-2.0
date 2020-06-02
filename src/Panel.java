@@ -105,6 +105,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         g.setFont(textFont.deriveFont(20f));
         String status = dataPackage.getGameStatus();//getting game status
 
+        if (status.equals(DataPackage.WAITINGTOSTART)){
+            g.drawImage(canvasImage, (int)canvasPanel.getX(), (int)canvasPanel.getY(), null);
+        }
         if (status.equals(DataPackage.ROUNDINPROGRESS)) {
             //TIMER ~~~
             g.drawImage(alarmImage, 14, 5, null);//drawing alarm image
@@ -129,12 +132,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         }
 
         if (status.equals(DataPackage.BETWEENROUND)){
+            g.setFont(textFont.deriveFont(35f));
             //POINTS SUMMARY ~~~
+            //canvasPanel = new Rectangle(225, 50, OGCanvasImage.getWidth(null), OGCanvasImage.getHeight(null));
             g.drawImage(canvasImage, (int)canvasPanel.getX(), (int)canvasPanel.getY(), null);
             for (int i = 0; i < dataPackage.getPlayers().size(); i ++){
                 Player p = dataPackage.getPlayers().get(i);
-                g.drawString(""+p.getName(),325, 100 + (i * 60));
-                g.drawString(""+p.getPointsGainedLastRound(), 425, 100 + (i * 60));
+                g.drawString(""+p.getName()+":",400, 105 + (i * 55));
+                g.drawString(""+p.getPointsGainedLastRound(), 700, 105 + (i * 55));
             }
         }
     }
@@ -319,8 +324,8 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
      */
     public void loadAssets() throws IOException {
         bufferedColorPickerImage = ImageIO.read(new File("image assets/Color picker.png"));
-        avatar = new ImageIcon("image assets/icon.png");
-        bgImage = new ImageIcon("image assets/bg/bgTest.png").getImage();
+        avatar = new ImageIcon("image assets/icons/icon"+Client.randint(1, 6)+".png");
+        bgImage = new ImageIcon("image assets/bg/bg"+Client.randint(1, 10)+".jpg").getImage();
         OGCanvasImage = new ImageIcon("image assets/canvas.png").getImage();
         canvasImage = OGCanvasImage;
         colorPickerImage = new ImageIcon("image assets/Color picker.png").getImage();

@@ -1,6 +1,5 @@
 To-do:
 1. Add comments to the remainder of panel and player, server, server input and output threads
-2. Fix points (you messed up mon negro with the time remaining variable)
 3. Make the points between rounds screen look better
 4. Add better music 
 5. Add an indication next to the artist so its obvious who the artist is (maybe a pencil)

@@ -17,6 +17,7 @@ public class Player implements Serializable {
     private int score = 0;//the players score
     private boolean isArtist = false;//if this player is the artist
     private ArrayList<String> messages = new ArrayList<>();//the list of messages that this player can see
+    private int iconImageNumber = Client.randint(1, 6);//the number that dictates which of the 6 icon images is used
 
     private int pointsGainedLastRound;//the amount of points this player got (resets when the new round starts)
     private int placeLastRound;//the pos of the player (resets when the new round starts)
@@ -109,6 +110,11 @@ public class Player implements Serializable {
     public ArrayList<String> getMessages() {return messages;}
 
     /*
+    returns icon image number
+     */
+    public int getIconImageNumber(){return iconImageNumber;}
+
+    /*
     returns points gained last round
      */
     public int getPointsGainedLastRound(){return pointsGainedLastRound;}
@@ -122,6 +128,10 @@ public class Player implements Serializable {
         }
         pointsGainedLastRound = 0;
         placeLastRound = 0;
+    }
+
+    public void resetScore(){
+        this.score = 0;
     }
 
     /*
