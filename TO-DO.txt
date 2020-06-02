@@ -1,8 +1,6 @@
 To-do:
 1. Add comments to the remainder of panel and player, server, server input and output threads
-3. Make the points between rounds screen look better
 4. Add better music 
-5. Add an indication next to the artist so its obvious who the artist is (maybe a pencil)
 ==========================================================================================
 Bugs To-do:
 1. Canvas Bugs
@@ -14,3 +12,5 @@ Bugs To-do:
 
 2. If a word has to many letters the letter space holders interfere with other UI elements or go off the screen
  - Limit to MAX 12 letters
+
+3. I broke the player icons -> fix that 
