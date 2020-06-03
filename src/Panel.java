@@ -24,11 +24,11 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     private boolean loadedAssets;//if all assets were loaded
     private Font textFont;
     private Image bgImage, OGCanvasImage, canvasImage, colorPickerImage, pencilImage, pencilSelectedImage,
-            eraserImage, eraserSelectedImage, thick1Image, thick2Image, thick3Image, thick4Image, alarmImage,
+            eraserImage, eraserSelectedImage, clearImage, thick1Image, thick2Image, thick3Image, thick4Image, alarmImage,
             letterPlaceHolderImage, thick1SelectedImage, thick2SelectedImage, thick3SelectedImage, thick4SelectedImage,
             speakerImage, speakerMuteImage, screenshot = null;
     private BufferedImage bufferedColorPickerImage;
-    private Rectangle canvasPanel, colorPickerPanel, pencilPanel, eraserPanel, thickSelectPanel1, thickSelectPanel2,
+    private Rectangle canvasPanel, colorPickerPanel, pencilPanel, eraserPanel, clearPanel, thickSelectPanel1, thickSelectPanel2,
             thickSelectPanel3, thickSelectPanel4, playPausePanel;
 
     private JTextField textField;//the text field where the user can type
@@ -46,7 +46,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         setLayout(null);//prevents any form of auto layout
         addMouseListener(this);//used to detect mouse actions
         addMouseMotionListener(this);//used to detect mouse dragging
-        startMidi("assets/bgmusic.mid");//starting music
+//        startMidi("assets/bgmusic.mid");//starting music
 
         loadAssets();
         loadRects();
@@ -215,6 +215,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             g.drawImage(eraserImage, (int) eraserPanel.getX(), (int) eraserPanel.getY(), null);
         }
 
+        g.drawImage(clearImage, (int) clearPanel.getX(), (int) clearPanel.getY(), null);
         g.drawImage(thick1Image, (int) thickSelectPanel1.getX(), (int) thickSelectPanel1.getY(), null);
         g.drawImage(thick2Image, (int) thickSelectPanel2.getX(), (int) thickSelectPanel2.getY(), null);
         g.drawImage(thick3Image, (int) thickSelectPanel3.getX(), (int) thickSelectPanel3.getY(), null);
@@ -261,6 +262,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             DrawingComponent.setSelectedToolType("PENCIL");
         } else if (eraserPanel.contains(x1, y1)) {
             DrawingComponent.setSelectedToolType("ERASER");
+        } else if(clearPanel.contains(x1, y1)){
+            drawingComponents.clear();
+            screenshot = canvasImage;
         } else if (thickSelectPanel1.contains(x1, y1)) {
             DrawingComponent.setSelectedStrokeSize(DrawingComponent.STROKE1);
         } else if (thickSelectPanel2.contains(x1, y1)) {
@@ -329,6 +333,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         colorPickerImage = new ImageIcon("image assets/Color picker.png").getImage();
         pencilImage = new ImageIcon("image assets/pencil.png").getImage();
         eraserImage = new ImageIcon("image assets/eraser.png").getImage();
+        clearImage = new ImageIcon("image assets/eraser.png").getImage(); //change
         thick1Image = new ImageIcon("image assets/thick1.png").getImage();
         thick2Image = new ImageIcon("image assets/thick2.png").getImage();
         thick3Image = new ImageIcon("image assets/thick3.png").getImage();
@@ -356,10 +361,11 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         colorPickerPanel = new Rectangle(225, 610, colorPickerImage.getWidth(null), colorPickerImage.getHeight(null));
         pencilPanel = new Rectangle(575, 610, pencilImage.getWidth(null), pencilImage.getHeight(null));
         eraserPanel = new Rectangle(630, 610, eraserImage.getWidth(null), eraserImage.getHeight(null));
-        thickSelectPanel1 = new Rectangle(705, 610, thick1Image.getWidth(null), thick1Image.getHeight(null));
-        thickSelectPanel2 = new Rectangle(770, 610, thick2Image.getWidth(null), thick2Image.getHeight(null));
-        thickSelectPanel3 = new Rectangle(835, 610, thick3Image.getWidth(null), thick3Image.getHeight(null));
-        thickSelectPanel4 = new Rectangle(900, 610, thick4Image.getWidth(null), thick4Image.getHeight(null));
+        clearPanel = new Rectangle(685, 610, clearImage.getWidth(null), clearImage.getHeight(null));
+        thickSelectPanel1 = new Rectangle(760, 610, thick1Image.getWidth(null), thick1Image.getHeight(null));
+        thickSelectPanel2 = new Rectangle(825, 610, thick2Image.getWidth(null), thick2Image.getHeight(null));
+        thickSelectPanel3 = new Rectangle(890, 610, thick3Image.getWidth(null), thick3Image.getHeight(null));
+        thickSelectPanel4 = new Rectangle(955, 610, thick4Image.getWidth(null), thick4Image.getHeight(null));
         playPausePanel = new Rectangle(1200, -3, speakerImage.getWidth(null), speakerImage.getHeight(null));
     }
 
