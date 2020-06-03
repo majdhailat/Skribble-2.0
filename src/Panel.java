@@ -333,7 +333,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         colorPickerImage = new ImageIcon("image assets/Color picker.png").getImage();
         pencilImage = new ImageIcon("image assets/pencil.png").getImage();
         eraserImage = new ImageIcon("image assets/eraser.png").getImage();
-        clearImage = new ImageIcon("image assets/eraser.png").getImage(); //change
+        clearImage = new ImageIcon("image assets/clear.png").getImage();
         thick1Image = new ImageIcon("image assets/thick1.png").getImage();
         thick2Image = new ImageIcon("image assets/thick2.png").getImage();
         thick3Image = new ImageIcon("image assets/thick3.png").getImage();
@@ -361,7 +361,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         colorPickerPanel = new Rectangle(225, 610, colorPickerImage.getWidth(null), colorPickerImage.getHeight(null));
         pencilPanel = new Rectangle(575, 610, pencilImage.getWidth(null), pencilImage.getHeight(null));
         eraserPanel = new Rectangle(630, 610, eraserImage.getWidth(null), eraserImage.getHeight(null));
-        clearPanel = new Rectangle(685, 610, clearImage.getWidth(null), clearImage.getHeight(null));
+        clearPanel = new Rectangle(695, 610, clearImage.getWidth(null), clearImage.getHeight(null));
         thickSelectPanel1 = new Rectangle(760, 610, thick1Image.getWidth(null), thick1Image.getHeight(null));
         thickSelectPanel2 = new Rectangle(825, 610, thick2Image.getWidth(null), thick2Image.getHeight(null));
         thickSelectPanel3 = new Rectangle(890, 610, thick3Image.getWidth(null), thick3Image.getHeight(null));
