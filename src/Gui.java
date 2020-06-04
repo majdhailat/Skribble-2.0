@@ -1,4 +1,5 @@
 //imports
+import javax.sound.sampled.LineUnavailableException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -21,7 +22,11 @@ public class Gui extends JFrame {
         setSize(new Dimension(1280, 720));//setting frame size
         Timer myTimer = new Timer(100, new TickListener());// trigger every 100 ms. used to refresh graphics
         myTimer.start();//starting timer
-        panel = new Panel(client);//starting panel
+        try {
+            panel = new Panel(client);//starting panel
+        } catch (LineUnavailableException e) {
+            e.printStackTrace();
+        }
         add(panel);
         setResizable(false);
         setVisible(true);

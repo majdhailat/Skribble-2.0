@@ -5,8 +5,23 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+/*
+- Stores all the game data such as:
+    - The game status
+    - The length of round and # of rounds
+    - The list of players as player objects
+    - The drawing components array
+    - The magic word
 
-//Stores all the global information about the game and starts the listening thread
+- Distributes all this information to clients through the getDataPackage() method which creates a data package containing all
+    the necessary info
+- Handles any new messages from users OR new drawing component arrays from the artist
+    - (Client -> client output thread -> server input thread -> server (here) -> server output thread -> all clients input threads -> all clients
+- Handles the game logic (i.e. new round, new game, end round, end game etc) **
+- Handles what needs to happen when players join and leave
+- Handles user commands (i.e starting game) as well as looks to see when a user guessed the right word
+- Loads the magic words file and chooses the word
+ */
 public class Server {
     public final String orange = "#d35400", blue = "#2980b9", green = "#27ae60", red = "#c0392b";
     private boolean running = true;//if the server is running
@@ -43,7 +58,7 @@ public class Server {
     //sets up for a brand new game of x rounds (not determined yet)
     public void newGame(){
         try {
-            loadMagicWords("words");
+            loadMagicWords("word lists/minecraft.txt");
         } catch (IOException e) {e.printStackTrace();}
         Player.clearPreviousArtists();
         newRound();

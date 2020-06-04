@@ -44,7 +44,7 @@ class PanelExtension {
     /*
     Cell renderer for the player cells in the left
      */
-    static ListCellRenderer<? super Player> playerListRenderer(Font textFont, Player myPlayer){
+    static ListCellRenderer<? super Player> playerListRenderer(Font textFont, Player myPlayer) {
         return new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -55,32 +55,53 @@ class PanelExtension {
                     label.setFont(textFont);
 
 
-                    if (index % 2 != 0){//alternating cells
+                    if (index % 2 != 0) {//alternating cells
                         label.setBackground(new Color(235, 235, 235));//changing every other cell color for contrast
                     }
-                    label.setIcon(PanelExtension.getIcon(p.getIconImageNumber()));//setting player icon
+                    label.setIcon(getIcon(p.getIconImageNumber()));
 
-                    if (p.getUniqueID() == myPlayer.getUniqueID()){//checking for my player
-                        label.setText("<html>"+p.getName()+" (You)"+"<br>"+"Points: "+p.getScore()+"</html>");//setting name and (you)
-                    }else {
-                        if (p.isArtist()){
-                            label.setText("<html>" + p.getName() + " (Artist)"+"<br>" +"Points: "+ p.getScore() + "</html>");//setting name and artist indicator
-                        }else{
-                            label.setText("<html>" + p.getName() +"<br>" +"Points: "+ p.getScore() + "</html>");//setting name
+                    if (p.getUniqueID() == myPlayer.getUniqueID()) {//checking for my player
+                        label.setText("<html>" + p.getName() + " (You)" + "<br>" + "Points: " + p.getScore() + "</html>");//setting name and (you)
+                    } else {
+                        if (p.isArtist()) {
+                            label.setText("<html>" + p.getName() + " (Artist)" + "<br>" + "Points: " + p.getScore() + "</html>");//setting name and artist indicator
+                        } else {
+                            label.setText("<html>" + p.getName() + "<br>" + "Points: " + p.getScore() + "</html>");//setting name
                         }
 
                     }
                 }
                 return c;
             }
+
+            /*
+            Takes a number and returns the icon image that corresponds to that number
+             */
+            private ImageIcon getIcon(int iconNumber) {
+                if (iconNumber == 1) {
+                    return icon1;
+                } else if (iconNumber == 2) {
+                    return icon2;
+                } else if (iconNumber == 3) {
+                    return icon3;
+                } else if (iconNumber == 4) {
+                    return icon4;
+                } else if (iconNumber == 5) {
+                    return icon5;
+                } else {
+                    return icon6;
+                }
+            }
         };
     }
-    private static ImageIcon[] icons = new ImageIcon[]{null, null, null, null, null, null};
-    private static ImageIcon getIcon(int iconNumber){
-        if(icons[iconNumber - 1] == null){
-            icons[iconNumber] = new ImageIcon("image assets/icons/icon"+iconNumber+".jpg");
-        }
-        return icons[iconNumber];
+    private static ImageIcon icon1, icon2, icon3, icon4, icon5, icon6;
+    static void loadIcons(){
+        icon1 = new ImageIcon("image assets/icons/icon1.png");
+        icon2 = new ImageIcon("image assets/icons/icon2.png");
+        icon3 = new ImageIcon("image assets/icons/icon3.png");
+        icon4 = new ImageIcon("image assets/icons/icon4.png");
+        icon5 = new ImageIcon("image assets/icons/icon5.png");
+        icon6 = new ImageIcon("image assets/icons/icon6.png");
     }
 
 }

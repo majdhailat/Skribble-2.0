@@ -1,0 +1,81 @@
+80
+Steve
+herobrine
+bat
+chicken
+cow
+donkey
+fox
+horse
+mule
+ocelot
+panda
+parrot
+pig
+rabbit
+sheep
+squid
+turtle
+villager
+wolf
+llama
+dolphin
+cave spider
+enderman
+spider
+zombie pigman
+blaze
+creeper
+drowned
+elder guardian
+endermite
+evoker
+ghast
+guardian
+husk
+magma cube
+phantom
+pillager
+ravager
+shulker
+silverfish
+skeleton
+slime
+spider jockey
+stray
+vex
+vindicator
+witch
+wither skeleton
+zombie
+zombie villager
+iron golem
+ender dragon
+anvil
+bookshelf
+bed
+chest
+coal
+crafting table
+diamond
+emerald
+enchanting table
+ender chest
+furnace
+gold
+jukebox
+nether portal
+obsidian
+TNT
+torch
+sword
+bow
+helmet
+fishing rod
+axe
+shovel
+hoe
+flint and steel
+trident
+music disc
+shears

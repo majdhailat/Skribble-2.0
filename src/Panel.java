@@ -1,6 +1,10 @@
 //imports
 import javax.imageio.ImageIO;
 import javax.sound.midi.*;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -39,14 +43,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     private int initialScreenPosX, initialScreenPosY;//the pos of the panel on screen when the game is first loaded
     private boolean isMouseClicked = false;//if the mouse is being clicked
 
-    public Panel(Client client) throws IOException{
+    public Panel(Client client) throws IOException, LineUnavailableException {
         this.client = client;
         updateFromClient();
 
         setLayout(null);//prevents any form of auto layout
         addMouseListener(this);//used to detect mouse actions
         addMouseMotionListener(this);//used to detect mouse dragging
-//        startMidi("assets/bgmusic.mid");//starting music
+        playSound();
 
         loadAssets();
         loadRects();
@@ -93,8 +97,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             drawArtistToolsPane(g);//drawing tools pane
         }
 
+
         //MUSIC SPEAKER ICON ~~~
-        if (midiPlayer.isRunning()){//checking if music is playing and drawing icon accordingly
+        if (clip.isActive()){//checking if music is playing and drawing icon accordingly
             g.drawImage(speakerImage, (int)playPausePanel.getX(), (int)playPausePanel.getY(), null);
         }else{
             g.drawImage(speakerMuteImage, (int)playPausePanel.getX(), (int)playPausePanel.getY(), null);
@@ -276,10 +281,10 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         } else if (canvasPanel.contains(x1, y1) && dataPackage.getMyPlayer().isArtist()) {
             drawingComponents.add(new DrawingComponent(x1, y1));
         }else if (playPausePanel.contains(x1, y1)){
-            if (midiPlayer.isRunning()){
-                midiPlayer.stop();
+            if (clip.isActive()){
+                clip.stop();
             }else{
-                midiPlayer.start();
+                clip.start();
             }
         }
     }
@@ -326,6 +331,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     Loads all assets
      */
     public void loadAssets() throws IOException {
+        PanelExtension.loadIcons();
         bufferedColorPickerImage = ImageIO.read(new File("image assets/Color picker.png"));
         bgImage = new ImageIcon("image assets/bg/bg"+Client.randint(1, 10)+".jpg").getImage();
         OGCanvasImage = new ImageIcon("image assets/canvas.png").getImage();
@@ -402,6 +408,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         ready = true;
     }
 
+    /*
     Sequencer midiPlayer;{
         try {
             midiPlayer = MidiSystem.getSequencer();
@@ -410,9 +417,12 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         }
     }
 
+     */
+
+
     /*
     Starts music player
-     */
+
     public void startMidi(String midFilename) {
         try {
             File midiFile = new File(midFilename);
@@ -422,5 +432,19 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             midiPlayer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
             midiPlayer.start();
         } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {e.printStackTrace();}
+    }
+    */
+
+    public Clip clip = AudioSystem.getClip();
+    public void playSound() {
+        clip.loop(Clip.LOOP_CONTINUOUSLY);
+        try {
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("assets/lit.wav").getAbsoluteFile());
+            clip.open(audioInputStream);
+            clip.start();
+        } catch(Exception ex) {
+            System.out.println("Error with playing sound.");
+            ex.printStackTrace();
+        }
     }
 }

@@ -1,5 +1,4 @@
 To-do:
-1. Add comments to the remainder of panel and player, server, server input and output threads
 4. Add better music 
 ==========================================================================================
 Bugs To-do:
@@ -8,9 +7,3 @@ Bugs To-do:
 	- The canvas gets cleared but reappears if u click after u minimize the window
 	- A tiny part of the previous stroke gets lost when the SS is taken 
 	- There is a double stroke (ONLY FOR AHMAD)	¯\_(ツ)_/¯
-
-
-2. If a word has to many letters the letter space holders interfere with other UI elements or go off the screen
- - Limit to MAX 12 letters
-
-3. I broke the player icons -> fix that 

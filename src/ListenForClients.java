@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 Listens for new clients and starts the server I/O threads when a client joins
  */
 class ListenForClients extends Thread{
+    private int numberOfClients = 0;
     private Server server;
     public ListenForClients(Server server) {
         this.server = server;
@@ -26,6 +27,11 @@ class ListenForClients extends Thread{
                     TimeUnit.MILLISECONDS.sleep(5000);
                 } catch (InterruptedException e) {e.printStackTrace();}
                 new ServerInputThread(server, player, socket).start();
+                numberOfClients ++;
+                if (numberOfClients >= 6){
+                    listening = false;
+                    System.out.println("No more users may join");
+                }
             }
         } catch (IOException e) {
             System.err.println("Port error");
