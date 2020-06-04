@@ -1,9 +1,0 @@
-To-do:
-4. Add better music 
-==========================================================================================
-Bugs To-do:
-1. Canvas Bugs
-	- If anything is above the canvas, its included in the SS (no fix)
-	- The canvas gets cleared but reappears if u click after u minimize the window
-	- A tiny part of the previous stroke gets lost when the SS is taken 
-	- There is a double stroke (ONLY FOR AHMAD)	¯\_(ツ)_/¯

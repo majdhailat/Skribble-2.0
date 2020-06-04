@@ -1,7 +1,6 @@
 //imports
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
 
 /*
 Stores the cell renderers - message cells and the player cells on the left - used by the client

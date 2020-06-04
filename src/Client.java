@@ -34,7 +34,7 @@ public class Client extends JFrame {
      */
     public synchronized static void main(String[] args) {
         Client client = new Client();
-        String hostName = "localhost";//HOST NAME
+        String hostName = "majdspc.local";//HOST NAME
         int portNumber = 4445;//PORT NUMBER
         try (Socket socket = new Socket(hostName, portNumber)) {//connecting to server
             new ClientInputThread(socket, client).start();//starting input thread
@@ -47,7 +47,7 @@ public class Client extends JFrame {
             new ClientOutputThread(socket, client).start();//starting output thread
             new Gui(client);//starting gui
             client.additionalSetup();
-            Timer timer = new Timer(1000, new ActionListener() {//calling while running every 1000 ms
+            Timer timer = new Timer(500, new ActionListener() {//calling while running every 1000 ms
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     try {

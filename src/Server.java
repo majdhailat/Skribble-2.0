@@ -27,10 +27,10 @@ public class Server {
     private boolean running = true;//if the server is running
     private String gameStatus = DataPackage.WAITINGTOSTART;
 
-    private int roundTimeLength = 90;
+    private int roundTimeLength = 60;
     private int timeRemainingInRound = roundTimeLength;//the time remaining in the round
 
-    private int totalNumOfRounds = 2;
+    private int totalNumOfRounds = 6;
     private int roundsLeft = totalNumOfRounds;
 
     private ArrayList<Player> players = new ArrayList<>();//the players playing

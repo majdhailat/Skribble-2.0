@@ -69,6 +69,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
             playerList.setListData(dataPackage.getPlayers().toArray());
             messageList.setListData(messagesToRender.toArray());//setting the data for the messages list to the updated array
             previousMessagesToRenderSize = messagesToRender.size();//resetting size
+
+        }
+        if (loadedAssets){
             messagePaneScrollBar.setValue(messagePaneScrollBar.getMaximum());//temp until fix
         }
     }
@@ -111,6 +114,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
         if (status.equals(DataPackage.WAITINGTOSTART)){
             g.drawImage(canvasImage, (int)canvasPanel.getX(), (int)canvasPanel.getY(), null);
+            g.drawString("Waiting for players", 520, 30);
         }
         if (status.equals(DataPackage.ROUNDINPROGRESS)) {
             //TIMER ~~~
@@ -122,11 +126,11 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
                 int wordLen = dataPackage.getMagicWord().length();
                 for (int i = 0; i < wordLen; i++) {
                     if (dataPackage.getMagicWord().charAt(i) != ' ') {//skipping spaces
-                        g.drawImage(letterPlaceHolderImage, (640 - ((wordLen * 40 + ((wordLen - 1) * 20)) / 2)) + ((i - 1) * 60), 30, null);
+                        g.drawImage(letterPlaceHolderImage, (640 - ((wordLen * 40 + ((wordLen - 1) * 12)) / 2)) + ((i - 1) * 60), 30, null);
                     }
                 }
             }else{//artist
-                g.drawString(""+dataPackage.getMagicWord(), 640 - ((dataPackage.getMagicWord().length() / 2) * 30), 30);
+                g.drawString(""+dataPackage.getMagicWord(), 640 - ((dataPackage.getMagicWord().length() / 2) * 25), 30);
             }
         }
 
@@ -397,7 +401,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
         playerList.setFixedCellHeight(75);
 
         messageList.setCellRenderer(PanelExtension.messageListRenderer(textFont));
-        messagePane.setBounds(955, 50, 305, 525);
+        messagePane.setBounds(955, 50, 305, 520);
         messagePane.setHorizontalScrollBarPolicy(messagePane.HORIZONTAL_SCROLLBAR_NEVER);
         add(messagePane);
     }
@@ -439,7 +443,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
     public void playSound() {
         clip.loop(Clip.LOOP_CONTINUOUSLY);
         try {
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("assets/lit.wav").getAbsoluteFile());
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("assets/lit(var).wav").getAbsoluteFile());
             clip.open(audioInputStream);
             clip.start();
         } catch(Exception ex) {
