@@ -34,7 +34,7 @@ public class Client extends JFrame {
      */
     public synchronized static void main(String[] args) {
         Client client = new Client();
-        String hostName = "majdspc.local";//HOST NAME
+        String hostName = "localhost";//HOST NAME
         int portNumber = 4445;//PORT NUMBER
         try (Socket socket = new Socket(hostName, portNumber)) {//connecting to server
             new ClientInputThread(socket, client).start();//starting input thread

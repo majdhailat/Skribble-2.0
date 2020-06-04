@@ -27,10 +27,10 @@ public class Server {
     private boolean running = true;//if the server is running
     private String gameStatus = DataPackage.WAITINGTOSTART;
 
-    private int roundTimeLength = 60;
+    private int roundTimeLength = 70;
     private int timeRemainingInRound = roundTimeLength;//the time remaining in the round
 
-    private int totalNumOfRounds = 6;
+    private int totalNumOfRounds = 10;
     private int roundsLeft = totalNumOfRounds;
 
     private ArrayList<Player> players = new ArrayList<>();//the players playing
@@ -58,7 +58,7 @@ public class Server {
     //sets up for a brand new game of x rounds (not determined yet)
     public void newGame(){
         try {
-            loadMagicWords("word lists/minecraft.txt");
+            loadMagicWords("word lists/words");
         } catch (IOException e) {e.printStackTrace();}
         Player.clearPreviousArtists();
         newRound();
